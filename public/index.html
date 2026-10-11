@@ -21,6 +21,44 @@
       padding-bottom: 75px;
     }
 
+    /* Thanh thông báo chạy */
+    .marquee-container {
+      background: #FFF3CD;
+      color: #856404;
+      border: 1px solid #FFEEBA;
+      border-radius: 4px;
+      padding: 8px 12px;
+      overflow: hidden;
+      white-space: nowrap;
+      position: relative;
+      max-width: 1400px;
+      margin: 0 auto 12px auto;
+      font-weight: bold;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+    }
+    .marquee-container i {
+      margin-right: 8px;
+      font-size: 15px;
+      color: #856404;
+      flex-shrink: 0;
+    }
+    .marquee-text-wrap {
+      overflow: hidden;
+      width: 100%;
+    }
+    .marquee-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 25s linear infinite;
+    }
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+
     .panel-custom {
       background: #FFFFFF;
       border: 1px solid #C4D5E5;
@@ -274,6 +312,16 @@
 </head>
 <body>
 
+  <!-- Thanh thông báo chạy -->
+  <div class="marquee-container">
+    <i class="fa fa-bullhorn"></i>
+    <div class="marquee-text-wrap">
+      <div class="marquee-content" id="marqueeText">
+        <span>Đang tải thông báo hệ thống...</span>
+      </div>
+    </div>
+  </div>
+
   <div class="panel-custom">
     <div class="panel-heading">
       <div>
@@ -387,6 +435,15 @@
     }
 
     $(document).ready(function() {
+      // Tải nội dung thanh thông báo chạy
+      fetch(`${API_BASE}/api/thong-bao`)
+        .then(r => r.json())
+        .then(res => {
+          if (res.success && res.text) {
+            $('#marqueeText').html(`<span>${res.text}</span>`);
+          }
+        }).catch(err => {});
+
       fetch(`${API_BASE}/api/log-access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
