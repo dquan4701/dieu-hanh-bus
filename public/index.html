@@ -21,11 +21,11 @@
       padding-bottom: 75px;
     }
 
-    /* Thanh thông báo chạy */
+    /* Thanh thông báo chạy - Tông xanh dương đồng bộ, mặc định ẩn */
     .marquee-container {
-      background: #FFF3CD;
-      color: #856404;
-      border: 1px solid #FFEEBA;
+      background: #EBF2F8;
+      color: #1A5276;
+      border: 1px solid #C4D5E5;
       border-radius: 4px;
       padding: 8px 12px;
       overflow: hidden;
@@ -36,13 +36,13 @@
       font-weight: bold;
       font-size: 13px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-      display: flex;
+      display: none;
       align-items: center;
     }
     .marquee-container i {
       margin-right: 8px;
       font-size: 15px;
-      color: #856404;
+      color: #3B86C4;
       flex-shrink: 0;
     }
     .marquee-text-wrap {
@@ -312,13 +312,11 @@
 </head>
 <body>
 
-  <!-- Thanh thông báo chạy -->
-  <div class="marquee-container">
+  <!-- Thanh thông báo chạy (mặc định ẩn nếu trống) -->
+  <div class="marquee-container" id="marqueeWrapper">
     <i class="fa fa-bullhorn"></i>
     <div class="marquee-text-wrap">
-      <div class="marquee-content" id="marqueeText">
-        <span>Đang tải thông báo hệ thống...</span>
-      </div>
+      <div class="marquee-content" id="marqueeText"></div>
     </div>
   </div>
 
@@ -409,13 +407,13 @@
     const API_BASE = "https://dieu-hanh-bus.onrender.com";
     
     function showToast(message, type = 'success') {
-      let $container = $('#toast-container');
-      if ($container.length === 0) { $('body').append('<div id="toast-container"></div>');
-        $container = $('#toast-container');
+      let $container =$('#toast-container');
+      if ($container.length === 0) {$('body').append('<div id="toast-container"></div>');
+        $container =$('#toast-container');
       }
 
       const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-      const $toast = $(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
+      const $toast =$(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
       
       $container.append($toast);
       setTimeout(() => { $toast.remove(); }, 3000);
@@ -427,7 +425,7 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active'); $('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -435,14 +433,19 @@
     }
 
     $(document).ready(function() {
-      // Tải nội dung thanh thông báo chạy
+      // Tải nội dung thanh thông báo chạy (chỉ hiển thị nếu có nội dung)
       fetch(`${API_BASE}/api/thong-bao`)
         .then(r => r.json())
         .then(res => {
-          if (res.success && res.text) {
+          if (res.success && res.text && res.text.trim() !== "") {
             $('#marqueeText').html(`<span>${res.text}</span>`);
+            $('#marqueeWrapper').css('display', 'flex');
+          } else {
+            $('#marqueeWrapper').hide();
           }
-        }).catch(err => {});
+        }).catch(err => {
+          $('#marqueeWrapper').hide();
+        });
 
       fetch(`${API_BASE}/api/log-access`, {
         method: 'POST',
@@ -468,7 +471,7 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box = $('#ketQuaTraCuuXe');
+      const $box =$('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
@@ -525,9 +528,9 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn = $('#selXn');
+        const $selXn =$('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
-        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn))); $selXn.trigger('change');
+        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn)));$selXn.trigger('change');
       } catch (err) {
         console.error("Lỗi khi tải danh mục:", err);
       }
@@ -535,14 +538,14 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen = $('#selTuyen');
-      const $selNgay = $('#selNgayApDung');
+      const $selTuyen =$('#selTuyen');
+      const $selNgay =$('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
       if (!xn) {
-        $selTuyen.trigger('change'); $selNgay.trigger('change');
+        $selTuyen.trigger('change');$selNgay.trigger('change');
         return;
       }
 
@@ -554,7 +557,7 @@
         $selTuyen.append(new Option(tuyen, tuyen));
       });
 
-      $selTuyen.trigger('change'); $selNgay.trigger('change');
+      $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
     function parseDateInfo(str) {
@@ -581,7 +584,7 @@
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay = $('#selNgayApDung');
+      const $selNgay =$('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
@@ -601,7 +604,7 @@
       });
 
       if (bestDate) {
-        $selNgay.append(new Option(bestDate.label, bestDate.label)); $selNgay.val(bestDate.label);
+        $selNgay.append(new Option(bestDate.label, bestDate.label));$selNgay.val(bestDate.label);
       }
       $selNgay.trigger('change');
     }
@@ -669,7 +672,7 @@
         return;
       }
 
-      const $btn = $('.btn-view'); $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
@@ -838,7 +841,7 @@
 
       $('#mainScheduleTable').html(html);
       $('#viewerWrapper').show();
-      $('html, body').animate({ scrollTop: $('#viewerWrapper').offset().top - 20 }, 300);
+      $('html, body').animate({ scrollTop:$('#viewerWrapper').offset().top - 20 }, 300);
     }
 
     function chuyenNhanhSangBieuDo(xn, tenTuyen) {
