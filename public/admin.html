@@ -208,7 +208,7 @@
       const role = sessionStorage.getItem('admin_role');
       const permissions = JSON.parse(sessionStorage.getItem('admin_permissions') || '[]');
 
-      $('#menuTuyen, #menuExcel, #menuDoixe, #menuBieudo, #menuQuanTriUser, #menuLog').show();
+      $('#menuTuyen, #menuExcel, #menuDoixe, #menuBieudo, #menuThongBao, #menuQuanTriUser, #menuLog').show();
 
       if (role === 'master' || sessionStorage.getItem('admin_user') === 'quan') {
         $('#menuQuanTriUser, #menuLog').show();
@@ -246,6 +246,7 @@
         <li id="menuExcel"><a onclick="chuyenTabAdmin('sec-excel', this)"><i class="fa fa-file-excel-o"></i> Nạp danh sách xe Excel</a></li>
         <li id="menuDoixe"><a onclick="chuyenTabAdmin('sec-doixe', this)"><i class="fa fa-table"></i> Quản lý toàn bộ Đội xe</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
+        <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
         <li id="menuQuanTriUser" style="display:none;"><a onclick="chuyenTabAdmin('sec-users', this)"><i class="fa fa-users"></i> Quản trị người dùng</a></li>
         <li id="menuLog" style="display:none;"><a onclick="chuyenTabAdmin('sec-log', this)"><i class="fa fa-history"></i> Nhật ký truy cập web</a></li>
         <li><a href="index.html"><i class="fa fa-arrow-left"></i> Về trang tra cứu</a></li>
@@ -434,6 +435,25 @@
           </div>
         </div>
 
+        <!-- SECTION: QUẢN LÝ THÔNG BÁO CHẠY -->
+        <div id="sec-thongbao" class="content-section">
+          <div class="panel-custom">
+            <div class="panel-heading"><span><i class="fa fa-bullhorn"></i> Quản lý Nội dung Thông báo chạy (Marquee)</span></div>
+            <div class="panel-body">
+              <div class="form-grid">
+                <label>Nội dung thông báo:</label>
+                <div class="input-combo">
+                  <textarea id="txtNoiDungThongBao" class="form-control" style="height: 100px; font-family: inherit;" placeholder="Nhập nội dung thông báo hiển thị phía trên trang tra cứu..."></textarea>
+                </div>
+                <div></div>
+                <div>
+                  <button class="btn btn-success" onclick="luuThongBaoChay()"><i class="fa fa-save"></i> Cập nhật thông báo</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- SECTION 6: QUẢN TRỊ NGƯỜI DÙNG & PHÂN QUYỀN -->
         <div id="sec-users" class="content-section">
           <div class="panel-custom">
@@ -549,6 +569,8 @@
         taiDanhSachTaiKhoan();
       } else if (sectionId === 'sec-log') {
         taiDanhSachLog();
+      } else if (sectionId === 'sec-thongbao') {
+        taiTaiThongBaoAdmin();
       }
     }
 
@@ -591,6 +613,26 @@
 
       napDuLieuTong();
     });
+
+    async function taiTaiThongBaoAdmin() {
+      try {
+        const res = await fetch(`${API_BASE}/api/thong-bao`).then(r => r.json());
+        if (res.success) {
+          $('#txtNoiDungThongBao').val(res.text || '');
+        }
+      } catch (err) {}
+    }
+
+    async function luuThongBaoChay() {
+      const text = $('#txtNoiDungThongBao').val().trim();
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/luu-thong-bao`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        }).then(r => r.json());
+        showToast(res.message, res.success ? 'success' : 'error');
+      } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
+    }
 
     function toggleExtraInput(selectId, inputId) {
       const val = $('#' + selectId).val();
