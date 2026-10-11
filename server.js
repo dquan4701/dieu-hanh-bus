@@ -143,7 +143,7 @@ async function getRawData() {
     const fileData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
     return await cleanAndSyncData(fileData);
   }
-  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [] };
+  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [], thongBaoChay: "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!" };
 }
 
 async function saveRawDataFast(data) {
@@ -162,6 +162,29 @@ async function saveRawData(data) {
     { upsert: true, returnDocument: 'after' }
   );
 }
+
+// API LẤY NỘI DUNG THÔNG BÁO CHẠY
+app.get('/api/thong-bao', async (req, res) => {
+  try {
+    const raw = await getRawData();
+    res.json({ success: true, text: raw.thongBaoChay || "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// API LƯU NỘI DUNG THÔNG BÁO CHẠY (Admin)
+app.post('/api/admin/luu-thong-bao', async (req, res) => {
+  try {
+    const { text } = req.body;
+    const raw = await getRawData();
+    raw.thongBaoChay = text || "";
+    await saveRawDataFast(raw);
+    res.json({ success: true, message: 'Cập nhật nội dung thông báo thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 app.post('/api/log-access', async (req, res) => {
   try {
