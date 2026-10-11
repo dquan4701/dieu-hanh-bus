@@ -121,6 +121,10 @@ mongoose.connect(MONGO_URI)
           { username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }
         ];
       }
+      // Đảm bảo không bị dính giá trị cũ mặc định nếu đã xóa
+      if (doc.data.thongBaoChay === "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!") {
+        doc.data.thongBaoChay = "";
+      }
       const cleanedData = await cleanAndSyncData(doc.data);
       await BusModel.findOneAndUpdate({ key: 'main_data' }, { key: 'main_data', data: cleanedData }, { upsert: true });
       console.log('>>> Đã tự động làm sạch và đồng bộ dữ liệu thành công!');
@@ -143,7 +147,7 @@ async function getRawData() {
     const fileData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
     return await cleanAndSyncData(fileData);
   }
-  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [], thongBaoChay: "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!" };
+  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [], thongBaoChay: "" };
 }
 
 async function saveRawDataFast(data) {
@@ -167,7 +171,7 @@ async function saveRawData(data) {
 app.get('/api/thong-bao', async (req, res) => {
   try {
     const raw = await getRawData();
-    res.json({ success: true, text: raw.thongBaoChay || "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!" });
+    res.json({ success: true, text: raw.thongBaoChay || "" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -178,7 +182,7 @@ app.post('/api/admin/luu-thong-bao', async (req, res) => {
   try {
     const { text } = req.body;
     const raw = await getRawData();
-    raw.thongBaoChay = text || "";
+    raw.thongBaoChay = text !== undefined ? text : "";
     await saveRawDataFast(raw);
     res.json({ success: true, message: 'Cập nhật nội dung thông báo thành công!' });
   } catch (err) {
@@ -517,7 +521,7 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
         if (!raw.tuyenList[currentMaTuyen]) {
           let dauA = "", dauB = "";
           const loTrinhParts = currentTenLoTrinh.split('-');
-          if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinhParts[1].trim(); }
+          if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinkParts[1].trim(); }
           raw.tuyenList[currentMaTuyen] = {
             maTuyen: currentMaTuyen, tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
             xn: "Transerco", dauA, dauB, soXeVd: 0, soXeKh: 0, soXe: 0, loaiXe: "", sucChua: "", status: "active"
