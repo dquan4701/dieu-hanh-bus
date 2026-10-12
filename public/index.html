@@ -21,12 +21,22 @@
       padding-bottom: 75px;
     }
 
+    /* Hiệu ứng mượt mà kiểu iOS */
+    button, .btn-view, select, input, .nav-btn {
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:active, .btn-view:active, .nav-btn:active {
+      transform: scale(0.96) !important;
+      transition-duration: 0.1s !important;
+    }
+
     /* Thanh thông báo chạy - Tông xanh dương đồng bộ, mặc định ẩn */
     .marquee-container {
       background: #EBF2F8;
       color: #1A5276;
       border: 1px solid #C4D5E5;
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 8px 12px;
       overflow: hidden;
       white-space: nowrap;
@@ -45,10 +55,7 @@
       color: #3B86C4;
       flex-shrink: 0;
     }
-    .marquee-text-wrap {
-      overflow: hidden;
-      width: 100%;
-    }
+    .marquee-text-wrap { overflow: hidden; width: 100%; }
     .marquee-content {
       display: inline-block;
       padding-left: 100%;
@@ -62,8 +69,8 @@
     .panel-custom {
       background: #FFFFFF;
       border: 1px solid #C4D5E5;
-      border-radius: 4px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       max-width: 1400px;
       margin: 0 auto;
       overflow: hidden;
@@ -72,7 +79,7 @@
     .panel-heading {
       background: #3B86C4;
       color: #FFFFFF;
-      padding: 10px 15px;
+      padding: 12px 16px;
       font-size: 13px;
       font-weight: bold;
       text-transform: uppercase;
@@ -103,12 +110,15 @@
       padding: 3px 8px;
       font-size: 12px;
       border: 1px solid #CCCCCC;
-      border-radius: 3px;
+      border-radius: 6px;
       outline: none;
       background-color: #FFFFFF;
       width: 100%;
     }
-    .form-control:focus { border-color: #3B86C4; }
+    .form-control:focus { 
+      border-color: #3B86C4; 
+      box-shadow: 0 0 0 3px rgba(59, 134, 196, 0.15);
+    }
 
     .days-row {
       display: flex;
@@ -130,16 +140,21 @@
       background-color: #337AB7;
       color: #FFFFFF;
       border: 1px solid #2E6DA4;
-      padding: 8px 20px;
+      padding: 9px 22px;
       font-size: 13px;
       font-weight: bold;
-      border-radius: 3px;
+      border-radius: 6px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 2px 5px rgba(51, 122, 183, 0.2);
     }
-    .btn-view:hover { background-color: #286090; }
+    .btn-view:hover { 
+      background-color: #286090; 
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(51, 122, 183, 0.35);
+    }
 
     .viewer-wrapper {
       margin-top: 20px;
@@ -147,6 +162,12 @@
       padding-top: 15px;
       display: none;
       width: 100%;
+      animation: fadeInSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .table-scroll {
@@ -209,7 +230,7 @@
     .select2-container .select2-selection--single {
       height: 34px !important;
       border: 1px solid #ccc !important;
-      border-radius: 3px !important;
+      border-radius: 6px !important;
       display: flex;
       align-items: center;
     }
@@ -230,6 +251,7 @@
       margin-top: 12px;
       padding: 14px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      animation: fadeInSlide 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .bottom-nav {
@@ -289,7 +311,7 @@
       background: #2C3E50;
       color: #FFF;
       padding: 12px 16px;
-      border-radius: 4px;
+      border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       font-size: 13px;
       display: flex;
@@ -312,7 +334,7 @@
 </head>
 <body>
 
-  <!-- Thanh thông báo chạy (mặc định ẩn nếu trống) -->
+  <!-- Thanh thông báo chạy -->
   <div class="marquee-container" id="marqueeWrapper">
     <i class="fa fa-bullhorn"></i>
     <div class="marquee-text-wrap">
@@ -407,13 +429,13 @@
     const API_BASE = "https://dieu-hanh-bus.onrender.com";
     
     function showToast(message, type = 'success') {
-      let $container =$('#toast-container');
-      if ($container.length === 0) {$('body').append('<div id="toast-container"></div>');
-        $container =$('#toast-container');
+      let $container = $('#toast-container');
+      if ($container.length === 0) { $('body').append('<div id="toast-container"></div>');
+        $container = $('#toast-container');
       }
 
       const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-      const $toast =$(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
+      const $toast = $(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
       
       $container.append($toast);
       setTimeout(() => { $toast.remove(); }, 3000);
@@ -425,7 +447,7 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active'); $('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -433,7 +455,7 @@
     }
 
     $(document).ready(function() {
-      // Tải nội dung thanh thông báo chạy (chỉ hiển thị nếu có nội dung)
+      // Tải nội dung thanh thông báo chạy
       fetch(`${API_BASE}/api/thong-bao`)
         .then(r => r.json())
         .then(res => {
@@ -471,7 +493,7 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box =$('#ketQuaTraCuuXe');
+      const $box = $('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
@@ -501,7 +523,7 @@
                   </div>
                 </div>
                 <div style="margin-top: 10px; border-top: 1px dashed #E1E4E8; padding-top: 8px; text-align: right;">
-                  <button onclick="chuyenNhanhSangBieuDo('${xe.xn}', '${xe.tenTuyen}')" style="background: #27AE60; color: #FFF; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; width: 100%;">
+                  <button onclick="chuyenNhanhSangBieuDo('${xe.xn}', '${xe.tenTuyen}')" style="background: #27AE60; color: #FFF; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; width: 100%; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
                     <i class="fa fa-calendar"></i> Xem biểu đồ Tuyến ${xe.maTuyen}
                   </button>
                 </div>
@@ -528,9 +550,9 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn =$('#selXn');
+        const $selXn = $('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
-        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn)));$selXn.trigger('change');
+        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn))); $selXn.trigger('change');
       } catch (err) {
         console.error("Lỗi khi tải danh mục:", err);
       }
@@ -538,14 +560,14 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen =$('#selTuyen');
-      const $selNgay =$('#selNgayApDung');
+      const $selTuyen = $('#selTuyen');
+      const $selNgay = $('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
       if (!xn) {
-        $selTuyen.trigger('change');$selNgay.trigger('change');
+        $selTuyen.trigger('change'); $selNgay.trigger('change');
         return;
       }
 
@@ -557,7 +579,7 @@
         $selTuyen.append(new Option(tuyen, tuyen));
       });
 
-      $selTuyen.trigger('change');$selNgay.trigger('change');
+      $selTuyen.trigger('change'); $selNgay.trigger('change');
     }
 
     function parseDateInfo(str) {
@@ -584,7 +606,7 @@
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay =$('#selNgayApDung');
+      const $selNgay = $('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
@@ -604,7 +626,7 @@
       });
 
       if (bestDate) {
-        $selNgay.append(new Option(bestDate.label, bestDate.label));$selNgay.val(bestDate.label);
+        $selNgay.append(new Option(bestDate.label, bestDate.label)); $selNgay.val(bestDate.label);
       }
       $selNgay.trigger('change');
     }
@@ -672,7 +694,7 @@
         return;
       }
 
-      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view'); $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
