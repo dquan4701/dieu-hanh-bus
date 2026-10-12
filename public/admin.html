@@ -18,6 +18,16 @@
       font-size: 12px; background-color: #F1F4F9; color: #333;
     }
 
+    /* Hiệu ứng mượt mà kiểu iOS cho admin */
+    button, .btn, select, input, .sidebar-menu li a, .nav-btn {
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:active, .btn:active {
+      transform: scale(0.96) !important;
+      transition-duration: 0.1s !important;
+    }
+
     body.locked {
       overflow: hidden !important; height: 100vh !important; position: fixed !important; width: 100vw !important;
     }
@@ -46,7 +56,7 @@
     .sidebar-menu li a {
       display: flex; align-items: center; gap: 10px; padding: 12px 20px;
       color: #BDC3C7; text-decoration: none; font-size: 12px; font-weight: bold;
-      border-left: 4px solid transparent; transition: all 0.2s; cursor: pointer;
+      border-left: 4px solid transparent; cursor: pointer;
     }
     .sidebar-menu li a:hover, .sidebar-menu li a.active {
       background: #34495E; color: #FFF; border-left-color: #3B86C4;
@@ -61,11 +71,16 @@
     .content-body { flex-grow: 1; overflow-y: auto; padding: 20px; }
 
     .content-section { display: none; }
-    .content-section.active { display: block; }
+    .content-section.active { display: block; animation: iosFadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    @keyframes iosFadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     .dashboard-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
     .stat-card {
-      background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 5px;
+      background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px;
       padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
     .stat-card .info h4 { font-size: 11px; text-transform: uppercase; color: #777; margin-bottom: 5px; }
@@ -76,7 +91,7 @@
     .stat-card.green { border-left: 4px solid #27AE60; } .stat-card.green .icon { color: #27AE60; }
     .stat-card.orange { border-left: 4px solid #E67E22; } .stat-card.orange .icon { color: #E67E22; }
 
-    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
     .panel-heading {
       background: #EBF2F8; color: #2C3E50; padding: 10px 15px; font-size: 13px;
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
@@ -85,14 +100,14 @@
     .form-grid { display: grid; grid-template-columns: 160px 1fr; row-gap: 14px; column-gap: 15px; align-items: center; }
     .input-combo { display: flex; gap: 10px; max-width: 800px; width: 100%; align-items: center; flex-wrap: wrap; }
     .form-control {
-      height: 32px; padding: 3px 8px; font-size: 12px; border: 1px solid #CCCCCC; border-radius: 3px; outline: none; width: 100%; background-color: #FFFFFF;
+      height: 32px; padding: 3px 8px; font-size: 12px; border: 1px solid #CCCCCC; border-radius: 6px; outline: none; width: 100%; background-color: #FFFFFF;
     }
-    .form-control:focus { border-color: #3B86C4; }
+    .form-control:focus { border-color: #3B86C4; box-shadow: 0 0 0 3px rgba(59, 134, 196, 0.15); }
     .form-control[readonly] { background-color: #EBF2F8; color: #555; cursor: not-allowed; }
     textarea.form-control { height: 140px; font-family: monospace; max-width: 100%; }
 
     .btn {
-      padding: 7px 16px; font-size: 12px; font-weight: bold; border-radius: 3px;
+      padding: 7px 16px; font-size: 12px; font-weight: bold; border-radius: 6px;
       cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; color: #fff;
     }
     .btn-success { background-color: #5cb85c; border-color: #4cae4c; }
@@ -100,7 +115,7 @@
     .btn-danger { background-color: #d9534f; border-color: #d43f3a; }
     .btn-warning { background-color: #f0ad4e; border-color: #eea236; }
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
-    .btn:hover { opacity: 0.9; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
     .extra-input { display: none; border-color: #e67e22; background-color: #fffaf0; }
     .radio-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
@@ -118,19 +133,17 @@
     .status-missing-chart { background-color: #FCE8E6; color: #C5221F; }
 
     .filter-box {
-      background: #F8FAFC; border: 1px solid #D0D7DE; border-radius: 4px; padding: 12px 15px; margin-bottom: 12px;
+      background: #F8FAFC; border: 1px solid #D0D7DE; border-radius: 6px; padding: 12px 15px; margin-bottom: 12px;
       display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: center;
     }
 
-    .select2-container .select2-selection--single { height: 32px !important; border: 1px solid #ccc !important; border-radius: 3px !important; display: flex; align-items: center; }
+    .select2-container .select2-selection--single { height: 32px !important; border: 1px solid #ccc !important; border-radius: 6px !important; display: flex; align-items: center; }
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
-    .select2-dropdown { font-size: 12px !important; border: 1px solid #3B86C4 !important; }
-    .select2-container--open { z-index: 10005 !important; }
 
     #toast-container { position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; }
     .custom-toast {
-      min-width: 280px; max-width: 380px; background: #2C3E50; color: #FFF; padding: 12px 16px; border-radius: 4px;
+      min-width: 280px; max-width: 380px; background: #2C3E50; color: #FFF; padding: 12px 16px; border-radius: 6px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 13px; display: flex; align-items: center; gap: 10px;
       animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards; border-left: 4px solid #3B86C4;
     }
@@ -155,7 +168,7 @@
       </div>
       <input type="text" id="txtAdminId" class="form-control" placeholder="Tài khoản quản trị" style="margin-bottom: 12px; height: 38px;">
       <input type="password" id="txtAdminPass" class="form-control" placeholder="Mật khẩu" style="margin-bottom: 16px; height: 38px;" onkeypress="if(event.key === 'Enter') xuLyDangNhapAdmin()">
-      <button onclick="xuLyDangNhapAdmin()" style="width: 100%; background: #3B86C4; color: #FFF; border: none; padding: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 13px; margin-bottom: 10px;">
+      <button onclick="xuLyDangNhapAdmin()" style="width: 100%; background: #3B86C4; color: #FFF; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; margin-bottom: 10px;">
         Truy cập hệ thống
       </button>
       <a href="index.html" style="display: block; font-size: 12px; color: #666; text-decoration: none; margin-bottom: 10px;">
@@ -728,12 +741,12 @@
           return (a.maTuyen || '').localeCompare(b.maTuyen || '', undefined, { numeric: true, sensitivity: 'base' });
         });
 
-        const $filterTuyen = $('#filterTuyenXe');
+        const $filterTuyen =$('#filterTuyenXe');
         $filterTuyen.empty().append('<option value="">-- Tất cả tuyến --</option>');
         sortedRoutes.forEach(t => { $filterTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $filterTuyen.trigger('change.select2');
 
-        const $selSua = $('#selChonTuyenDeSua');
+        const $selSua =$('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
         sortedRoutes.forEach(t => {
           const lockText = t.status === 'locked' ? ' [ĐÃ KHÓA]' : '';
@@ -741,16 +754,16 @@
         });
         $selSua.trigger('change.select2');
 
-        const $selTuyen = $('#selChonTuyen');
+        const $selTuyen =$('#selChonTuyen');
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
           const isSelected = chonMaTuyenMoi && (t.maTuyen === chonMaTuyenMoi);
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
-          $(opt).attr('data-xn', t.xn); $selTuyen.append(opt);
+          $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
         });
-        if (selectedVal) $selTuyen.val(selectedVal); $selTuyen.trigger('change.select2');
+        if (selectedVal) $selTuyen.val(selectedVal);$selTuyen.trigger('change.select2');
 
         veBangDanhSachTuyen(sortedRoutes);
         veBangTrangThaiBieuDo(sortedRoutes);
@@ -871,7 +884,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]); $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -886,16 +899,16 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel = $('#' + elemId);
+      const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
+      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
       $sel.trigger('change.select2');
     }
 
     function doVaoSelect2ThongThuong(elemId, dataSet, defaultText) {
-      const $sel = $('#' + elemId);
+      const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">${defaultText}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.trigger('change.select2');
+      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.trigger('change.select2');
     }
 
     function onSelectTuyenChange() {
@@ -996,7 +1009,7 @@
       $('#dcBks').val(bks);
       const $sel = $('#dcTuyenMoi'); $sel.empty();
       mapTuyenChiTiet.forEach(t => { $sel.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
-      $sel.select2({ dropdownParent: $('#modalDieuChuyen'), language: { noResults: () => "Không tìm thấy" } });
+      $sel.select2({ dropdownParent:$('#modalDieuChuyen'), language: { noResults: () => "Không tìm thấy" } });
       $('#modalDieuChuyen').css('display', 'flex');
     }
 
