@@ -779,7 +779,7 @@
       }
     }
 
-    // NÂNG CẤP: Hiển thị chi tiết file biểu đồ và các nút Sửa / Xóa nhanh
+    // SỬA: Dùng Regex tuyệt đối khắt khe để 01 chỉ khớp 01, không nhầm lẫn 01B, 101A, 101B,...
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
@@ -789,10 +789,14 @@
           let maTuyenCurrent = String(t.maTuyen || '').trim().toUpperCase();
           let tenTuyenCurrent = String(t.tenTuyen || '').trim().toUpperCase();
           
+          // Regex khớp chính xác từ độc lập (tránh trường hợp "01" khớp nhầm "01B" hay "101")
+          const exactRegex = new RegExp('(^|[^0-9A-Z])' + maTuyenCurrent + '($|[^0-9A-Z])', 'i');
+
           const matchedCharts = dsBieuDoLuu.filter(b => {
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
-            return bTuyen.includes(maTuyenCurrent) || tenTuyenCurrent.includes(bTuyen) || bTab.includes(maTuyenCurrent) || bTuyen === maTuyenCurrent;
+            
+            return bTuyen === tenTuyenCurrent || bTuyen === maTuyenCurrent || exactRegex.test(bTab) || exactRegex.test(bTuyen);
           });
 
           if (matchedCharts.length > 0) {
