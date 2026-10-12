@@ -779,7 +779,7 @@
       }
     }
 
-    // SỬA TUYỆT ĐỐI CHÍNH XÁC: Chỉ khớp khi tên tab/file bắt đầu bằng đúng mã tuyến, không bị lẫn số ngày tháng ở đuôi
+    // SỬA FIX TRIỆT ĐỂ: Chỉ khớp khi mã tuyến ở đầu tên tab/file (Ví dụ: "15 (1.9.26)" -> lấy "15"), không quét số ngày tháng ở đuôi
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
@@ -793,11 +793,15 @@
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
             
-            // So khớp tuyệt đối: Trường tuyến trùng khớp HOẶC tên tab bắt đầu bằng đúng mã tuyến (VD: "11 (...)")
+            // 1. Kiểm tra trường tuyen có khớp tuyệt đối không
             const isMatchTuyenField = (bTuyen === tenTuyenCurrent || bTuyen === maTuyenCurrent);
-            const isMatchTabStart = new RegExp('^' + maTuyenCurrent + '(\\s|\\(|$)', 'i').test(bTab);
             
-            return isMatchTuyenField || isMatchTabStart;
+            // 2. Bóc tách chính xác từ đầu tiên của tên tab (VD: "15 (1.9.26)" -> lấy "15")
+            let matchPrefix = bTab.match(/^([0-9A-Za-z]+)/);
+            let maTabPrefix = matchPrefix ? matchPrefix[1].toUpperCase() : "";
+            const isMatchPrefix = (maTabPrefix === maTuyenCurrent);
+
+            return isMatchTuyenField || isMatchPrefix;
           });
 
           if (matchedCharts.length > 0) {
