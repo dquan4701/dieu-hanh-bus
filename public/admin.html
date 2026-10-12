@@ -241,7 +241,7 @@
     function dangXuatAdmin() {
       if (confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị không?")) {
         sessionStorage.clear();
-        showToast("Đã đăng xuất thành công!", "success");
+        showToast("Đăng xuất thành công!", "success");
         setTimeout(() => { location.reload(); }, 500);
       }
     }
@@ -779,7 +779,7 @@
       }
     }
 
-    // SỬA: Dùng Regex tuyệt đối khắt khe để 01 chỉ khớp 01, không nhầm lẫn 01B, 101A, 101B,...
+    // SỬA TUYỆT ĐỐI CHÍNH XÁC: Chỉ khớp khi tên tab/file bắt đầu bằng đúng mã tuyến, không bị lẫn số ngày tháng ở đuôi
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
@@ -789,14 +789,15 @@
           let maTuyenCurrent = String(t.maTuyen || '').trim().toUpperCase();
           let tenTuyenCurrent = String(t.tenTuyen || '').trim().toUpperCase();
           
-          // Regex khớp chính xác từ độc lập (tránh trường hợp "01" khớp nhầm "01B" hay "101")
-          const exactRegex = new RegExp('(^|[^0-9A-Z])' + maTuyenCurrent + '($|[^0-9A-Z])', 'i');
-
           const matchedCharts = dsBieuDoLuu.filter(b => {
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
             
-            return bTuyen === tenTuyenCurrent || bTuyen === maTuyenCurrent || exactRegex.test(bTab) || exactRegex.test(bTuyen);
+            // So khớp tuyệt đối: Trường tuyến trùng khớp HOẶC tên tab bắt đầu bằng đúng mã tuyến (VD: "11 (...)")
+            const isMatchTuyenField = (bTuyen === tenTuyenCurrent || bTuyen === maTuyenCurrent);
+            const isMatchTabStart = new RegExp('^' + maTuyenCurrent + '(\\s|\\(|$)', 'i').test(bTab);
+            
+            return isMatchTuyenField || isMatchTabStart;
           });
 
           if (matchedCharts.length > 0) {
@@ -1009,7 +1010,7 @@
       const soXeKh = $('#txtSoXeKh').val().trim();
       const loaiXe = $('#txtLoaiXe').val().trim();
       const sucChua = $('#txtSucChua').val().trim();
-      const status = $('input[name="rdStatus"]:checked').val() || 'active';
+      const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
 
       if (!maTuyen || !tenTuyen || !xn) { showToast("Vui lòng điền đủ Mã tuyến, Đơn vị và Tên tuyến!", "error"); return; }
       try {
