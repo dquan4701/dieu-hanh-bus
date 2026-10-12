@@ -437,9 +437,17 @@
               </div>
               <div style="margin-top: 25px; border-top: 1px solid #D0D7DE; padding-top: 15px;">
                 <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 10px;"><i class="fa fa-exclamation-triangle" style="color:#e67e22;"></i> Kiểm tra trạng thái Biểu đồ các tuyến:</h4>
-                <div style="overflow-x: auto; max-height: 250px;">
+                <div style="overflow-x: auto; max-height: 300px;">
                   <table class="table-custom">
-                    <thead><tr><th style="width: 70px; text-align: center;">Mã tuyến</th><th>Tên Tuyến</th><th style="width: 160px; text-align: center;">Trạng thái Biểu đồ</th></tr></thead>
+                    <thead>
+                      <tr>
+                        <th style="width: 70px; text-align: center;">Mã tuyến</th>
+                        <th>Tên Tuyến</th>
+                        <th>Tên File / Tab Biểu Đồ</th>
+                        <th style="width: 140px; text-align: center;">Trạng thái</th>
+                        <th style="width: 130px; text-align: center;">Thao tác</th>
+                      </tr>
+                    </thead>
                     <tbody id="tblTrangThaiBieuDo"></tbody>
                   </table>
                 </div>
@@ -567,12 +575,10 @@
 
     function chuyenTabAdmin(sectionId, element) {
       $('.content-section').removeClass('active');
-      $('.sidebar-menu li a').removeClass('active');
-      $('#' + sectionId).addClass('active');
+      $('.sidebar-menu li a').removeClass('active');$('#' + sectionId).addClass('active');
       $(element).addClass('active');
 
-      const titleText = $(element).text().trim();
-      $('#navTitle').text(titleText);
+      const titleText = $(element).text().trim();$('#navTitle').text(titleText);
 
       if (window.innerWidth <= 768) {
         $('#sidebarMenu').removeClass('mobile-show');
@@ -599,8 +605,7 @@
     let dsBieuDoLuu = [];
     let dangLamMoi = false;
 
-    $(document).ready(function() {
-      $('.select2-search').select2({
+    $(document).ready(function() {$('.select2-search').select2({
         language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
       });
 
@@ -613,7 +618,7 @@
 
       $('#filterXnXe').on('change', function() {
         const selectedXn = $(this).val();
-        const $filterTuyen = $('#filterTuyenXe');
+        const $filterTuyen =$('#filterTuyenXe');
         $filterTuyen.empty().append('<option value="">-- Tất cả tuyến --</option>');
         mapTuyenChiTiet.forEach(t => {
           if (!selectedXn || (t.xn || '').toLowerCase() === selectedXn.toLowerCase()) {
@@ -649,7 +654,7 @@
 
     function toggleExtraInput(selectId, inputId) {
       const val = $('#' + selectId).val();
-      const $inp = $('#' + inputId);
+      const $inp =$('#' + inputId);
       if (val === "__NEW__") $inp.show().focus();
       else $inp.hide().val("");
     }
@@ -774,27 +779,87 @@
       }
     }
 
+    // NÂNG CẤP: Hiển thị chi tiết file biểu đồ và các nút Sửa / Xóa nhanh
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
-        html = '<tr><td colspan="3" style="text-align:center; color:#999; padding:15px;">Chưa có tuyến nào!</td></tr>';
+        html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:15px;">Chưa có tuyến nào!</td></tr>';
       } else {
         sortedRoutes.forEach(t => {
           let maTuyenCurrent = String(t.maTuyen || '').trim().toUpperCase();
           let tenTuyenCurrent = String(t.tenTuyen || '').trim().toUpperCase();
-          const hasChart = dsBieuDoLuu.some(b => {
+          
+          const matchedCharts = dsBieuDoLuu.filter(b => {
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
             return bTuyen.includes(maTuyenCurrent) || tenTuyenCurrent.includes(bTuyen) || bTab.includes(maTuyenCurrent) || bTuyen === maTuyenCurrent;
           });
-          const badge = hasChart
-            ? '<span class="status-badge status-has-chart"><i class="fa fa-check-circle"></i> Đã có biểu đồ</span>'
-            : '<span class="status-badge status-missing-chart"><i class="fa fa-exclamation-circle"></i> Thiếu / Thất lạc biểu đồ</span>';
 
-          html += `<tr><td style="text-align:center; font-weight:bold; color:#3B86C4;">${t.maTuyen}</td><td><strong>${t.tenTuyen}</strong></td><td style="text-align:center;">${badge}</td></tr>`;
+          if (matchedCharts.length > 0) {
+            matchedCharts.forEach((chart, idx) => {
+              const badge = '<span class="status-badge status-has-chart"><i class="fa fa-check-circle"></i> Đã có biểu đồ</span>';
+              const actionBtns = `
+                <div style="display:flex; gap:6px; justify-content:center;">
+                  <button class="btn btn-primary" style="padding:3px 8px; font-size:11px;" onclick="napBieuDoLenSua('${chart.tenTab}')"><i class="fa fa-pencil"></i> Sửa</button>
+                  <button class="btn btn-danger" style="padding:3px 8px; font-size:11px;" onclick="xoaBieuDoChiDinh('${chart.tenTab}')"><i class="fa fa-trash"></i> Xóa</button>
+                </div>
+              `;
+              html += `
+                <tr>
+                  <td style="text-align:center; font-weight:bold; color:#3B86C4;">${idx === 0 ? t.maTuyen : ''}</td>
+                  <td><strong>${idx === 0 ? t.tenTuyen : ''}</strong></td>
+                  <td><code style="color:#0F86DB; font-weight:bold;">${chart.tenTab}</code></td>
+                  <td style="text-align:center;">${badge}</td>
+                  <td style="text-align:center;">${actionBtns}</td>
+                </tr>
+              `;
+            });
+          } else {
+            const badge = '<span class="status-badge status-missing-chart"><i class="fa fa-exclamation-circle"></i> Thiếu biểu đồ</span>';
+            html += `
+              <tr>
+                <td style="text-align:center; font-weight:bold; color:#3B86C4;">${t.maTuyen}</td>
+                <td><strong>${t.tenTuyen}</strong></td>
+                <td><span style="color:#aaa; font-style:italic;">Chưa có file</span></td>
+                <td style="text-align:center;">${badge}</td>
+                <td style="text-align:center;"><span style="color:#ccc;">-</span></td>
+              </tr>
+            `;
+          }
         });
       }
       $('#tblTrangThaiBieuDo').html(html);
+    }
+
+    function napBieuDoLenSua(tenTab) {
+      const chart = dsBieuDoLuu.find(b => b.tenTab === tenTab);
+      if (!chart) return;
+
+      $('#selChonTuyen').val(chart.tuyen).trigger('change.select2');
+      $('#txtNgayApDung').val(chart.ngayApDung || "");
+      if (chart.phamVi) {
+        $(`input[name="rdPhamVi"][value="${chart.phamVi}"]`).prop('checked', true);
+      }
+      $('#txtTenTab').val(chart.tenTab);
+
+      if (chart.rawData && Array.isArray(chart.rawData)) {
+        const textLines = chart.rawData.map(row => row.join("\t")).join("\n");
+        $('#txtRawData').val(textLines);
+      }
+
+      chuyenTabAdmin('sec-bieudo', $('.sidebar-menu li a')[4]);
+      showToast(`Đã nạp biểu đồ [${tenTab}] lên form chỉnh sửa!`, "success");
+    }
+
+    async function xoaBieuDoChiDinh(tenTab) {
+      if (!confirm(`Xác nhận xóa vĩnh viễn biểu đồ [${tenTab}]?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/xoa-bieu-do`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenTab })
+        }).then(r => r.json());
+        showToast(res.message, "success");
+        if (res.success) { await napDuLieuTong(); }
+      } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
     async function taiToanBoXeAdmin() {
