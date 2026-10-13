@@ -141,25 +141,35 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
 
-    /* CSS GIẢ LẬP LED CHẠY CHỮ (MARQUEE) MA TRẬN ĐIỂM SẮC NÉT */
+    /* CSS GIẢ LẬP LED: Số chiếm góc phải (1/4 - 1/5 khung), chữ linh hoạt tĩnh/chạy */
     .led-simulator-box {
       background: #05070b; border: 6px solid #161b22; border-radius: 8px; padding: 16px; max-width: 850px; margin: 0 auto;
       box-shadow: inset 0 0 35px rgba(0,0,0,0.95), 0 4px 15px rgba(0,0,0,0.3);
     }
     .led-display-screen {
-      background: #000000; border: 3px solid #0a0a0a; border-radius: 4px; padding: 12px 14px; display: flex; align-items: center; gap: 20px; overflow: hidden; position: relative;
+      background: #000000; border: 3px solid #0a0a0a; border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; gap: 15px; overflow: hidden; position: relative;
       background-image: radial-gradient(#1f1f1f 1.2px, transparent 1.2px); background-size: 6px 6px; min-height: 75px;
     }
+    
+    /* Ép số tuyến (LED đỏ) nằm gọn ở góc phải, chiếm 20% - 25% (khoảng 1/4 khung) */
     .led-route-number {
-      font-family: 'Share Tech Mono', monospace; font-size: 48px; font-weight: 700; color: #ff1c00;
+      font-family: 'Share Tech Mono', monospace, Tahoma; font-size: 42px; font-weight: bold; color: #ff1c00;
       text-shadow: 0 0 4px rgba(255, 28, 0, 0.8);
-      background: rgba(255, 28, 0, 0.05); padding: 0 10px; border-radius: 2px; border: 1px dotted rgba(255, 28, 0, 0.4); flex-shrink: 0; letter-spacing: 2px; line-height: 1;
-      z-index: 2;
+      background: rgba(255, 28, 0, 0.05); border-radius: 2px; border: 1px dotted rgba(255, 28, 0, 0.4); 
+      flex: 0 0 22%; max-width: 22%; text-align: center; letter-spacing: 1px; line-height: 1.1; order: 2;
     }
-    .led-route-text-wrap { width: 100%; white-space: nowrap; position: relative; overflow: hidden; }
+    
+    /* Phần chứa lộ trình (LED xanh lá) chiếm 75% - 80% phần còn lại bên trái */
+    .led-route-text-wrap { 
+      flex: 0 0 78%; max-width: 78%; white-space: nowrap; position: relative; overflow: hidden; order: 1; padding-right: 10px;
+    }
+    
+    /* Mặc định là LED tĩnh, nếu văn bản dài sẽ tự động kích hoạt hiệu ứng chạy chữ */
     .led-route-text {
-      font-family: 'Share Tech Mono', monospace; font-size: 28px; font-weight: bold; color: #00ff44;
-      text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); display: inline-block; letter-spacing: 2px;
+      font-family: 'Share Tech Mono', monospace, Tahoma; font-size: 24px; font-weight: bold; color: #00ff44;
+      text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); display: inline-block; letter-spacing: 1.5px;
+    }
+    .led-route-text.marquee {
       animation: ledMarquee 12s linear infinite;
     }
     @keyframes ledMarquee {
@@ -483,7 +493,7 @@
           </div>
         </div>
 
-        <!-- SECTION: GIẢ LẬP LED CHẠY CHỮ (MARQUEE) -->
+        <!-- SECTION: GIẢ LẬP LED THÔNG MINH (TĨNH HOẶC CHẠY CHỮ) -->
         <div id="sec-ledsim" class="content-section">
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-television"></i> Mô phỏng bảng LED ma trận xe buýt</span></div>
@@ -498,7 +508,7 @@
                 <label>Lộ trình (LED xanh):</label>
                 <div class="input-combo"><input type="text" id="inputLedLoTrinh" class="form-control" value="ĐH.KTQD -> L.BIÊN -> ĐH.KTQD" style="font-weight:bold; color:#00ff44;" oninput="capNhatMoPhinhLed()"></div>
                 <div></div>
-                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Bảng LED hiển thị ma trận điểm với hiệu ứng chữ chạy marquee mượt mà.</span></div>
+                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm gọn góc phải (1/4 khung). Lộ trình ngắn hiển thị LED tĩnh, lộ trình dài tự động chuyển sang chạy chữ.</span></div>
               </div>
 
               <div class="led-simulator-box">
@@ -935,12 +945,20 @@
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
-    // HÀM XỬ LÝ GIẢ LẬP LED CHẠY CHỮ (MARQUEE)
+    // HÀM XỬ LÝ LED THÔNG MINH: Tự động phát hiện ngắn (Tĩnh) hay dài (Chạy chữ)
     function capNhatMoPhinhLed() {
       const soTuyen = $('#inputLedSo').val().trim() || "18";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "ĐH.KTQD -> L.BIÊN -> ĐH.KTQD";
       $('#ledDisplayNum').text(soTuyen);
-      $('#ledDisplayText').text(loTrinh + "       ***       " + loTrinh);
+
+      const $textElem =$('#ledDisplayText');
+      
+      // Ngưỡng ký tự: Nếu ngắn hơn 22 ký tự thì hiển thị TĨNH, dài hơn thì tự động CHẠY CHỮ (Marquee)
+      if (loTrinh.length <= 22) {
+        $textElem.removeClass('marquee').text(loTrinh).css('transform', 'none');
+      } else {
+        $textElem.addClass('marquee').text(loTrinh + "       ***       " + loTrinh);
+      }
     }
 
     function napMauLed() {
