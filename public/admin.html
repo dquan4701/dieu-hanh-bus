@@ -141,37 +141,30 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
 
-    /* CSS GIẢ LẬP LED: Số chiếm góc phải (1/4 - 1/5 khung), chữ linh hoạt tĩnh/chạy */
+    /* CSS GIẢ LẬP LED */
     .led-simulator-box {
       background: #05070b; border: 6px solid #161b22; border-radius: 8px; padding: 16px; max-width: 850px; margin: 0 auto;
       box-shadow: inset 0 0 35px rgba(0,0,0,0.95), 0 4px 15px rgba(0,0,0,0.3);
     }
     .led-display-screen {
-      background: #000000; border: 3px solid #0a0a0a; border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; gap: 15px; overflow: hidden; position: relative;
-      background-image: radial-gradient(#1f1f1f 1.2px, transparent 1.2px); background-size: 6px 6px; min-height: 75px;
+      background: #000000; border: 3px solid #0a0a0a; border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; position: relative;
+      background-image: radial-gradient(#1f1f1f 1.2px, transparent 1.2px); background-size: 6px 6px; min-height: 80px;
     }
-    
-    /* Ép số tuyến (LED đỏ) nằm gọn ở góc phải, chiếm 20% - 25% (khoảng 1/4 khung) */
+    .led-route-number-box {
+      flex: 0 0 20%; max-width: 20%; height: 60px; background: rgba(255, 28, 0, 0.05);
+      border: 1px dotted rgba(255, 28, 0, 0.4); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 2; margin-left: 10px;
+    }
     .led-route-number {
-      font-family: 'Share Tech Mono', monospace, Tahoma; font-size: 42px; font-weight: bold; color: #ff1c00;
-      text-shadow: 0 0 4px rgba(255, 28, 0, 0.8);
-      background: rgba(255, 28, 0, 0.05); border-radius: 2px; border: 1px dotted rgba(255, 28, 0, 0.4); 
-      flex: 0 0 22%; max-width: 22%; text-align: center; letter-spacing: 1px; line-height: 1.1; order: 2;
+      font-family: Tahoma, 'Courier New', monospace; font-size: 50px; font-weight: 900; color: #ff1c00;
+      text-shadow: 0 0 4px rgba(255, 28, 0, 0.8); letter-spacing: -2px; line-height: 1;
+      transform: scaleX(0.75); transform-origin: center; white-space: nowrap;
     }
-    
-    /* Phần chứa lộ trình (LED xanh lá) chiếm 75% - 80% phần còn lại bên trái */
-    .led-route-text-wrap { 
-      flex: 0 0 78%; max-width: 78%; white-space: nowrap; position: relative; overflow: hidden; order: 1; padding-right: 10px;
-    }
-    
-    /* Mặc định là LED tĩnh, nếu văn bản dài sẽ tự động kích hoạt hiệu ứng chạy chữ */
+    .led-route-text-wrap { flex: 0 0 78%; max-width: 78%; white-space: nowrap; position: relative; overflow: hidden; order: 1; }
     .led-route-text {
-      font-family: 'Share Tech Mono', monospace, Tahoma; font-size: 24px; font-weight: bold; color: #00ff44;
-      text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); display: inline-block; letter-spacing: 1.5px;
+      font-family: Tahoma, 'Courier New', monospace; font-size: 26px; font-weight: bold; color: #00ff44;
+      text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); display: inline-block; letter-spacing: 1px;
     }
-    .led-route-text.marquee {
-      animation: ledMarquee 12s linear infinite;
-    }
+    .led-route-text.marquee { animation: ledMarquee 12s linear infinite; }
     @keyframes ledMarquee {
       0% { transform: translateX(100%); }
       100% { transform: translateX(-100%); }
@@ -366,7 +359,7 @@
                   <button class="btn btn-default" type="button" onclick="resetFormTuyen()"><i class="fa fa-refresh"></i> Làm mới</button>
                 </div>
                 <label>Mã tuyến:</label>
-                <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 85 hoặc 14CT" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
+                <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 85 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
@@ -493,7 +486,7 @@
           </div>
         </div>
 
-        <!-- SECTION: GIẢ LẬP LED THÔNG MINH (TĨNH HOẶC CHẠY CHỮ) -->
+        <!-- SECTION: GIẢ LẬP LED THÔNG MINH -->
         <div id="sec-ledsim" class="content-section">
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-television"></i> Mô phỏng bảng LED ma trận xe buýt</span></div>
@@ -504,19 +497,21 @@
                   <select id="selLedTuyenMau" class="form-control select2-search" style="width: 100%;" onchange="napMauLed()"><option value="">-- Chọn tuyến để mô phỏng --</option></select>
                 </div>
                 <label>Số tuyến (LED đỏ):</label>
-                <div class="input-combo"><input type="text" id="inputLedSo" class="form-control" value="18" style="font-weight:bold; color:#ff1c00;" oninput="capNhatMoPhinhLed()"></div>
+                <div class="input-combo"><input type="text" id="inputLedSo" class="form-control" value="BRT01" style="font-weight:bold; color:#ff1c00;" oninput="capNhatMoPhinhLed()"></div>
                 <label>Lộ trình (LED xanh):</label>
-                <div class="input-combo"><input type="text" id="inputLedLoTrinh" class="form-control" value="ĐH.KTQD -> L.BIÊN -> ĐH.KTQD" style="font-weight:bold; color:#00ff44;" oninput="capNhatMoPhinhLed()"></div>
+                <div class="input-combo"><input type="text" id="inputLedLoTrinh" class="form-control" value="BX KIM MÃ -> BX YÊN NGHĨA" style="font-weight:bold; color:#00ff44;" oninput="capNhatMoPhinhLed()"></div>
                 <div></div>
-                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm gọn góc phải (1/4 khung). Lộ trình ngắn hiển thị LED tĩnh, lộ trình dài tự động chuyển sang chạy chữ.</span></div>
+                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm góc phải, tự động co bóp gọn trong khung. Lộ trình ngắn hiển thị LED tĩnh, lộ trình dài tự động chạy chữ.</span></div>
               </div>
 
               <div class="led-simulator-box">
                 <div style="color: #888; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"><i class="fa fa-circle" style="color: #ff1c00; font-size: 8px;"></i> Màn hình LED trước xe (Mô phỏng thực tế)</div>
                 <div class="led-display-screen">
-                  <div class="led-route-number" id="ledDisplayNum">18</div>
+                  <div class="led-route-number-box">
+                    <div class="led-route-number" id="ledDisplayNum">BRT01</div>
+                  </div>
                   <div class="led-route-text-wrap">
-                    <div class="led-route-text" id="ledDisplayText">ĐH.KTQD -> L.BIÊN -> ĐH.KTQD</div>
+                    <div class="led-route-text" id="ledDisplayText">BX KIM MÃ -> BX YÊN NGHĨA</div>
                   </div>
                 </div>
               </div>
@@ -674,6 +669,12 @@
     let tatCaXeHeThong = [];
     let dsBieuDoLuu = [];
     let dangLamMoi = false;
+
+    // HÀM CHUẨN HÓA MÃ TUYẾN SIÊU CƯỜNG (Xử lý dứt điểm lỗi BRT01, brt 01,...)
+    function chuanHoaMaTuyen(str) {
+      if (!str) return "";
+      return String(str).toUpperCase().replace(/[^0-9A-Z]/g, '');
+    }
 
     $(document).ready(function() {
       $('.select2-search').select2({
@@ -835,7 +836,7 @@
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
-          const isSelected = chonMaTuyenMoi && (t.maTuyen === chonMaTuyenMoi);
+          const isSelected = chonMaTuyenMoi && (chuanHoaMaTuyen(t.maTuyen) === chuanHoaMaTuyen(chonMaTuyenMoi));
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
           $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
@@ -856,24 +857,24 @@
       }
     }
 
-    // LỌC BIỂU ĐỒ CHUẨN XÁC BẰNG TIỀN TỐ
+    // LỌC BIỂU ĐỒ BẰNG TIỀN TỐ VỚI CHUẨN HÓA MÃ TUYẾN
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
         html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:15px;">Chưa có tuyến nào!</td></tr>';
       } else {
         sortedRoutes.forEach(t => {
-          let maTuyenCurrent = String(t.maTuyen || '').trim().toUpperCase();
+          let maTuyenCurrentNorm = chuanHoaMaTuyen(t.maTuyen);
           let tenTuyenCurrent = String(t.tenTuyen || '').trim().toUpperCase();
           
           const matchedCharts = dsBieuDoLuu.filter(b => {
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
             
-            const isMatchTuyenField = (bTuyen === tenTuyenCurrent || bTuyen === maTuyenCurrent);
+            const isMatchTuyenField = (bTuyen === tenTuyenCurrent || chuanHoaMaTuyen(bTuyen) === maTuyenCurrentNorm);
             let matchPrefix = bTab.match(/^([0-9A-Za-z]+)/);
-            let maTabPrefix = matchPrefix ? matchPrefix[1].toUpperCase() : "";
-            const isMatchPrefix = (maTabPrefix === maTuyenCurrent);
+            let maTabPrefixNorm = matchPrefix ? chuanHoaMaTuyen(matchPrefix[1]) : "";
+            const isMatchPrefix = (maTabPrefixNorm === maTuyenCurrentNorm);
 
             return isMatchTuyenField || isMatchPrefix;
           });
@@ -945,15 +946,13 @@
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
-    // HÀM XỬ LÝ LED THÔNG MINH: Tự động phát hiện ngắn (Tĩnh) hay dài (Chạy chữ)
+    // HÀM XỬ LÝ LED THÔNG MINH
     function capNhatMoPhinhLed() {
-      const soTuyen = $('#inputLedSo').val().trim() || "18";
-      const loTrinh = $('#inputLedLoTrinh').val().trim() || "ĐH.KTQD -> L.BIÊN -> ĐH.KTQD";
+      const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
+      const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
 
       const $textElem =$('#ledDisplayText');
-      
-      // Ngưỡng ký tự: Nếu ngắn hơn 22 ký tự thì hiển thị TĨNH, dài hơn thì tự động CHẠY CHỮ (Marquee)
       if (loTrinh.length <= 22) {
         $textElem.removeClass('marquee').text(loTrinh).css('transform', 'none');
       } else {
@@ -981,13 +980,15 @@
       } catch (err) { console.error("Lỗi tải đội xe:", err); }
     }
 
+    // HÀM LỌC XE ÁP DỤNG CHUẨN HÓA MÃ TUYẾN (Bắt trúng BRT01, 86,...)
     function locBangXeAdmin() {
       const selectedXn = $('#filterXnXe').val();
-      const selectedTuyen = $('#filterTuyenXe').val();
+      const selectedTuyenNorm = chuanHoaMaTuyen($('#filterTuyenXe').val());
       const keyword = $('#filterBksXe').val().trim().toLowerCase();
+      
       const filtered = tatCaXeHeThong.filter(x => {
         const matchXn = !selectedXn || (x.xn || '').toLowerCase() === selectedXn.toLowerCase();
-        const matchTuyen = !selectedTuyen || (x.maTuyen || '').toUpperCase() === selectedTuyen.toUpperCase();
+        const matchTuyen = !selectedTuyenNorm || chuanHoaMaTuyen(x.maTuyen) === selectedTuyenNorm;
         const matchBks = !keyword || (x.bks || '').toLowerCase().includes(keyword);
         return matchXn && matchTuyen && matchBks;
       });
