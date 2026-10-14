@@ -44,13 +44,16 @@
 
     .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-        .sidebar {
+    /* MENU TRÁI: Thêm class collapsed để mặc định ẩn và xử lý cho mọi màn hình */
+    .sidebar {
       width: 260px; background-color: #2C3E50; color: #FFF;
       display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; flex-shrink: 0;
+      margin-left: 0;
     }
     .sidebar.collapsed {
-      margin-left: -260px;
+      margin-left: -260px !important;
     }
+
     .sidebar-header {
       padding: 15px 20px; background: #1A252F; font-size: 13px; font-weight: bold;
       display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #34495E;
@@ -191,8 +194,8 @@
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
     @media (max-width: 768px) {
-      .sidebar { position: fixed; left: -260px; height: 100%; transition: left 0.3s ease; }
-      .sidebar.mobile-show { left: 0; }
+      .sidebar { position: fixed; left: 0; height: 100%; transition: left 0.3s ease; }
+      .sidebar.collapsed { left: -260px !important; margin-left: 0 !important; }
       .form-grid { grid-template-columns: 1fr; row-gap: 6px; }
     }
   </style>
@@ -286,7 +289,8 @@
   </script>
 
   <div class="app-container">
-    <nav class="sidebar" id="sidebarMenu">
+    <!-- Mặc định có sẵn class collapsed để đóng menu khi vừa vào hoặc xoay ngang -->
+    <nav class="sidebar collapsed" id="sidebarMenu">
       <div class="sidebar-header">
         <span><i class="fa fa-bus"></i> ĐIỀU HÀNH BUS</span>
         <i class="fa fa-bars" style="cursor:pointer;" onclick="toggleSidebar()"></i>
@@ -658,7 +662,7 @@
       $('#navTitle').text(titleText);
 
       if (window.innerWidth <= 768) {
-        $('#sidebarMenu').removeClass('mobile-show');
+        $('#sidebarMenu').addClass('collapsed');
       }
 
       if (sectionId === 'sec-users') {
@@ -670,8 +674,8 @@
       }
     }
 
-        function toggleSidebar() {
-      $('#sidebarMenu').toggleClass('collapsed mobile-show');
+    function toggleSidebar() {
+      $('#sidebarMenu').toggleClass('collapsed');
     }
 
     let rawDanhMuc = [];
