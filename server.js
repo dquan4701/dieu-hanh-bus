@@ -121,7 +121,6 @@ mongoose.connect(MONGO_URI)
           { username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }
         ];
       }
-      // Đảm bảo không bị dính giá trị cũ mặc định nếu đã xóa
       if (doc.data.thongBaoChay === "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!") {
         doc.data.thongBaoChay = "";
       }
@@ -167,7 +166,6 @@ async function saveRawData(data) {
   );
 }
 
-// API LẤY NỘI DUNG THÔNG BÁO CHẠY
 app.get('/api/thong-bao', async (req, res) => {
   try {
     const raw = await getRawData();
@@ -177,7 +175,6 @@ app.get('/api/thong-bao', async (req, res) => {
   }
 });
 
-// API LƯU NỘI DUNG THÔNG BÁO CHẠY (Admin)
 app.post('/api/admin/luu-thong-bao', async (req, res) => {
   try {
     const { text } = req.body;
@@ -478,12 +475,22 @@ app.post('/api/xoa-bieu-do', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
+// API TÌM KIẾM XE ĐÃ ĐƯỢC TÍCH HỢP CHUẨN HÓA MÃ TUYẾN
 app.get('/api/tim-kiem-xe', async (req, res) => {
   try {
-    const q = (req.query.q || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+    const q = (req.query.q || '').trim().toLowerCase();
+    const tuyenQuery = (req.query.tuyen || '').trim().toUpperCase();
     const raw = await getRawData();
     let xeList = Array.isArray(raw.xeList) ? raw.xeList : [];
-    let ketQua = q ? xeList.filter(x => (x.bks || '').toLowerCase().replace(/[^a-z0-9]/g, '').includes(q)) : xeList;
+    
+    let ketQua = q ? xeList.filter(x => (x.bks || '').toLowerCase().includes(q)) : xeList;
+    
+    if (tuyenQuery) {
+      const chuanHoaTuyen = str => String(str || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+      const tuyenQueryNorm = chuanHoaTuyen(tuyenQuery);
+      ketQua = ketQua.filter(x => chuanHoaTuyen(x.maTuyen) === tuyenQueryNorm);
+    }
+
     const tuyenMap = raw.tuyenList || {};
     ketQua = ketQua.map(x => {
       const maXe = (x.maTuyen || '').toUpperCase();
@@ -521,7 +528,7 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
         if (!raw.tuyenList[currentMaTuyen]) {
           let dauA = "", dauB = "";
           const loTrinhParts = currentTenLoTrinh.split('-');
-          if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinkParts[1].trim(); }
+          if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinhParts[1].trim(); }
           raw.tuyenList[currentMaTuyen] = {
             maTuyen: currentMaTuyen, tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
             xn: "Transerco", dauA, dauB, soXeVd: 0, soXeKh: 0, soXe: 0, loaiXe: "", sucChua: "", status: "active"
