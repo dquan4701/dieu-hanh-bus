@@ -41,13 +41,11 @@ async function cleanOldLogs() {
   }
 }
 
-// HÀM ĐỒNG BỘ DỮ LIỆU THÔNG MINH: Tự động đếm xe thực tế, gán về 0 nếu tuyến không có xe
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
   if (!data.tuyenList) data.tuyenList = {};
 
-  // 1. Chuẩn hóa và loại bỏ trùng lặp xe theo biển số
   const uniqueXeMap = new Map();
   data.xeList.forEach(x => {
     if (x && x.bks) {
@@ -60,7 +58,6 @@ async function cleanAndSyncData(data) {
   });
   data.xeList = Array.from(uniqueXeMap.values());
 
-  // 2. Đếm chính xác số lượng xe thực tế đang thuộc về từng mã tuyến
   const realKhCounts = {};
   data.xeList.forEach(x => {
     let maT = String(x.maTuyen || '').trim().toUpperCase();
@@ -69,7 +66,6 @@ async function cleanAndSyncData(data) {
     }
   });
 
-  // 3. Tính toán số xe vận doanh từ biểu đồ
   const maxNotMap = {};
   if (Array.isArray(data.bieuDoList)) {
     data.bieuDoList.forEach(item => {
@@ -95,7 +91,6 @@ async function cleanAndSyncData(data) {
     });
   }
 
-  // 4. Đồng bộ hóa bắt buộc: Tuyến nào không có xe trong xeList thì số xe kế hoạch ép về 0
   for (let k in data.tuyenList) {
     let tObj = data.tuyenList[k];
     let maT = (tObj.maTuyen || k).toUpperCase();
@@ -537,7 +532,7 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     if (!currentMaTuyen) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Không tìm thấy thông tin tuyến ở dòng tiêu đề! Vui lòng đặt dòng đầu có dạng: [MãTuyến]: [Tên Lộ Trình] (VD: BRT01: Bến xe Yên Nghĩa - Kim Mã)' 
+        message: 'Không tìm thấy thông tin tuyến ở dòng tiêu đề! Vui lòng đặt dòng đầu có dạng: [MãTuyến]: [Tên Lộ Trình]' 
       });
     }
 
@@ -625,6 +620,31 @@ app.post('/api/dieu-chuyen-xe', async (req, res) => {
     await saveRawDataFast(raw);
     res.json({ success: true, message: `Đã điều chuyển xe [${bks}] sang tuyến [${tuyenMoi}] thành công!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+app.post('/api/dieu-chuyen-xe-hang-loat', async (req, res) => {
+  try {
+    const { bksList, tuyenMoi } = req.body;
+    if (!bksList || !Array.isArray(bksList) || bksList.length === 0 || !tuyenMoi) {
+      return res.status(400).json({ success: false, message: 'Dữ liệu không hợp lệ!' });
+    }
+    const raw = await getRawData();
+    if (!Array.isArray(raw.xeList)) raw.xeList = [];
+
+    const normTuyenMoi = String(tuyenMoi).trim().toUpperCase();
+    let count = 0;
+    raw.xeList.forEach(x => {
+      if (bksList.includes(String(x.bks || '').trim().toUpperCase())) {
+        x.maTuyen = normTuyenMoi;
+        count++;
+      }
+    });
+
+    await saveRawDataFast(raw);
+    res.json({ success: true, message: `Đã điều chuyển thành công ${count} xe sang tuyến [${tuyenMoi}]!` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
 });
 
 app.listen(PORT, () => {
