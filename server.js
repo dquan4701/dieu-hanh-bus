@@ -41,11 +41,13 @@ async function cleanOldLogs() {
   }
 }
 
+// HÀM ĐỒNG BỘ DỮ LIỆU THÔNG MINH: Tự động đếm xe thực tế, gán về 0 nếu tuyến không có xe
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
   if (!data.tuyenList) data.tuyenList = {};
 
+  // 1. Chuẩn hóa và loại bỏ trùng lặp xe theo biển số
   const uniqueXeMap = new Map();
   data.xeList.forEach(x => {
     if (x && x.bks) {
@@ -58,13 +60,16 @@ async function cleanAndSyncData(data) {
   });
   data.xeList = Array.from(uniqueXeMap.values());
 
+  // 2. Đếm chính xác số lượng xe thực tế đang thuộc về từng mã tuyến
   const realKhCounts = {};
   data.xeList.forEach(x => {
-    if (x.maTuyen) {
-      realKhCounts[x.maTuyen] = (realKhCounts[x.maTuyen] || 0) + 1;
+    let maT = String(x.maTuyen || '').trim().toUpperCase();
+    if (maT) {
+      realKhCounts[maT] = (realKhCounts[maT] || 0) + 1;
     }
   });
 
+  // 3. Tính toán số xe vận doanh từ biểu đồ
   const maxNotMap = {};
   if (Array.isArray(data.bieuDoList)) {
     data.bieuDoList.forEach(item => {
@@ -90,21 +95,20 @@ async function cleanAndSyncData(data) {
     });
   }
 
+  // 4. Đồng bộ hóa bắt buộc: Tuyến nào không có xe trong xeList thì số xe kế hoạch ép về 0
   for (let k in data.tuyenList) {
     let tObj = data.tuyenList[k];
     let maT = (tObj.maTuyen || k).toUpperCase();
 
     let realKh = realKhCounts[maT] || 0;
-    if (realKh > 0) {
-      tObj.soXeKh = realKh;
-      tObj.soXe = realKh;
-    }
+    tObj.soXeKh = realKh; 
+    tObj.soXe = realKh;
 
     let foundVd = maxNotMap[maT];
     if (foundVd && foundVd > 0) {
       tObj.soXeVd = foundVd;
     } else {
-      tObj.soXeVd = tObj.soXeVd && tObj.soXeVd > 0 ? tObj.soXeVd : (tObj.soXeKh || 0);
+      tObj.soXeVd = tObj.soXeVd && tObj.soXeVd > 0 ? tObj.soXeVd : (realKh || 0);
     }
   }
 
@@ -515,8 +519,27 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     if (!Array.isArray(raw.xeList)) raw.xeList = [];
     
     const lines = rawText.split('\n');
-    let currentMaTuyen = 'BRT01';
+    let currentMaTuyen = '';
+    let currentTenLoTrinh = '';
     const importedCars = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const lineStr = lines[i].trim();
+      if (!lineStr) continue;
+      const matchTuyen = lineStr.match(/^(?:Tuyến\s+)?([0-9A-Za-z]+)\s*[:\-]\s*(.*)/i);
+      if (matchTuyen) {
+        currentMaTuyen = matchTuyen[1].toUpperCase();
+        currentTenLoTrinh = matchTuyen[2] ? matchTuyen[2].trim() : '';
+        break;
+      }
+    }
+
+    if (!currentMaTuyen) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Không tìm thấy thông tin tuyến ở dòng tiêu đề! Vui lòng đặt dòng đầu có dạng: [MãTuyến]: [Tên Lộ Trình] (VD: BRT01: Bến xe Yên Nghĩa - Kim Mã)' 
+      });
+    }
 
     lines.forEach(line => {
       const fullLine = line.trim();
@@ -526,46 +549,37 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
         ? fullLine.split(/[\t]+/).map(p => p.trim()) 
         : fullLine.split(/\s{2,}/).map(p => p.trim());
       
-      const matchTuyen = fullLine.match(/^(?:Tuyến\s+)?([0-9A-Za-z]+)\s*[:\-]?\s*(.*)/i);
       const bks = parts[0] || '';
-      const isBks = bks.includes('-') || bks.includes('.') || /^[0-9]{2}[A-Z]/.test(bks);
+      const isBks = /^[0-9]{2}[A-Z]{1,2}[-\.]?[0-9]{3,4}[\.0-9]*$/.test(bks) || (bks.includes('-') && /\d/.test(bks) && bks.length <= 12);
+      const isHeaderLine = /^[0-9A-Za-z]+\s*[:\-]\s*/.test(fullLine);
 
-      if (matchTuyen && !isBks && parts.length <= 3) {
-        currentMaTuyen = matchTuyen[1].toUpperCase();
-        let currentTenLoTrinh = matchTuyen[2] ? matchTuyen[2].trim() : '';
-        if (!raw.tuyenList[currentMaTuyen]) {
-          let dauA = "", dauB = "";
-          const loTrinhParts = currentTenLoTrinh.split('-');
-          if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinhParts[1].trim(); }
-          raw.tuyenList[currentMaTuyen] = {
-            maTuyen: currentMaTuyen, 
-            tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
-            xn: "Transerco", dauA, dauB, soXeVd: 0, soXeKh: 0, soXe: 0, loaiXe: "", sucChua: "", status: "active"
-          };
-        }
-        return;
-      }
-
-      if (isBks) {
+      if (isBks && !isHeaderLine) {
         importedCars.push({
           bks: bks.toUpperCase(), 
-          maTuyen: currentMaTuyen || 'BRT01', 
-          nhanHieu: parts[1] || 'Thaco',
-          chungLoai: parts[2] || 'TB120BRT', 
-          namSx: parts[3] || '2017', 
-          sucChua: parts[4] || '90', 
-          donVi: parts[5] || 'Xí nghiệp BRT'
+          maTuyen: currentMaTuyen, 
+          nhanHieu: parts[1] || '',
+          chungLoai: parts[2] || '', 
+          namSx: parts[3] || '', 
+          sucChua: parts[4] || '', 
+          donVi: parts[5] || ''
         });
       }
     });
 
     if (importedCars.length > 0) {
       if (!raw.tuyenList[currentMaTuyen]) {
+        let dauA = "", dauB = "";
+        const loTrinhParts = currentTenLoTrinh.split('-');
+        if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinhParts[1].trim(); }
+        
         raw.tuyenList[currentMaTuyen] = {
           maTuyen: currentMaTuyen, 
-          tenTuyen: `${currentMaTuyen}. Bến xe Yên Nghĩa - Kim Mã`,
-          xn: "Xí nghiệp Xe buýt nhanh BRT Hà Nội", dauA: "Bến xe Yên Nghĩa", dauB: "Kim Mã", 
-          soXeVd: 0, soXeKh: importedCars.length, soXe: importedCars.length, loaiXe: "Thaco TB120BRT", sucChua: "90 chỗ", status: "active"
+          tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
+          xn: "Transerco", dauA, dauB, 
+          soXeVd: 0, soXeKh: importedCars.length, soXe: importedCars.length, 
+          loaiXe: importedCars[0]?.chungLoai || "", 
+          sucChua: importedCars[0]?.sucChua ? importedCars[0].sucChua + " chỗ" : "", 
+          status: "active"
         };
       }
 
@@ -576,11 +590,10 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     }
     
     await saveRawData(raw);
-    res.json({ success: true, message: `Bóc tách và nạp thành công ${importedCars.length} xe cho tuyến ${currentMaTuyen}!` });
+    res.json({ success: true, message: `Bóc tách và nạp thành công ${importedCars.length} xe vào tuyến ${currentMaTuyen}!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// API XÓA XE KHỎI HỆ THỐNG
 app.post('/api/xoa-xe', async (req, res) => {
   try {
     const { bks } = req.body;
