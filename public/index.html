@@ -533,16 +533,18 @@
       $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
-    // 1. Phân tích ngày tháng chuẩn xác hỗ trợ so sánh hiệu lực
+    // 1. Phân tích ngày tháng thông minh từ tên file kiểu d.m.yy (vd: 05.10.26, 1.4.25...)
     function parseDateInfo(str) {
       if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
       str = String(str).trim();
-      const matchFull = str.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
-      if (matchFull) {
-        let d = parseInt(matchFull[1], 10);
-        let m = parseInt(matchFull[2], 10);
-        let y = parseInt(matchFull[3], 10);
-        if (y < 100) y += 2000;
+
+      const match = str.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
+      if (match) {
+        let d = parseInt(match[1], 10);
+        let m = parseInt(match[2], 10);
+        let y = parseInt(match[3], 10);
+        if (y < 100) y += 2000; // Đổi 25, 26 thành 2025, 2026
+
         const dStr = String(d).padStart(2, '0');
         const mStr = String(m).padStart(2, '0');
         return {
@@ -554,12 +556,12 @@
       return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
     }
 
-    // 2. Nhận diện loại tab (Ngày thường 2-7 hay Chủ nhật)
+    // 2. Nhận diện loại tab (Ngày thường 2-7 hay Chủ nhật) dựa vào ký hiệu trong tên tab
     function detectTabType(tabItem) {
-      const txt = (tabItem.tenTab + " " + (tabItem.bieuDo || "")).toLowerCase();
+      const txt = String(tabItem.tenTab || "").toLowerCase();
       if (txt.includes("cn") || txt.includes("chủ nhật")) return "sunday";
-      if (txt.includes("2-7") || txt.includes("thứ 2 - thứ 7") || txt.includes("ngày thường") || txt.includes("t2-t7")) return "weekday";
-      return "all";
+      if (txt.includes("2-7") || txt.includes("thứ 2") || txt.includes("ngày thường") || txt.includes("t2-t7")) return "weekday";
+      return "weekday"; // Mặc định nếu không ghi gì thì coi như lịch ngày thường
     }
 
     function onTuyenChange() {
@@ -572,7 +574,6 @@
 
       const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
       
-      // Lấy danh sách tất cả các ngày áp dụng độc lập từ các tab của tuyến này
       const dateSet = new Set();
       bieuDoCuaTuyen.forEach(item => {
         const dInfo = parseDateInfo(item.tenTab || item.bieuDo || "");
@@ -605,7 +606,7 @@
       }
     }
 
-    // 3. LOGIC TÌM TAB PHÙ HỢP THEO NGÀY HIỆU LỰC & LOẠI NGÀY (2-7 / CHỦ NHẬT)
+    // 3. LOGIC TÌM TAB CHUẨN XÁC THEO HIỆU LỰC THỜI GIAN VÀ THỨ TRONG TUẦN
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
       const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
       if (bieuDoList.length === 0) return null;
@@ -614,7 +615,6 @@
       const isChuNhat = (thuDaChon === "CN");
       const targetType = isChuNhat ? "sunday" : "weekday";
 
-      // Parse ngày người dùng chọn trên dropdown
       let targetDateObj = null;
       const parts = ngayApDungChuan.split('/');
       if (parts.length === 3) {
@@ -627,13 +627,13 @@
         dateInfo: parseDateInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      // Lọc các tab khớp loại ngày (Weekday cho T2-T7, Sunday cho Chủ nhật)
-      let candidateTabs = parsedTabs.filter(t => t.tabType === targetType || t.tabType === "all");
+      // Lọc các tab khớp với loại ngày (Weekday hoặc Sunday)
+      let candidateTabs = parsedTabs.filter(t => t.tabType === targetType);
       if (candidateTabs.length === 0) {
         candidateTabs = parsedTabs; 
       }
 
-      // Nếu có ngày tra cứu cụ thể, áp dụng Effective Date Hierarchy (tìm mốc gần nhất <= ngày tra cứu)
+      // Thuật toán Effective Date: Lọc các tab có ngày áp dụng <= ngày tra cứu, sau đó lấy mốc gần nhất
       if (targetDateObj && !isNaN(targetDateObj.getTime())) {
         const validTabs = candidateTabs.filter(t => {
           if (!t.dateInfo.dateObj) return true;
