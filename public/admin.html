@@ -44,7 +44,7 @@
 
     .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-    /* MENU TRÁI: Thêm class collapsed để mặc định ẩn và xử lý cho mọi màn hình */
+    /* MENU TRÁI */
     .sidebar {
       width: 260px; background-color: #2C3E50; color: #FFF;
       display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; flex-shrink: 0;
@@ -147,7 +147,7 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
 
-    /* CSS GIẢ LẬP LED CHUẨN ĐỒNG NHẤT */
+    /* CSS GIẢ LẬP LED CHUẨN */
     .led-simulator-box {
       background: #05070b; border: 6px solid #161b22; border-radius: 8px; padding: 16px; max-width: 850px; margin: 0 auto;
       box-shadow: inset 0 0 35px rgba(0,0,0,0.95), 0 4px 15px rgba(0,0,0,0.3);
@@ -166,13 +166,8 @@
     }
     .led-route-text-wrap { flex: 1; white-space: nowrap; position: relative; overflow: hidden; order: 2; }
     
-    .led-route-text-container {
-      display: inline-flex;
-      white-space: nowrap;
-    }
-    .led-route-text-container.marquee {
-      animation: ledMarquee 14s linear infinite;
-    }
+    .led-route-text-container { display: inline-flex; white-space: nowrap; }
+    .led-route-text-container.marquee { animation: ledMarquee 14s linear infinite; }
     .led-route-text {
       font-family: 'Share Tech Mono', monospace, Tahoma, sans-serif; font-size: 22px; font-weight: bold; color: #00ff44;
       text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); letter-spacing: 1px; display: inline-block;
@@ -289,7 +284,6 @@
   </script>
 
   <div class="app-container">
-    <!-- Mặc định có sẵn class collapsed để đóng menu khi vừa vào hoặc xoay ngang -->
     <nav class="sidebar collapsed" id="sidebarMenu">
       <div class="sidebar-header">
         <span><i class="fa fa-bus"></i> ĐIỀU HÀNH BUS</span>
@@ -431,10 +425,18 @@
                 <div><label style="display:block; margin-bottom:4px; font-weight:bold; color:#555;">Tuyến:</label><select id="filterTuyenXe" class="form-control select2-search" style="width:100%;" onchange="locBangXeAdmin()"><option value="">-- Tất cả tuyến --</option></select></div>
                 <div><label style="display:block; margin-bottom:4px; font-weight:bold; color:#555;">Tìm kiếm biển số:</label><input type="text" id="filterBksXe" class="form-control" placeholder="Nhập biển số xe..." oninput="locBangXeAdmin()"></div>
               </div>
+
+              <!-- Thanh thao tác hàng loạt -->
+              <div id="batchActionToolbar" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: #EBF2F8; border: 1px solid #C4D5E5; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
+                <span>Đã chọn <strong id="selectedCount">0</strong> xe</span>
+                <button class="btn btn-primary" onclick="moModalChuyenHangLoat()"><i class="fa fa-exchange"></i> Chuyển tuyến hàng loạt</button>
+              </div>
+
               <div style="overflow-x: auto; max-height: 450px;">
                 <table class="table-custom">
                   <thead>
                     <tr>
+                      <th style="width: 40px; text-align: center;"><input type="checkbox" id="chkAllXe" onclick="chonTatCaXe(this)"></th>
                       <th style="width: 50px; text-align: center;">STT</th>
                       <th style="width: 80px; text-align: center;">Tuyến</th>
                       <th style="width: 120px;">Biển số</th>
@@ -618,6 +620,7 @@
     </div>
   </div>
 
+  <!-- Modal điều chuyển xe đơn lẻ -->
   <div id="modalDieuChuyen" style="display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
     <div style="background:#fff; width:450px; border-radius:5px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
       <h3 style="margin-bottom:15px; font-size:14px; color:#2C3E50;"><i class="fa fa-random"></i> Điều chuyển xe sang tuyến khác</h3>
@@ -626,6 +629,19 @@
       <div style="display:flex; justify-content:flex-end; gap:10px;">
         <button class="btn btn-default" onclick="$('#modalDieuChuyen').css('display','none')">Hủy</button>
         <button class="btn btn-primary" onclick="xacNhanDieuChuyen()"><i class="fa fa-check"></i> Xác nhận chuyển</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal điều chuyển xe hàng loạt -->
+  <div id="modalDieuChuyenHangLoat" style="display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
+    <div style="background:#fff; width:450px; border-radius:5px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
+      <h3 style="margin-bottom:15px; font-size:14px; color:#2C3E50;"><i class="fa fa-exchange"></i> Chuyển tuyến hàng loạt cho xe đã chọn</h3>
+      <div style="margin-bottom:12px;"><label>Số lượng xe đang chọn:</label><input type="text" id="hlCountText" class="form-control" readonly style="font-weight:bold; margin-top:4px;"></div>
+      <div style="margin-bottom:15px;"><label>Tuyến đích chuyển đến:</label><select id="hlTuyenMoi" class="form-control select2-search" style="width:100%; margin-top:4px;"></select></div>
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-default" onclick="$('#modalDieuChuyenHangLoat').css('display','none')">Hủy</button>
+        <button class="btn btn-primary" onclick="xacNhanDieuChuyenHangLoat()"><i class="fa fa-check"></i> Xác nhận chuyển hàng loạt</button>
       </div>
     </div>
   </div>
@@ -645,11 +661,8 @@
 
     function togglePermissionCheckboxes() {
       const role = $('#newAccRole').val();
-      if (role === 'master') {
-        $('#permissionGroup').hide();
-      } else {
-        $('#permissionGroup').show();
-      }
+      if (role === 'master') { $('#permissionGroup').hide(); }
+      else { $('#permissionGroup').show(); }
     }
 
     function chuyenTabAdmin(sectionId, element) {
@@ -661,22 +674,14 @@
       const titleText = $(element).text().trim();
       $('#navTitle').text(titleText);
 
-      if (window.innerWidth <= 768) {
-        $('#sidebarMenu').addClass('collapsed');
-      }
+      if (window.innerWidth <= 768) { $('#sidebarMenu').addClass('collapsed'); }
 
-      if (sectionId === 'sec-users') {
-        taiDanhSachTaiKhoan();
-      } else if (sectionId === 'sec-log') {
-        taiDanhSachLog();
-      } else if (sectionId === 'sec-thongbao') {
-        taiTaiThongBaoAdmin();
-      }
+      if (sectionId === 'sec-users') { taiDanhSachTaiKhoan(); }
+      else if (sectionId === 'sec-log') { taiDanhSachLog(); }
+      else if (sectionId === 'sec-thongbao') { taiTaiThongBaoAdmin(); }
     }
 
-    function toggleSidebar() {
-      $('#sidebarMenu').toggleClass('collapsed');
-    }
+    function toggleSidebar() { $('#sidebarMenu').toggleClass('collapsed'); }
 
     let rawDanhMuc = [];
     let dsXn = new Set();
@@ -723,9 +728,7 @@
     async function taiTaiThongBaoAdmin() {
       try {
         const res = await fetch(`${API_BASE}/api/thong-bao`).then(r => r.json());
-        if (res.success) {
-          $('#txtNoiDungThongBao').val(res.text || '');
-        }
+        if (res.success) { $('#txtNoiDungThongBao').val(res.text || ''); }
       } catch (err) {}
     }
 
@@ -742,7 +745,7 @@
 
     function toggleExtraInput(selectId, inputId) {
       const val = $('#' + selectId).val();
-      const $inp =$('#' + inputId);
+      const $inp = $('#' + inputId);
       if (val === "__NEW__") $inp.show().focus();
       else $inp.hide().val("");
     }
@@ -834,12 +837,12 @@
           return (a.maTuyen || '').localeCompare(b.maTuyen || '', undefined, { numeric: true, sensitivity: 'base' });
         });
 
-        const $filterTuyen =$('#filterTuyenXe');
+        const $filterTuyen = $('#filterTuyenXe');
         $filterTuyen.empty().append('<option value="">-- Tất cả tuyến --</option>');
         sortedRoutes.forEach(t => { $filterTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $filterTuyen.trigger('change.select2');
 
-        const $selSua =$('#selChonTuyenDeSua');
+        const $selSua = $('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
         sortedRoutes.forEach(t => {
           const lockText = t.status === 'locked' ? ' [ĐÃ KHÓA]' : '';
@@ -847,18 +850,18 @@
         });
         $selSua.trigger('change.select2');
 
-        const $selTuyen =$('#selChonTuyen');
+        const $selTuyen = $('#selChonTuyen');
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
           const isSelected = chonMaTuyenMoi && (chuanHoaMaTuyen(t.maTuyen) === chuanHoaMaTuyen(chonMaTuyenMoi));
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
-          $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
+          $(opt).attr('data-xn', t.xn); $selTuyen.append(opt);
         });
-        if (selectedVal) $selTuyen.val(selectedVal);$selTuyen.trigger('change.select2');
+        if (selectedVal) $selTuyen.val(selectedVal); $selTuyen.trigger('change.select2');
 
-        const $selLedTuyen =$('#selLedTuyenMau');
+        const $selLedTuyen = $('#selLedTuyenMau');
         $selLedTuyen.empty().append('<option value="">-- Chọn tuyến để mô phỏng --</option>');
         sortedRoutes.forEach(t => { $selLedTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $selLedTuyen.trigger('change.select2');
@@ -960,27 +963,26 @@
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
-    // HÀM LED: Đo chính xác chiều rộng, ngắn đứng yên, dài chạy lặp nối tiếp chuẩn xác
     function capNhatMoPhinhLed() {
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
 
-      const $track =$('#ledTrack');
-      const $text =$('#ledDisplayText');
-      const $copy =$('#ledDisplayTextCopy');
-      const $wrap =$track.parent();
+      const $track = $('#ledTrack');
+      const $text = $('#ledDisplayText');
+      const $copy = $('#ledDisplayTextCopy');
+      const $wrap = $track.parent();
 
       const khoangCach = "     ➔     ";
-      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
+      $text.text(loTrinh); $copy.text(loTrinh + khoangCach);
       
-      $track.removeClass('marquee');$copy.hide();
+      $track.removeClass('marquee'); $copy.hide();
 
       setTimeout(() => {
-        if ($text[0].scrollWidth >$wrap[0].clientWidth) {
-          $copy.show();$track.addClass('marquee');
+        if ($text[0].scrollWidth > $wrap[0].clientWidth) {
+          $copy.show(); $track.addClass('marquee');
         } else {
-          $track.removeClass('marquee');$copy.hide();
+          $track.removeClass('marquee'); $copy.hide();
         }
       }, 50);
     }
@@ -1022,10 +1024,11 @@
     function veBangQuanLyXeAdmin(listXe) {
       let html = '';
       if (!listXe || listXe.length === 0) {
-        html = '<tr><td colspan="6" style="text-align:center; color:#999; padding:20px;">Không tìm thấy phương tiện nào phù hợp bộ lọc!</td></tr>';
+        html = '<tr><td colspan="7" style="text-align:center; color:#999; padding:20px;">Không tìm thấy phương tiện nào phù hợp bộ lọc!</td></tr>';
       } else {
         listXe.forEach((xe, index) => {
           html += `<tr>
+            <td style="text-align: center;"><input type="checkbox" class="xe-checkbox" value="${xe.bks}" onchange="capNhatSoLuongChon()"></td>
             <td style="text-align: center; color: #555;">${index + 1}</td>
             <td style="text-align: center; font-weight: bold; color: #3B86C4;">${xe.maTuyen || '-'}</td>
             <td><strong style="color: #111;">${xe.bks}</strong></td>
@@ -1041,6 +1044,55 @@
         });
       }
       $('#tblQuanLyXeAdmin').html(html);
+      $('#chkAllXe').prop('checked', false);
+      capNhatSoLuongChon();
+    }
+
+    function chonTatCaXe(masterCheckbox) {
+      $('.xe-checkbox').prop('checked', masterCheckbox.checked);
+      capNhatSoLuongChon();
+    }
+
+    function capNhatSoLuongChon() {
+      const selectedCount = $('.xe-checkbox:checked').length;
+      $('#selectedCount').text(selectedCount);
+      if (selectedCount > 0) {
+        $('#batchActionToolbar').show();
+      } else {
+        $('#batchActionToolbar').hide();
+      }
+    }
+
+    function moModalChuyenHangLoat() {
+      const selectedBks = $('.xe-checkbox:checked').map(function() { return this.value; }).get();
+      if (selectedBks.length === 0) {
+        showToast("Vui lòng chọn ít nhất một xe!", "error");
+        return;
+      }
+      $('#hlCountText').val(`${selectedBks.length} xe được chọn`);
+      const $sel = $('#hlTuyenMoi'); $sel.empty();
+      mapTuyenChiTiet.forEach(t => { $sel.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
+      $sel.select2({ dropdownParent: $('#modalDieuChuyenHangLoat'), language: { noResults: () => "Không tìm thấy" } });
+      $('#modalDieuChuyenHangLoat').css('display', 'flex');
+    }
+
+    async function xacNhanDieuChuyenHangLoat() {
+      const selectedBks = $('.xe-checkbox:checked').map(function() { return this.value; }).get();
+      const tuyenMoi = $('#hlTuyenMoi').val();
+      if (selectedBks.length === 0 || !tuyenMoi) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe-hang-loat`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bksList: selectedBks, tuyenMoi })
+        }).then(r => r.json());
+        
+        showToast(res.message, res.success ? "success" : "error");
+        if (res.success) {
+          $('#modalDieuChuyenHangLoat').css('display', 'none');
+          await napDuLieuTong();
+        }
+      } catch (e) { showToast("Lỗi kết nối máy chủ!", "error"); }
     }
 
     async function xoaXeHeThong(bks) {
@@ -1070,6 +1122,22 @@
       $('#statXeLocked').text(`${tongXeLocked} xe tạm dừng hoạt động`);
     }
 
+    // Hàm tự động quét toàn bộ xe hệ thống để nhận diện & gom nhóm loại xe của tuyến
+    function tuDongLayLoaiXeCuaTuyen(maTuyen) {
+      const matchNorm = chuanHoaMaTuyen(maTuyen);
+      const xeTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === matchNorm);
+      if (xeTuyen.length === 0) return "";
+
+      const setLoai = new Set();
+      xeTuyen.forEach(x => {
+        let ten = `${x.nhanHieu || ''} ${x.chungLoai || ''}`.trim();
+        if (ten) {
+          setLoai.add(ten + (x.sucChua ? ` (${x.sucChua} chỗ)` : ''));
+        }
+      });
+      return Array.from(setLoai).join(' & ');
+    }
+
     function veBangDanhSachTuyen(sortedList) {
       let html = '';
       const listToRender = sortedList || Array.from(mapTuyenChiTiet.values());
@@ -1080,8 +1148,15 @@
           const isLocked = t.status === 'locked';
           const badge = isLocked ? '<span class="status-badge status-locked">Khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
           const vd = t.soXeVd || t.soXe || ""; const kh = t.soXeKh || t.soXe || "";
+          
           let phuongTienStr = (vd || kh) ? `<strong style="color:#0F86DB;">${vd || '?'}/${kh || '?'} xe</strong>` : '<span style="color:#aaa;">Chưa cập nhật</span>';
-          if (t.loaiXe) phuongTienStr += ` - ${t.loaiXe}`;
+          
+          // Tự động nhận diện loại xe từ danh sách xe thực tế nếu tuyến chưa khai báo cứng
+          let loaiXeHienThi = t.loaiXe || tuDongLayLoaiXeCuaTuyen(t.maTuyen);
+          if (loaiXeHienThi) {
+            phuongTienStr += `<div style="color: #444; font-weight: normal; margin-top: 2px; line-height: 1.2;">${loaiXeHienThi}</div>`;
+          }
+
           const btnToggle = isLocked
             ? `<button class="btn btn-success" style="padding:3px 8px; font-size:11px;" onclick="doiTrangThai('${t.maTuyen}', 'active')">Mở</button>`
             : `<button class="btn btn-warning" style="padding:3px 8px; font-size:11px;" onclick="doiTrangThai('${t.maTuyen}', 'locked')">Khóa</button>`;
@@ -1102,7 +1177,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]); $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -1117,16 +1192,16 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel =$('#' + elemId);
+      const $sel = $('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
+      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
       $sel.trigger('change.select2');
     }
 
     function doVaoSelect2ThongThuong(elemId, dataSet, defaultText) {
-      const $sel =$('#' + elemId);
+      const $sel = $('#' + elemId);
       $sel.empty().append(`<option value="">${defaultText}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.trigger('change.select2');
+      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.trigger('change.select2');
     }
 
     function onSelectTuyenChange() {
@@ -1227,7 +1302,7 @@
       $('#dcBks').val(bks);
       const $sel = $('#dcTuyenMoi'); $sel.empty();
       mapTuyenChiTiet.forEach(t => { $sel.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
-      $sel.select2({ dropdownParent:$('#modalDieuChuyen'), language: { noResults: () => "Không tìm thấy" } });
+      $sel.select2({ dropdownParent: $('#modalDieuChuyen'), language: { noResults: () => "Không tìm thấy" } });
       $('#modalDieuChuyen').css('display', 'flex');
     }
 
@@ -1332,9 +1407,7 @@
       const role = $('#newAccRole').val();
       
       let permissions = [];
-      $('.new-perm:checked').each(function() {
-        permissions.push($(this).val());
-      });
+      $('.new-perm:checked').each(function() { permissions.push($(this).val()); });
 
       if (!username || !password) { showToast("Vui lòng nhập đủ tài khoản và mật khẩu!", "error"); return; }
       try {
