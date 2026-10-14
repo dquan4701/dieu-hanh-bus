@@ -401,9 +401,9 @@
 
       <!-- TAB 2: TRA CỨU XE -->
       <div id="tab-xe" class="tab-content">
-        <div class="form-label" style="margin-bottom: 6px;">Nhập biển kiểm soát cần tra cứu (gõ đến đâu hiện kết quả tới đó):</div>
+        <div class="form-label" style="margin-bottom: 6px;">Nhập biển kiểm soát cần tra cứu:</div>
         <div style="margin-bottom: 12px;">
-          <input type="text" id="txtSearchBks" class="form-control" style="font-size: 14px; font-weight: bold; text-transform: uppercase; height: 34px;" placeholder="VD: 153.49 hoặc 29B..." oninput="timKiemXeLive()">
+          <input type="text" id="txtSearchBks" class="form-control" style="font-size: 14px; font-weight: bold; text-transform: uppercase; height: 34px;" placeholder="VD: 29B14667 hoặc 14667..." oninput="timKiemXeLive()">
         </div>
         <div id="ketQuaTraCuuXe"></div>
       </div>
@@ -429,13 +429,13 @@
     const API_BASE = "https://dieu-hanh-bus.onrender.com";
     
     function showToast(message, type = 'success') {
-      let $container = $('#toast-container');
-      if ($container.length === 0) { $('body').append('<div id="toast-container"></div>');
-        $container = $('#toast-container');
+      let $container =$('#toast-container');
+      if ($container.length === 0) {$('body').append('<div id="toast-container"></div>');
+        $container =$('#toast-container');
       }
 
       const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-      const $toast = $(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
+      const $toast =$(`<div class="custom-toast ${type}"><i class="fa ${icon}" style="font-size: 16px;"></i><span>${message}</span></div>`);
       
       $container.append($toast);
       setTimeout(() => { $toast.remove(); }, 3000);
@@ -447,7 +447,7 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active'); $('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -455,7 +455,6 @@
     }
 
     $(document).ready(function() {
-      // Tải nội dung thanh thông báo chạy
       fetch(`${API_BASE}/api/thong-bao`)
         .then(r => r.json())
         .then(res => {
@@ -493,21 +492,32 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box = $('#ketQuaTraCuuXe');
+      const $box =$('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
       timeoutSearch = setTimeout(async () => {
         $box.html('<p style="text-align:center; padding:15px; color:#777;"><i class="fa fa-spinner fa-spin"></i> Đang tìm kiếm...</p>');
         try {
-          const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=${encodeURIComponent(q)}`).then(r => r.json());
-          if (!res.success || !res.data || res.data.length === 0) {
+          const cleanQuery = q.replace(/[\s\-\.]/g, '').toLowerCase();
+          const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
+          if (!res.success || !res.data) {
+            $box.html('<p style="text-align:center; color:#d9534f; padding:15px; font-weight:bold;">Không tìm thấy biển số phù hợp!</p>');
+            return;
+          }
+
+          const matched = res.data.filter(x => {
+            const cleanBks = String(x.bks || '').replace(/[\s\-\.]/g, '').toLowerCase();
+            return cleanBks.includes(cleanQuery);
+          });
+
+          if (matched.length === 0) {
             $box.html('<p style="text-align:center; color:#d9534f; padding:15px; font-weight:bold;">Không tìm thấy biển số phù hợp!</p>');
             return;
           }
 
           let html = '';
-          res.data.forEach(xe => {
+          matched.forEach(xe => {
             html += `
               <div class="bus-card-custom">
                 <div style="font-size: 20px; font-weight: 800; color: #111; margin-bottom: 2px;">${xe.bks}</div>
@@ -550,9 +560,9 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn = $('#selXn');
+        const $selXn =$('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
-        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn))); $selXn.trigger('change');
+        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn)));$selXn.trigger('change');
       } catch (err) {
         console.error("Lỗi khi tải danh mục:", err);
       }
@@ -560,14 +570,14 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen = $('#selTuyen');
-      const $selNgay = $('#selNgayApDung');
+      const $selTuyen =$('#selTuyen');
+      const $selNgay =$('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
       if (!xn) {
-        $selTuyen.trigger('change'); $selNgay.trigger('change');
+        $selTuyen.trigger('change');$selNgay.trigger('change');
         return;
       }
 
@@ -579,7 +589,7 @@
         $selTuyen.append(new Option(tuyen, tuyen));
       });
 
-      $selTuyen.trigger('change'); $selNgay.trigger('change');
+      $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
     function parseDateInfo(str) {
@@ -606,7 +616,7 @@
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay = $('#selNgayApDung');
+      const $selNgay =$('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
@@ -626,7 +636,7 @@
       });
 
       if (bestDate) {
-        $selNgay.append(new Option(bestDate.label, bestDate.label)); $selNgay.val(bestDate.label);
+        $selNgay.append(new Option(bestDate.label, bestDate.label));$selNgay.val(bestDate.label);
       }
       $selNgay.trigger('change');
     }
@@ -694,7 +704,7 @@
         return;
       }
 
-      const $btn = $('.btn-view'); $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
