@@ -13,7 +13,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
       font-size: 12px;
       background-color: #F1F4F9;
       color: #333;
@@ -21,12 +21,22 @@
       padding-bottom: 75px;
     }
 
-    /* Thanh thông báo chạy (Marquee) */
+    /* Hiệu ứng mượt mà kiểu iOS */
+    button, .btn-view, select, input, .nav-btn {
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:active, .btn-view:active, .nav-btn:active {
+      transform: scale(0.96) !important;
+      transition-duration: 0.1s !important;
+    }
+
+    /* Thanh thông báo chạy */
     .marquee-container {
       background: #EBF2F8;
       color: #1A5276;
       border: 1px solid #C4D5E5;
-      border-radius: 4px;
+      border-radius: 6px;
       padding: 8px 12px;
       overflow: hidden;
       white-space: nowrap;
@@ -59,23 +69,23 @@
     .panel-custom {
       background: #FFFFFF;
       border: 1px solid #C4D5E5;
-      border-radius: 4px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
       max-width: 1400px;
       margin: 0 auto;
+      overflow: hidden;
     }
 
     .panel-heading {
       background: #3B86C4;
       color: #FFFFFF;
-      padding: 10px 15px;
+      padding: 12px 16px;
       font-size: 13px;
       font-weight: bold;
       text-transform: uppercase;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
     }
 
     .panel-body { padding: 16px; }
@@ -100,12 +110,15 @@
       padding: 3px 8px;
       font-size: 12px;
       border: 1px solid #CCCCCC;
-      border-radius: 3px;
+      border-radius: 6px;
       outline: none;
       background-color: #FFFFFF;
       width: 100%;
     }
-    .form-control:focus { border-color: #3B86C4; }
+    .form-control:focus { 
+      border-color: #3B86C4; 
+      box-shadow: 0 0 0 3px rgba(59, 134, 196, 0.15);
+    }
 
     .days-row {
       display: flex;
@@ -127,16 +140,20 @@
       background-color: #337AB7;
       color: #FFFFFF;
       border: 1px solid #2E6DA4;
-      padding: 8px 20px;
+      padding: 9px 22px;
       font-size: 13px;
       font-weight: bold;
-      border-radius: 3px;
+      border-radius: 6px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      box-shadow: 0 2px 5px rgba(51, 122, 183, 0.2);
     }
-    .btn-view:hover { background-color: #286090; }
+    .btn-view:hover { 
+      background-color: #286090; 
+      transform: translateY(-2px);
+    }
 
     .viewer-wrapper {
       margin-top: 20px;
@@ -144,7 +161,6 @@
       padding-top: 15px;
       display: none;
       width: 100%;
-      overflow: hidden;
     }
 
     .table-scroll {
@@ -153,7 +169,6 @@
       background: #FFFFFF;
       border: 1px solid #CCCCCC;
       -webkit-overflow-scrolling: touch;
-      display: block;
     }
 
     .table-schedule {
@@ -174,13 +189,12 @@
       color: #111;
       font-weight: bold;
       height: 28px;
-      text-align: center !important;
     }
     .table-schedule tbody tr:hover { background-color: #F5F9FD; }
 
     .colstt { width: 45px; font-weight: bold; text-align: center !important; }
     .coldau { width: 170px; text-align: left !important; padding-left: 10px !important; }
-    .colflight { width: 52px; }
+    .colflight { width: 52px; min-width: 52px; }
     
     .colthayca { 
       background-color: #FFFF99 !important; 
@@ -208,7 +222,7 @@
     .bus-card-custom {
       background: #FFFFFF;
       border: 1px solid #D0D7DE;
-      border-radius: 4px;
+      border-radius: 6px;
       margin-top: 12px;
       padding: 14px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -219,7 +233,7 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      height: 56px;
+      height: 58px;
       background: #FFFFFF;
       border-top: 1px solid #D0D7DE;
       display: flex;
@@ -254,7 +268,7 @@
     .select2-container .select2-selection--single {
       height: 34px !important;
       border: 1px solid #ccc !important;
-      border-radius: 3px !important;
+      border-radius: 6px !important;
       display: flex;
       align-items: center;
     }
@@ -263,46 +277,22 @@
       font-size: 12px !important;
       color: #333 !important;
       padding-left: 8px !important;
-      padding-right: 20px !important;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow {
       height: 32px !important;
     }
-    .select2-dropdown {
-      font-size: 12px !important;
-      border: 1px solid #3B86C4 !important;
-    }
 
     @media (max-width: 768px) {
-      body { padding: 6px; }
-      .panel-body { padding: 12px 10px; }
       .form-grid {
         grid-template-columns: 1fr;
         row-gap: 6px;
-      }
-      .form-grid label {
-        font-weight: bold;
-        margin-top: 5px;
-      }
-      .form-grid > div {
-        max-width: 100% !important;
-        width: 100% !important;
-      }
-      .btn-view {
-        width: 100%;
-        justify-content: center;
-        padding: 10px;
-        margin-top: 8px;
       }
     }
   </style>
 </head>
 <body>
 
-  <!-- Thanh thông báo chạy tự động từ Backend -->
+  <!-- Thanh thông báo chạy -->
   <div class="marquee-container" id="marqueeWrapper">
     <i class="fa fa-bullhorn"></i>
     <div class="marquee-text-wrap">
@@ -316,9 +306,7 @@
         <i class="fa fa-bus"></i>
         <span>HỆ THỐNG TRA CỨU BIỂU ĐỒ & PHƯƠNG TIỆN</span>
       </div>
-      <div>
-        <a href="admin.html" style="color: #FFF; font-size: 12px; text-decoration: none; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 3px;">Quản trị</a>
-      </div>
+      <!-- Đã dọn sạch nút Quản trị thừa ở góc trên -->
     </div>
 
     <div class="panel-body">
@@ -413,7 +401,6 @@
     }
 
     $(document).ready(function() {
-      // Tải thông báo chạy từ Backend
       fetch(`${API_BASE}/api/thong-bao`)
         .then(r => r.json())
         .then(res => {
@@ -427,7 +414,6 @@
           $('#marqueeWrapper').hide();
         });
 
-      // Ghi nhận lịch sử truy cập khách
       fetch(`${API_BASE}/api/log-access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -435,9 +421,7 @@
       }).catch(err => {});
 
       $('.select2-search').select2({
-        language: {
-          noResults: function() { return "Không tìm thấy kết quả phù hợp"; }
-        }
+        language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
       });
 
       $('#selXn').on('change', onXnChange);
@@ -495,7 +479,7 @@
                   </div>
                 </div>
                 <div style="margin-top: 10px; border-top: 1px dashed #E1E4E8; padding-top: 8px; text-align: right;">
-                  <button onclick="chuyenNhanhSangBieuDo('${xe.xn}', '${xe.tenTuyen}')" style="background: #27AE60; color: #FFF; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; width: 100%;">
+                  <button onclick="chuyenNhanhSangBieuDo('${xe.xn}', '${xe.tenTuyen}')" style="background: #27AE60; color: #FFF; border: none; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; width: 100%;">
                     <i class="fa fa-calendar"></i> Xem biểu đồ Tuyến ${xe.maTuyen}
                   </button>
                 </div>
@@ -524,10 +508,7 @@
 
         const $selXn =$('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
-        Array.from(xnSet).sort().forEach(xn => {
-          $selXn.append(new Option(xn, xn));
-        });
-        $selXn.trigger('change');
+        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn)));$selXn.trigger('change');
       } catch (err) {
         console.error("Lỗi khi tải danh mục:", err);
       }
@@ -541,60 +522,29 @@
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
-      if (!xn) {
-        $selTuyen.trigger('change');$selNgay.trigger('change');
-        return;
-      }
+      if (!xn) { $selTuyen.trigger('change');$selNgay.trigger('change'); return; }
 
       const tuyenSet = new Set();
-      allRoutes.forEach(r => {
-        if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen);
-      });
-      danhMucData.forEach(item => {
-        if (item.xn === xn && item.tuyen) tuyenSet.add(item.tuyen);
-      });
+      allRoutes.forEach(r => { if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen); });
+      danhMucData.forEach(item => { if (item.xn === xn && item.tuyen) tuyenSet.add(item.tuyen); });
 
-      const sortedTuyen = Array.from(tuyenSet).sort((a, b) => {
-        return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-      });
-
-      sortedTuyen.forEach(tuyen => {
+      Array.from(tuyenSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).forEach(tuyen => {
         $selTuyen.append(new Option(tuyen, tuyen));
       });
-
       $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
     function parseDateInfo(str) {
       if (!str) return { label: "Hiện hành", sortKey: "00000000" };
       str = String(str).trim();
-
       const matchFull = str.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       if (matchFull) {
         let d = parseInt(matchFull[1], 10);
         let m = parseInt(matchFull[2], 10);
         let y = parseInt(matchFull[3], 10);
         if (y < 100) y += 2000;
-        const dStr = String(d).padStart(2, '0');
-        const mStr = String(m).padStart(2, '0');
-        return {
-          label: `${dStr}/${mStr}/${y}`,
-          sortKey: `${y}${mStr}${dStr}`
-        };
+        return { label: `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`, sortKey: `${y}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}` };
       }
-
-      const matchMonthYear = str.match(/(\d{1,2})[\/\.](\d{2,4})/);
-      if (matchMonthYear) {
-        let m = parseInt(matchMonthYear[1], 10);
-        let y = parseInt(matchMonthYear[2], 10);
-        if (y < 100) y += 2000;
-        const mStr = String(m).padStart(2, '0');
-        return {
-          label: `Tháng ${mStr}/${y}`,
-          sortKey: `${y}${mStr}01`
-        };
-      }
-
       return { label: "Hiện hành", sortKey: "00000000" };
     }
 
@@ -611,13 +561,9 @@
       const $selNgay =$('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
-      if (!xn || !tuyen) {
-        $selNgay.trigger('change');
-        return;
-      }
+      if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
 
       const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
-
       const parsedTabs = bieuDoCuaTuyen.map(item => ({
         ...item,
         tabType: detectTabType(item),
@@ -634,7 +580,6 @@
       if (bestDate) {
         $selNgay.append(new Option(bestDate.label, bestDate.label));$selNgay.val(bestDate.label);
       }
-
       $selNgay.trigger('change');
     }
 
@@ -656,13 +601,11 @@
       }));
 
       const isChuNhat = (thuDaChon === "CN");
-
       if (isChuNhat) {
         const sundayTabs = parsedTabs.filter(t => t.tabType === "sunday");
         if (sundayTabs.length > 0) {
           const exactSunday = sundayTabs.find(t => t.dateInfo.label === ngayApDungChuan);
           if (exactSunday) return exactSunday.tenTab;
-
           sundayTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
           return sundayTabs[0].tenTab;
         }
@@ -671,7 +614,6 @@
         if (weekdayTabs.length > 0) {
           const exactWeekday = weekdayTabs.find(t => t.dateInfo.label === ngayApDungChuan);
           if (exactWeekday) return exactWeekday.tenTab;
-
           weekdayTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
           return weekdayTabs[0].tenTab;
         }
@@ -681,11 +623,9 @@
       if (allWeekTabs.length > 0) {
         const exactAll = allWeekTabs.find(t => t.dateInfo.label === ngayApDungChuan);
         if (exactAll) return exactAll.tenTab;
-
         allWeekTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
         return allWeekTabs[0].tenTab;
       }
-
       return bieuDoList[0].tenTab;
     }
 
@@ -712,7 +652,6 @@
       try {
         const res = await fetch(`${API_BASE}/api/table-data?tab=${encodeURIComponent(tabName)}&tuyen=${encodeURIComponent(tuyen)}`).then(r => r.json());
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
-
         hienThiBangHTML(res);
       } catch (err) {
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
@@ -723,21 +662,11 @@
     function chuanHoaGio(str) {
       if (!str) return "";
       str = String(str).trim();
-      if (str.includes("T") && str.includes("Z")) {
-        const d = new Date(str);
-        if (!isNaN(d.getTime())) {
-          const h = String(d.getUTCHours());
-          const m = String(d.getUTCMinutes());
-          return h + ":" + (m.length < 2 ? "0" + m : m);
-        }
-      }
       const parts = str.split(":");
       if (parts.length >= 2) {
         const h = parseInt(parts[0], 10);
         const m = parseInt(parts[1], 10);
-        if (!isNaN(h) && !isNaN(m)) {
-          return h + ":" + (m < 10 ? "0" + m : m);
-        }
+        if (!isNaN(h) && !isNaN(m)) return h + ":" + (m < 10 ? "0" + m : m);
       }
       return str;
     }
@@ -769,10 +698,7 @@
 
       for (let i = 0; i < rawData.length; i++) {
         const valCol0 = String(rawData[i][0] || "").trim();
-        if (valCol0 === "1" || valCol0 === "01") {
-          startRow = i;
-          break;
-        }
+        if (valCol0 === "1" || valCol0 === "01") { startRow = i; break; }
 
         for (let col = 0; col < rawData[i].length; col++) {
           const cellStr = String(rawData[i][col] || "").toLowerCase();
@@ -782,12 +708,7 @@
         }
 
         const rowString = rawData[i].join(" ");
-        const hasColon = rowString.includes(":");
-        const isFirstColEmpty = (valCol0 === "");
-
-        if ((isFirstColEmpty && hasColon) || rowString.toLowerCase().includes("giờ gạch chân")) {
-          continue;
-        }
+        if ((valCol0 === "" && rowString.includes(":")) || rowString.toLowerCase().includes("giờ gạch chân")) continue;
 
         const fullText = rawData[i].filter(c => c && c.trim() !== "").join(" - ").trim();
         if (fullText.length > 3 && !fullText.toLowerCase().includes("đầu a-b") && fullText.toLowerCase() !== "nốt" && !fullText.toLowerCase().includes("điểm danh")) {
@@ -797,15 +718,13 @@
 
       if (startRow === -1) startRow = 0;
       const tableData = rawData.slice(startRow);
-
       const cleanTableData = [];
+
       for (let j = 0; j < tableData.length; j++) {
         const col0 = String(tableData[j][0] || "").trim();
         if (col0 !== "" && !isNaN(col0)) {
           cleanTableData.push(tableData[j]); 
-          if (j + 1 < tableData.length) {
-            cleanTableData.push(tableData[j + 1]); 
-          }
+          if (j + 1 < tableData.length) cleanTableData.push(tableData[j + 1]); 
         }
       }
 
@@ -813,21 +732,18 @@
       for (let r = 0; r < cleanTableData.length; r += 2) {
         const rowA = cleanTableData[r];
         const rowB = cleanTableData[r + 1] || [];
-
         const notVal = rowA[0] ? String(rowA[0]).trim() : "";
         if (!notVal && (!rowA[1] || rowA[1].trim() === "")) continue;
 
         const dauA = customDauA || (rowA[1] ? rowA[1].trim() : "");
         const dauB = customDauB || (rowB[1] ? rowB[1].trim() : "");
-
         const cells = [];
         let totalTrips = 0;
         let endC = Math.max(rowA.length, rowB.length);
 
         const lastA = String(rowA[endC - 1] || "").trim();
         const lastB = String(rowB[endC - 1] || "").trim();
-        if ((lastA !== "" && !isNaN(lastA) && !lastA.includes(":")) ||
-            (lastB !== "" && !isNaN(lastB) && !lastB.includes(":"))) {
+        if ((lastA !== "" && !isNaN(lastA) && !lastA.includes(":")) || (lastB !== "" && !isNaN(lastB) && !lastB.includes(":"))) {
           endC = endC - 1;
         }
 
@@ -840,33 +756,25 @@
             cells.push(valDD ? { type: "diemdanh", val: valDD } : { type: "empty" });
             continue;
           }
-
           if (valA.toLowerCase().includes("thay ca") || valB.toLowerCase().includes("thay ca")) {
             cells.push({ type: "thayca" });
             continue;
           }
-          if (!valA && !valB) {
-            cells.push({ type: "empty" });
-            continue;
-          }
+          if (!valA && !valB) { cells.push({ type: "empty" }); continue; }
 
           totalTrips++;
           const pA = chuyenPhut(valA);
           const pB = chuyenPhut(valB);
 
           if (valA && valB) {
-            if (pA < pB) {
-              cells.push({ type: "flight", top: valA, topCls: "cold1a", btm: valB, btmCls: "cold1b" });
-            } else {
-              cells.push({ type: "flight", top: valA, topCls: "cold2a", btm: valB, btmCls: "cold2b" });
-            }
+            if (pA < pB) cells.push({ type: "flight", top: valA, topCls: "cold1a", btm: valB, btmCls: "cold1b" });
+            else cells.push({ type: "flight", top: valA, topCls: "cold2a", btm: valB, btmCls: "cold2b" });
           } else if (valA) {
             cells.push({ type: "flight", top: valA, topCls: "cold1a", btm: "", btmCls: "" });
           } else {
             cells.push({ type: "flight", top: "", topCls: "", btm: valB, btmCls: "cold2b" });
           }
         }
-
         notList.push({ not: notVal || (r / 2 + 1), dauA, dauB, cells, totalTrips });
       }
 
@@ -876,53 +784,34 @@
         if (item.cells.length > maxCols) maxCols = item.cells.length;
       });
 
-      const totalTableWidthCols = maxCols + 3;
+      const totalCols = maxCols + 3;
       let html = '<thead>';
 
       if (bannerLines.length > 0) {
         bannerLines.forEach((line, idx) => {
-          html += `<tr><th colspan="${totalTableWidthCols}" style="font-size:${idx === 0 ? '13px' : '12px'}; font-weight:bold; padding:8px 6px; background:#FFFFFF; border:1px solid #CCCCCC; text-align:center; color:#111;">${line}</th></tr>`;
+          html += `<tr><th colspan="${totalCols}" style="font-size:12px; font-weight:bold; padding:6px; background:#FFFFFF; border:1px solid #CCCCCC; text-align:center; color:#111;">${line}</th></tr>`;
         });
       }
 
-      html += '<tr>';
-      html += '<th class="colstt">Nốt</th>';
-      html += '<th class="coldau">Đầu A-B</th>';
-      html += `<th colspan="${maxCols}">GIỜ XE XUẤT BẾN/ VỀ BẾN</th>`;
-      html += '<th class="coltotal" style="background-color: #EBF2F8 !important; color: #111 !important;">LƯỢT</th>';
-      html += '</tr></thead><tbody>';
+      html += '<tr><th class="colstt">Nốt</th><th class="coldau">Đầu A-B</th><th colspan="' + maxCols + '">GIỜ XE XUẤT BẾN / VỀ BẾN</th><th class="coltotal">LƯỢT</th></tr></thead><tbody>';
 
-      let tongLuotToanTuyen = 0;
-
+      let tongLuot = 0;
       notList.forEach(item => {
-        tongLuotToanTuyen += item.totalTrips;
-        html += '<tr>';
-        html += `<td class="colstt">${item.not}</td>`;
-        html += `<td class="coldau"><span class="colsa">${item.dauA}</span><span class="colsb">${item.dauB}</span></td>`;
-        
+        tongLuot += item.totalTrips;
+        html += `<tr><td class="colstt">${item.not}</td><td class="coldau"><span class="colsa">${item.dauA}</span><span class="colsb">${item.dauB}</span></td>`;
         let cnt = 0;
         item.cells.forEach(c => {
-          if (c.type === "thayca") {
-            html += '<td class="colthayca">Thay ca</td>';
-          } else if (c.type === "diemdanh") {
-            html += `<td class="coldiemdanh">${c.val}</td>`;
-          } else if (c.type === "flight") {
-            html += `<td class="colflight"><span class="${c.topCls}">${c.top}</span><span class="${c.btmCls}">${c.btm}</span></td>`;
-          } else {
-            html += '<td></td>';
-          }
+          if (c.type === "thayca") html += '<td class="colthayca">Thay ca</td>';
+          else if (c.type === "diemdanh") html += `<td class="coldiemdanh">${c.val}</td>`;
+          else if (c.type === "flight") html += `<td class="colflight"><span class="${c.topCls}">${c.top}</span><span class="${c.btmCls}">${c.btm}</span></td>`;
+          else html += '<td></td>';
           cnt++;
         });
         while (cnt < maxCols) { html += '<td></td>'; cnt++; }
-        html += `<td class="coltotal">${item.totalTrips}</td>`;
-        html += '</tr>';
+        html += `<td class="coltotal">${item.totalTrips}</td></tr>`;
       });
 
-      html += '<tr style="font-weight:bold; background:#FAFAFA;">';
-      html += '<td colspan="2" style="text-align:center;">Tổng lượt</td>';
-      html += `<td colspan="${maxCols}"></td>`;
-      html += `<td class="coltotal" style="background-color: #FAFAFA !important; color: #0F86DB;">${tongLuotToanTuyen}</td>`;
-      html += '</tr></tbody>';
+      html += `<tr style="font-weight:bold; background:#FAFAFA;"><td colspan="2" style="text-align:center;">Tổng lượt</td><td colspan="${maxCols}"></td><td class="coltotal" style="color:#0F86DB;">${tongLuot}</td></tr></tbody>`;
 
       $('#mainScheduleTable').html(html);
       $('#viewerWrapper').show();
