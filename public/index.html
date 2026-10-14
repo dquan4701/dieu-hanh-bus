@@ -306,7 +306,6 @@
         <i class="fa fa-bus"></i>
         <span>HỆ THỐNG TRA CỨU BIỂU ĐỒ & PHƯƠNG TIỆN</span>
       </div>
-      <!-- Đã dọn sạch nút Quản trị thừa ở góc trên -->
     </div>
 
     <div class="panel-body">
@@ -534,8 +533,9 @@
       $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
+    // 1. Phân tích ngày tháng chuẩn xác hỗ trợ so sánh hiệu lực
     function parseDateInfo(str) {
-      if (!str) return { label: "Hiện hành", sortKey: "00000000" };
+      if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
       str = String(str).trim();
       const matchFull = str.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       if (matchFull) {
@@ -543,11 +543,18 @@
         let m = parseInt(matchFull[2], 10);
         let y = parseInt(matchFull[3], 10);
         if (y < 100) y += 2000;
-        return { label: `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`, sortKey: `${y}${String(m).padStart(2,'0')}${String(d).padStart(2,'0')}` };
+        const dStr = String(d).padStart(2, '0');
+        const mStr = String(m).padStart(2, '0');
+        return {
+          label: `${dStr}/${mStr}/${y}`,
+          sortKey: `${y}${mStr}${dStr}`,
+          dateObj: new Date(y, m - 1, d)
+        };
       }
-      return { label: "Hiện hành", sortKey: "00000000" };
+      return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
     }
 
+    // 2. Nhận diện loại tab (Ngày thường 2-7 hay Chủ nhật)
     function detectTabType(tabItem) {
       const txt = (tabItem.tenTab + " " + (tabItem.bieuDo || "")).toLowerCase();
       if (txt.includes("cn") || txt.includes("chủ nhật")) return "sunday";
@@ -564,23 +571,32 @@
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
 
       const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
-      const parsedTabs = bieuDoCuaTuyen.map(item => ({
-        ...item,
-        tabType: detectTabType(item),
-        dateInfo: parseDateInfo(item.tenTab || item.bieuDo || "")
-      }));
-
-      let bestDate = null;
-      parsedTabs.forEach(item => {
-        if (!bestDate || item.dateInfo.sortKey.localeCompare(bestDate.sortKey) > 0) {
-          bestDate = item.dateInfo;
+      
+      // Lấy danh sách tất cả các ngày áp dụng độc lập từ các tab của tuyến này
+      const dateSet = new Set();
+      bieuDoCuaTuyen.forEach(item => {
+        const dInfo = parseDateInfo(item.tenTab || item.bieuDo || "");
+        if (dInfo.sortKey !== "00000000") {
+          dateSet.add(dInfo.label);
         }
       });
 
-      if (bestDate) {
-        $selNgay.append(new Option(bestDate.label, bestDate.label));$selNgay.val(bestDate.label);
+      const sortedDates = Array.from(dateSet).sort((a, b) => {
+        const pA = parseDateInfo(a);
+        const pB = parseDateInfo(b);
+        return pB.sortKey.localeCompare(pA.sortKey); // Mới nhất lên đầu
+      });
+
+      sortedDates.forEach(dateLabel => {
+        $selNgay.append(new Option(dateLabel, dateLabel));
+      });
+
+      if (sortedDates.length > 0) {
+        $selNgay.val(sortedDates[0]).trigger('change');
+      } else {
+        $selNgay.append(new Option("Hiện hành", "Hiện hành"));
+        $selNgay.val("Hiện hành").trigger('change');
       }
-      $selNgay.trigger('change');
     }
 
     function onDayChange() {
@@ -589,10 +605,21 @@
       }
     }
 
+    // 3. LOGIC TÌM TAB PHÙ HỢP THEO NGÀY HIỆU LỰC & LOẠI NGÀY (2-7 / CHỦ NHẬT)
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
       const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
       if (bieuDoList.length === 0) return null;
       if (bieuDoList.length === 1) return bieuDoList[0].tenTab;
+
+      const isChuNhat = (thuDaChon === "CN");
+      const targetType = isChuNhat ? "sunday" : "weekday";
+
+      // Parse ngày người dùng chọn trên dropdown
+      let targetDateObj = null;
+      const parts = ngayApDungChuan.split('/');
+      if (parts.length === 3) {
+        targetDateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+      }
 
       const parsedTabs = bieuDoList.map(item => ({
         ...item,
@@ -600,33 +627,28 @@
         dateInfo: parseDateInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      const isChuNhat = (thuDaChon === "CN");
-      if (isChuNhat) {
-        const sundayTabs = parsedTabs.filter(t => t.tabType === "sunday");
-        if (sundayTabs.length > 0) {
-          const exactSunday = sundayTabs.find(t => t.dateInfo.label === ngayApDungChuan);
-          if (exactSunday) return exactSunday.tenTab;
-          sundayTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
-          return sundayTabs[0].tenTab;
-        }
-      } else {
-        const weekdayTabs = parsedTabs.filter(t => t.tabType === "weekday");
-        if (weekdayTabs.length > 0) {
-          const exactWeekday = weekdayTabs.find(t => t.dateInfo.label === ngayApDungChuan);
-          if (exactWeekday) return exactWeekday.tenTab;
-          weekdayTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
-          return weekdayTabs[0].tenTab;
+      // Lọc các tab khớp loại ngày (Weekday cho T2-T7, Sunday cho Chủ nhật)
+      let candidateTabs = parsedTabs.filter(t => t.tabType === targetType || t.tabType === "all");
+      if (candidateTabs.length === 0) {
+        candidateTabs = parsedTabs; 
+      }
+
+      // Nếu có ngày tra cứu cụ thể, áp dụng Effective Date Hierarchy (tìm mốc gần nhất <= ngày tra cứu)
+      if (targetDateObj && !isNaN(targetDateObj.getTime())) {
+        const validTabs = candidateTabs.filter(t => {
+          if (!t.dateInfo.dateObj) return true;
+          return t.dateInfo.dateObj <= targetDateObj;
+        });
+
+        if (validTabs.length > 0) {
+          validTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
+          return validTabs[0].tenTab;
         }
       }
 
-      const allWeekTabs = parsedTabs.filter(t => t.tabType === "all");
-      if (allWeekTabs.length > 0) {
-        const exactAll = allWeekTabs.find(t => t.dateInfo.label === ngayApDungChuan);
-        if (exactAll) return exactAll.tenTab;
-        allWeekTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
-        return allWeekTabs[0].tenTab;
-      }
-      return bieuDoList[0].tenTab;
+      // Mặc định lấy mốc mới nhất
+      candidateTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
+      return candidateTabs[0].tenTab;
     }
 
     async function xemBieuDo() {
