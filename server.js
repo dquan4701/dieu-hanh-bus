@@ -475,7 +475,7 @@ app.post('/api/xoa-bieu-do', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// API TÌM KIẾM XE ĐÃ ĐƯỢC TÍCH HỢP CHUẨN HÓA MÃ TUYẾN
+// API TÌM KIẾM XE TÍCH HỢP CHUẨN HÓA
 app.get('/api/tim-kiem-xe', async (req, res) => {
   try {
     const q = (req.query.q || '').trim().toLowerCase();
@@ -507,6 +507,7 @@ app.get('/api/tim-kiem-xe', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
+// API NẠP EXCEL ĐÃ NÂNG CẤP NHẬN DIỆN LINH HOẠT TIÊU ĐỀ
 app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) => {
   try {
     const { rawText } = req.body;
@@ -514,15 +515,22 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     const raw = await getRawData();
     if (!raw.tuyenList) raw.tuyenList = {};
     if (!Array.isArray(raw.xeList)) raw.xeList = [];
+    
     const lines = rawText.split('\n');
     let currentMaTuyen = '';
     const importedCars = [];
+
     lines.forEach(line => {
       const fullLine = line.trim();
       if (!fullLine) return;
       const parts = line.split('\t').map(p => p.trim());
-      const matchTuyen = fullLine.match(/^Tuyến\s+([0-9A-Za-z]+)\s*[:\-]?\s*(.*)/i);
-      if (matchTuyen) {
+      
+      // Chấp nhận cả dòng có chữ "Tuyến" hoặc chỉ cần mã định danh (VD: BRT01: Bến xe...)
+      const matchTuyen = fullLine.match(/^(?:Tuyến\s+)?([0-9A-Za-z]+)\s*[:\-]?\s*(.*)/i);
+      const bks = parts[0] || '';
+      const isBks = bks.includes('-') || bks.includes('.');
+
+      if (matchTuyen && !isBks) {
         currentMaTuyen = matchTuyen[1].toUpperCase();
         let currentTenLoTrinh = matchTuyen[2] ? matchTuyen[2].trim().replace(/\t.*$/, '') : '';
         if (!raw.tuyenList[currentMaTuyen]) {
@@ -530,26 +538,34 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
           const loTrinhParts = currentTenLoTrinh.split('-');
           if (loTrinhParts.length >= 2) { dauA = loTrinhParts[0].trim(); dauB = loTrinhParts[1].trim(); }
           raw.tuyenList[currentMaTuyen] = {
-            maTuyen: currentMaTuyen, tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
+            maTuyen: currentMaTuyen, 
+            tenTuyen: `${currentMaTuyen}. ${currentTenLoTrinh || 'Tuyến ' + currentMaTuyen}`,
             xn: "Transerco", dauA, dauB, soXeVd: 0, soXeKh: 0, soXe: 0, loaiXe: "", sucChua: "", status: "active"
           };
         }
         return;
       }
-      const bks = parts[0] || '';
-      if ((bks.includes('-') || bks.includes('.')) && currentMaTuyen) {
+
+      if (isBks && currentMaTuyen) {
         importedCars.push({
-          bks: bks.toUpperCase(), maTuyen: currentMaTuyen, nhanHieu: parts[1] || '',
-          chungLoai: parts[2] || '', namSx: parts[3] || '', sucChua: parts[4] || '', donVi: parts[5] || ''
+          bks: bks.toUpperCase(), 
+          maTuyen: currentMaTuyen, 
+          nhanHieu: parts[1] || '',
+          chungLoai: parts[2] || '', 
+          namSx: parts[3] || '', 
+          sucChua: parts[4] || '', 
+          donVi: parts[5] || ''
         });
       }
     });
+
     if (importedCars.length > 0) {
       const existingMap = new Map();
       raw.xeList.forEach(x => existingMap.set(x.bks.toUpperCase(), x));
       importedCars.forEach(x => existingMap.set(x.bks, x));
       raw.xeList = Array.from(existingMap.values());
     }
+    
     await saveRawData(raw);
     res.json({ success: true, message: `Đã nhập xe và làm sạch dữ liệu thành công!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
