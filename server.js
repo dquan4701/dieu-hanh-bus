@@ -506,7 +506,6 @@ app.get('/api/tim-kiem-xe', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-// GỘP CHUNG TẤT CẢ CÁC ĐƯỜNG DẪN NẠP EXCEL ĐỂ KHÔNG BAO GIỜ BỊ LỆCH ROUTE
 app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) => {
   try {
     const { rawText } = req.body;
@@ -516,7 +515,7 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     if (!Array.isArray(raw.xeList)) raw.xeList = [];
     
     const lines = rawText.split('\n');
-    let currentMaTuyen = 'BRT01'; // Mặc định là BRT01 nếu không có dòng tiêu đề tuyến
+    let currentMaTuyen = 'BRT01';
     const importedCars = [];
 
     lines.forEach(line => {
@@ -578,6 +577,26 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     
     await saveRawData(raw);
     res.json({ success: true, message: `Bóc tách và nạp thành công ${importedCars.length} xe cho tuyến ${currentMaTuyen}!` });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
+// API XÓA XE KHỎI HỆ THỐNG
+app.post('/api/xoa-xe', async (req, res) => {
+  try {
+    const { bks } = req.body;
+    if (!bks) return res.status(400).json({ success: false, message: 'Thiếu biển kiểm soát xe cần xóa!' });
+    const raw = await getRawData();
+    if (!Array.isArray(raw.xeList)) raw.xeList = [];
+    
+    const initialLen = raw.xeList.length;
+    raw.xeList = raw.xeList.filter(x => String(x.bks || '').trim().toUpperCase() !== String(bks).trim().toUpperCase());
+    
+    if (raw.xeList.length === initialLen) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy biển số xe cần xóa!' });
+    }
+
+    await saveRawData(raw);
+    res.json({ success: true, message: `Đã xóa thành công xe [${bks}] khỏi hệ thống!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
