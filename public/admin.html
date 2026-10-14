@@ -141,7 +141,7 @@
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
 
-    /* CSS GIẢ LẬP LED - Đồng nhất font chữ chuẩn mono cho mọi thiết bị */
+    /* CSS GIẢ LẬP LED CHUẨN ĐỒNG NHẤT */
     .led-simulator-box {
       background: #05070b; border: 6px solid #161b22; border-radius: 8px; padding: 16px; max-width: 850px; margin: 0 auto;
       box-shadow: inset 0 0 35px rgba(0,0,0,0.95), 0 4px 15px rgba(0,0,0,0.3);
@@ -161,11 +161,11 @@
     .led-route-text-wrap { flex: 1; white-space: nowrap; position: relative; overflow: hidden; order: 2; }
     
     .led-route-text-container {
-      display: inline-block;
+      display: inline-flex;
       white-space: nowrap;
     }
     .led-route-text-container.marquee {
-      animation: ledMarquee 12s linear infinite;
+      animation: ledMarquee 14s linear infinite;
     }
     .led-route-text {
       font-family: 'Share Tech Mono', monospace, Tahoma, sans-serif; font-size: 22px; font-weight: bold; color: #00ff44;
@@ -258,7 +258,7 @@
 
       $('#menuTuyen, #menuExcel, #menuDoixe, #menuBieudo, #menuLedSim, #menuThongBao, #menuQuanTriUser, #menuLog').show();
 
-      if (role === 'master' || sessionStorage.getItem('admin_user') === 'quan') {
+      if (role === 'master' || sessionStorage.getItem('admin_user'] === 'quan') {
         $('#menuQuanTriUser, #menuLog').show();
         return;
       }
@@ -519,7 +519,7 @@
                   <div class="led-route-text-wrap">
                     <div class="led-route-text-container" id="ledTrack">
                       <div class="led-route-text" id="ledDisplayText">BX KIM MÃ -> BX YÊN NGHĨA</div>
-                      <div class="led-route-text" id="ledDisplayTextCopy" style="display:none; padding-left: 60px;"></div>
+                      <div class="led-route-text" id="ledDisplayTextCopy" style="display:none; padding-left: 50px;"></div>
                     </div>
                   </div>
                 </div>
@@ -953,7 +953,7 @@
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
-    // HÀM LED: Đồng nhất font monospace, chỉ chạy khi tràn khung, không lặp thừa
+    // HÀM LED: Đo chính xác chiều rộng, ngắn đứng yên, dài chạy lặp nối tiếp chuẩn xác
     function capNhatMoPhinhLed() {
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
@@ -964,7 +964,9 @@
       const $copy =$('#ledDisplayTextCopy');
       const $wrap =$track.parent();
 
-      $text.text(loTrinh);$copy.text(loTrinh);
+      const khoangCach = "     ➔     ";
+      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
+      
       $track.removeClass('marquee');$copy.hide();
 
       setTimeout(() => {
