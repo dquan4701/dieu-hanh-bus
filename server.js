@@ -57,11 +57,17 @@ function parseTabDate(tabName) {
   return { sortKey: "00000000", dateObj: new Date(0) };
 }
 
-async function cleanAndSyncData(data) {
-  if (!data) return data;
+function cleanAndSyncData(data) {
+  if (!data) return { tuyenList: {}, bieuDoList: [], xeList: [], xeMauList: [], taiKhoanList: [], thongBaoChay: "" };
   if (!Array.isArray(data.xeList)) data.xeList = [];
   if (!data.tuyenList) data.tuyenList = {};
   if (!Array.isArray(data.xeMauList)) data.xeMauList = [];
+  if (!Array.isArray(data.bieuDoList)) data.bieuDoList = [];
+  if (!Array.isArray(data.taiKhoanList)) {
+    data.taiKhoanList = [
+      { username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }
+    ];
+  }
 
   const uniqueXeMap = new Map();
   data.xeList.forEach(x => {
@@ -84,20 +90,18 @@ async function cleanAndSyncData(data) {
   });
 
   const tuyenChartsMap = {};
-  if (Array.isArray(data.bieuDoList)) {
-    data.bieuDoList.forEach(item => {
-      let tuyenStr = String(item.tuyen || item.tenTab || "").trim();
-      let matchMa = tuyenStr.match(/^([A-Za-z0-9]+)/);
-      if (matchMa) {
-        let ma = matchMa[1].toUpperCase();
-        if (!tuyenChartsMap[ma]) tuyenChartsMap[ma] = [];
-        tuyenChartsMap[ma].push({
-          ...item,
-          dateInfo: parseTabDate(item.tenTab || item.bieuDo || "")
-        });
-      }
-    });
-  }
+  data.bieuDoList.forEach(item => {
+    let tuyenStr = String(item.tuyen || item.tenTab || "").trim();
+    let matchMa = tuyenStr.match(/^([A-Za-z0-9]+)/);
+    if (matchMa) {
+      let ma = matchMa[1].toUpperCase();
+      if (!tuyenChartsMap[ma]) tuyenChartsMap[ma] = [];
+      tuyenChartsMap[ma].push({
+        ...item,
+        dateInfo: parseTabDate(item.tenTab || item.bieuDo || "")
+      });
+    }
+  });
 
   const maxNotMap = {};
   for (let ma in tuyenChartsMap) {
@@ -136,28 +140,15 @@ async function cleanAndSyncData(data) {
   return data;
 }
 
-mongoose.connect(MONGO_URI)
-  .then(async () => {
-    console.log('>>> Ket noi thanh cong MongoDB Atlas!');
-    const doc = await BusModel.findOne({ key: 'main_data' });
-    if (doc && doc.data) {
-      if (!doc.data.taiKhoanList || doc.data.taiKhoanList.length === 0) {
-        doc.data.taiKhoanList = [
-          { username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }
-        ];
-      }
-      const cleanedData = await cleanAndSyncData(doc.data);
-      await BusModel.findOneAndUpdate({ key: 'main_data' }, { key: 'main_data', data: cleanedData }, { upsert: true });
-      console.log('>>> Đã tự động làm sạch và đồng bộ dữ liệu thành công!');
-    }
-  })
-  .catch(err => console.error('>>> Loi ket noi MongoDB:', err));
+let cachedData = null;
 
 async function getRawData() {
+  if (cachedData) return cachedData;
   try {
     const doc = await BusModel.findOne({ key: 'main_data' });
     if (doc && doc.data) {
-      return await cleanAndSyncData(doc.data);
+      cachedData = cleanAndSyncData(doc.data);
+      return cachedData;
     }
   } catch (err) {
     console.error('Loi doc db:', err);
@@ -165,28 +156,47 @@ async function getRawData() {
   
   const localPath = path.join(__dirname, 'bus_full_data.json');
   if (fs.existsSync(localPath)) {
-    const fileData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
-    return await cleanAndSyncData(fileData);
+    try {
+      const fileData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
+      cachedData = cleanAndSyncData(fileData);
+      return cachedData;
+    } catch (e) {}
   }
-  return { tuyenList: {}, bieuDoList: [], xeList: [], xeMauList: [], taiKhoanList: [], thongBaoChay: "" };
+  
+  cachedData = cleanAndSyncData({});
+  return cachedData;
 }
 
 async function saveRawDataFast(data) {
-  await BusModel.findOneAndUpdate(
-    { key: 'main_data' },
-    { key: 'main_data', data: data },
-    { upsert: true, returnDocument: 'after' }
-  );
+  cachedData = cleanAndSyncData(data);
+  try {
+    await BusModel.findOneAndUpdate(
+      { key: 'main_data' },
+      { key: 'main_data', data: cachedData },
+      { upsert: true, returnDocument: 'after' }
+    );
+  } catch (e) {
+    console.error("Lỗi lưu DB nhanh:", e);
+  }
 }
 
 async function saveRawData(data) {
-  const cleaned = await cleanAndSyncData(data);
-  await BusModel.findOneAndUpdate(
-    { key: 'main_data' },
-    { key: 'main_data', data: cleaned },
-    { upsert: true, returnDocument: 'after' }
-  );
+  await saveRawDataFast(data);
 }
+
+// Kết nối MongoDB an toàn
+mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 5000 })
+  .then(async () => {
+    console.log('>>> Ket noi thanh cong MongoDB Atlas!');
+    try {
+      const doc = await BusModel.findOne({ key: 'main_data' });
+      if (!doc || !doc.data) {
+        const initial = cleanAndSyncData({});
+        await BusModel.create({ key: 'main_data', data: initial });
+      }
+    } catch (e) {}
+  })
+  .catch(err => console.error('>>> Loi ket noi MongoDB (chạy chế độ dự phòng):', err.message));
 
 // ==================== API QUẢN TRỊ MÁC XE MẪU ====================
 app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
@@ -294,10 +304,6 @@ app.post('/api/admin/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     const raw = await getRawData();
-    if (!raw.taiKhoanList || raw.taiKhoanList.length === 0) {
-      raw.taiKhoanList = [{ username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }];
-      await saveRawDataFast(raw);
-    }
     const user = raw.taiKhoanList.find(u => u.username === username && u.password === password);
     if (!user) return res.status(401).json({ success: false, message: 'Tài khoản không tồn tại trên hệ thống' });
     if (user.status === 'locked') return res.status(403).json({ success: false, message: 'Tài khoản của bạn đang bị tạm khóa!' });
@@ -313,7 +319,6 @@ app.post('/api/admin/dang-ky', async (req, res) => {
   try {
     const { username, password, role, permissions } = req.body;
     const raw = await getRawData();
-    if (!raw.taiKhoanList) raw.taiKhoanList = [];
     if (raw.taiKhoanList.some(u => u.username === username)) return res.status(400).json({ success: false, message: 'Tên tài khoản đã tồn tại!' });
     raw.taiKhoanList.push({ username, password, role: role || 'staff', permissions: permissions || [], status: 'active' });
     await saveRawDataFast(raw);
