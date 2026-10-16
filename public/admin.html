@@ -329,7 +329,7 @@
                 <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
                 <div>
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn Mác xe có sẵn từ Danh mục, sức chứa tự động điền):</span>
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn Mác xe, Năm SX và Sức chứa tự động điền):</span>
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
                   </div>
                   
@@ -338,11 +338,12 @@
                       <thead>
                         <tr>
                           <th style="width: 40px; text-align: center;">STT</th>
-                          <th style="width: 150px;">Biển kiểm soát</th>
+                          <th style="width: 130px;">Biển kiểm soát</th>
                           <th>Mác xe (Chọn từ Danh mục mẫu)</th>
-                          <th style="width: 110px;">Sức chứa</th>
-                          <th style="width: 140px; text-align: center;">Chuyển tuyến</th>
-                          <th style="width: 50px; text-align: center;">Xóa</th>
+                          <th style="width: 90px;">Năm SX</th>
+                          <th style="width: 100px;">Sức chứa</th>
+                          <th style="width: 130px; text-align: center;">Chuyển tuyến</th>
+                          <th style="width: 45px; text-align: center;">Xóa</th>
                         </tr>
                       </thead>
                       <tbody id="tblFormDanhSachXe"></tbody>
@@ -367,14 +368,14 @@
         <!-- SECTION: QUẢN TRỊ DANH MỤC MÁC XE -->
         <div id="sec-xemau" class="content-section">
           <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-car"></i> Quản trị Danh mục Mác xe chuẩn (Nhãn hiệu + Chủng loại)</span></div>
+            <div class="panel-heading"><span><i class="fa fa-car"></i> Quản trị Danh mục Mác xe chuẩn (Nhãn hiệu + Chủng loại + Sức chứa)</span></div>
             <div class="panel-body">
               <div style="margin-bottom: 15px; background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px;">
                 <h4 style="font-size: 12px; margin-bottom: 8px; color: #2C3E50; font-weight: bold;"><i class="fa fa-plus-circle"></i> Thêm nhanh Mác xe mẫu mới:</h4>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <input type="text" id="txtMauNhieuHieu" class="form-control" placeholder="Nhãn hiệu (VD: Vinfast)" style="flex: 1; min-width: 160px;">
-                  <input type="text" id="txtMauChungLoai" class="form-control" placeholder="Chủng loại xe (VD: Green Bus BNE1ELRVN)" style="flex: 2; min-width: 250px;">
-                  <input type="text" id="txtMauSucChua" class="form-control" placeholder="Sức chứa (VD: 68 chỗ)" style="flex: 1; min-width: 120px;">
+                  <input type="text" id="txtMauNhieuHieu" class="form-control" placeholder="Nhãn hiệu (VD: Vinfast)" style="flex: 1; min-width: 140px;">
+                  <input type="text" id="txtMauChungLoai" class="form-control" placeholder="Chủng loại xe (VD: Green Bus BNE1ELRVN)" style="flex: 2; min-width: 220px;">
+                  <input type="text" id="txtMauSucChua" class="form-control" placeholder="Sức chứa (VD: 68 chỗ)" style="flex: 1; min-width: 110px;">
                   <button class="btn btn-primary" onclick="themXeMauMoi()"><i class="fa fa-save"></i> Thêm vào danh mục</button>
                 </div>
               </div>
@@ -686,7 +687,6 @@
       dangLamMoi = false;
     }
 
-    // Gộp nhãn hiệu và chủng loại thành Mác xe chung
     function gopMacXe(nhanHieu, chungLoai) {
       let nh = (nhanHieu || "").trim();
       let cl = (chungLoai || "").trim();
@@ -720,6 +720,7 @@
         const formattedXe = xeCuaTuyen.map(x => ({
           bks: x.bks,
           macXe: gopMacXe(x.nhanHieu, x.chungLoai),
+          namSx: x.namSx || '',
           sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
         }));
         
@@ -814,6 +815,7 @@
           const formattedXe = xeCuaTuyen.map(x => ({
             bks: x.bks,
             macXe: gopMacXe(x.nhanHieu, x.chungLoai),
+            namSx: x.namSx || '',
             sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
           }));
           renderBangXeForm(formattedXe);
@@ -901,11 +903,11 @@
       } catch (e) { showToast("Lỗi kết nối", "error"); }
     }
 
-    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (CHỌN MÁC XE) ---
+    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (CÓ THÊM NĂM SX) ---
     function renderBangXeForm(danhSachXe = []) {
       let html = '';
       if (danhSachXe.length === 0) {
-        danhSachXe = [{ bks: '', macXe: '', sucChua: '' }];
+        danhSachXe = [{ bks: '', macXe: '', namSx: '', sucChua: '' }];
       }
 
       danhSachXe.forEach((xe, idx) => {
@@ -932,6 +934,7 @@
                 ${mauOptions}
               </select>
             </td>
+            <td><input type="text" class="form-control form-namsx" value="${xe.namSx || ''}" placeholder="VD: 2022" style="height: 28px; text-align: center;"></td>
             <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="Tự động..." style="height: 28px;" readonly></td>
             <td>
               <select class="form-control form-chuyen-tuyen" style="height: 28px; font-size: 11px;" onchange="thucHienChuyenTuyenNgay(this, '${xe.bks || ''}')">
@@ -949,10 +952,9 @@
     }
 
     function chonMacXe(selectElem) {
-      const $opt = $(selectElem).find(':selected');
+      const $opt =$(selectElem).find(':selected');
       const sucChua = $opt.attr('data-succhua') || "";
-      const $row = $(selectElem).closest('tr');
-      $row.find('.form-succhua').val(sucChua);
+      const $row = $(selectElem).closest('tr');$row.find('.form-succhua').val(sucChua);
     }
 
     function themDongXeMoi() {
@@ -961,10 +963,11 @@
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
           macXe: $(this).find('.form-macxe').val(),
+          namSx: $(this).find('.form-namsx').val().trim(),
           sucChua: $(this).find('.form-succhua').val().trim()
         });
       });
-      danhSachHienTai.push({ bks: '', macXe: '', sucChua: '' });
+      danhSachHienTai.push({ bks: '', macXe: '', namSx: '', sucChua: '' });
       renderBangXeForm(danhSachHienTai);
     }
 
@@ -1024,13 +1027,14 @@
       const danhSachXe = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
-        const $opt = $(this).find('.form-macxe').find(':selected');
+        const $opt =$(this).find('.form-macxe').find(':selected');
         const nhanHieu = $opt.attr('data-nhanhieu') || "";
-        const chungLoai = $opt.attr('data-chungloai') || $(this).find('.form-macxe').val() || "";
+        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-macxe').val() || "";
+        const namSx = $(this).find('.form-namsx').val().trim();
         const sucChua = $(this).find('.form-succhua').val().trim();
 
         if (bks) {
-          danhSachXe.push({ bks, nhanHieu, chungLoai, sucChua, maTuyen, xn, tenTuyen });
+          danhSachXe.push({ bks, nhanHieu, chungLoai, namSx, sucChua, maTuyen, xn, tenTuyen });
         }
       });
 
@@ -1140,18 +1144,18 @@
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
-      const $track = $('#ledTrack');
-      const $text = $('#ledDisplayText');
-      const $copy = $('#ledDisplayTextCopy');
-      const $wrap = $track.parent();
+      const $track =$('#ledTrack');
+      const $text =$('#ledDisplayText');
+      const $copy =$('#ledDisplayTextCopy');
+      const $wrap =$track.parent();
       const khoangCach = "     ➔     ";
-      $text.text(loTrinh); $copy.text(loTrinh + khoangCach);
-      $track.removeClass('marquee'); $copy.hide();
+      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
+      $track.removeClass('marquee');$copy.hide();
       setTimeout(() => {
-        if ($text[0].scrollWidth > $wrap[0].clientWidth) {
-          $copy.show(); $track.addClass('marquee');
+        if ($text[0].scrollWidth >$wrap[0].clientWidth) {
+          $copy.show();$track.addClass('marquee');
         } else {
-          $track.removeClass('marquee'); $copy.hide();
+          $track.removeClass('marquee');$copy.hide();
         }
       }, 50);
     }
@@ -1237,8 +1241,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);
-      $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -1253,11 +1256,10 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel = $('#' + elemId);
+      const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
-      sortedArray.forEach(val => $sel.append(new Option(val, val))); 
-      $sel.trigger('change.select2');
+      sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.trigger('change.select2');
     }
 
     function onSelectTuyenChange() {
@@ -1267,13 +1269,12 @@
     }
 
     function toggleCaTuan(elem) {
-      const isChecked = $(elem).prop('checked');
-      $('.chk-ngay-le').prop('checked', isChecked);
+      const isChecked = $(elem).prop('checked');$('.chk-ngay-le').prop('checked', isChecked);
       tuDongTaoTenTab();
     }
 
     function onCheckboxDayChange() {
-      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
+      const allChecked = $('.chk-ngay-le').length ===$('.chk-ngay-le:checked').length;
       $('#chkCaTuan').prop('checked', allChecked);
       tuDongTaoTenTab();
     }
