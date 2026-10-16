@@ -373,10 +373,10 @@
                 <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
                 <div>
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Dán danh sách từ Excel hoặc thêm từng xe:</span>
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Dán nhanh từ Excel (BKS | Nhãn hiệu | Chủng loại | Sức chứa) hoặc thêm từng xe:</span>
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
                   </div>
-                  <textarea id="txtExcelXeTuyen" class="form-control" style="height: 65px; margin-bottom: 8px;" placeholder="Dán nhanh danh sách xe từ Excel (Cột B: BKS, Cột C: Chủng loại, Cột D: Sức chứa) vào đây..."></textarea>
+                  <textarea id="txtExcelXeTuyen" class="form-control" style="height: 65px; margin-bottom: 8px;" placeholder="Dán danh sách từ Excel vào đây..."></textarea>
                   
                   <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 250px; background: #FFF;">
                     <table class="table-custom" style="margin-top: 0;">
@@ -384,7 +384,7 @@
                         <tr>
                           <th style="width: 40px; text-align: center;">STT</th>
                           <th>Biển kiểm soát</th>
-                          <th>Chủng loại xe</th>
+                          <th>Chủng loại xe (Nhãn hiệu + Model)</th>
                           <th style="width: 110px;">Sức chứa</th>
                           <th style="width: 140px; text-align: center;">Chuyển tuyến</th>
                           <th style="width: 50px; text-align: center;">Xóa</th>
@@ -676,6 +676,19 @@
       dangLamMoi = false;
     }
 
+    // Hàm chuẩn hóa tên xe: Gộp nhãn hiệu và chủng loại thành 1 chuỗi hoàn chỉnh
+    function chuanHoaTenXe(xe) {
+      let nhanHieu = (xe.nhanHieu || "").trim();
+      let chungLoai = (xe.chungLoai || "").trim();
+      if (nhanHieu && chungLoai) {
+        if (!chungLoai.toLowerCase().includes(nhanHieu.toLowerCase())) {
+          return `${nhanHieu} ${chungLoai}`;
+        }
+        return chungLoai;
+      }
+      return chungLoai || nhanHieu || "";
+    }
+
     // Khi chọn một tuyến trên form quản trị tuyến
     function onChonTuyenDeSuaChange() {
       if (dangLamMoi) return;
@@ -692,9 +705,15 @@
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
 
-        // Lọc xe của tuyến này đổ vào bảng lưới
+        // Lọc xe và chuẩn hóa hiển thị đầy đủ Nhãn hiệu + Chủng loại
         const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
-        renderBangXeForm(xeCuaTuyen);
+        const formattedXe = xeCuaTuyen.map(x => ({
+          bks: x.bks,
+          chungLoai: chuanHoaTenXe(x),
+          sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
+        }));
+        
+        renderBangXeForm(formattedXe);
       }
     }
 
@@ -778,11 +797,15 @@
         veBangTrangThaiBieuDo(sortedRoutes);
         capNhatThongKe();
 
-        // Nếu đang chọn sửa 1 tuyến, reload lại bảng xe của tuyến đó
         const currentSelectedMa = $('#selChonTuyenDeSua').val();
         if (currentSelectedMa) {
           const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(currentSelectedMa));
-          renderBangXeForm(xeCuaTuyen);
+          const formattedXe = xeCuaTuyen.map(x => ({
+            bks: x.bks,
+            chungLoai: chuanHoaTenXe(x),
+            sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
+          }));
+          renderBangXeForm(formattedXe);
         }
       } catch (err) {
         console.error("Lỗi nạp dữ liệu:", err);
@@ -791,22 +814,42 @@
 
     // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN ---
     function renderBangXeForm(danhSachXe = []) {
-      // Nếu có dán nhanh từ ô Excel text, bóc tách trước khi render
       const rawExcel = $('#txtExcelXeTuyen').val().trim();
       if (rawExcel) {
         const lines = rawExcel.split("\n");
         lines.forEach(l => {
-          const cols = l.split("\t");
+          const cols = l.split(/\t+/);
           if (cols.length >= 2) {
-            let bks = (cols[1] || cols[0] || "").trim();
-            let chungLoai = (cols[2] || "").trim();
-            let sucChua = (cols[3] || "").trim();
+            let bks = (cols[0] || "").trim();
+            let nhanHieu = (cols[1] || "").trim();
+            let chungLoaiGoc = (cols[2] || "").trim();
+            let sucChuaVal = (cols[4] || cols[3] || "").trim();
+
+            // Nếu người dùng dán cấu trúc từ file ảnh Excel (Cột A: BKS, Cột B: Nhãn hiệu, Cột C: Chủng loại)
+            let chungLoaiFull = chungLoaiGoc;
+            if (nhanHieu && chungLoaiGoc && !chungLoaiGoc.toLowerCase().includes(nhanHieu.toLowerCase())) {
+              chungLoaiFull = `${nhanHieu} ${chungLoaiGoc}`;
+            } else if (!chungLoaiGoc && nhanHieu) {
+              chungLoaiFull = nhanHieu;
+            }
+
+            // Phòng hờ dán dạng 2 cột: BKS | Chủng loại
+            if (!chungLoaiGoc && cols.length === 2) {
+              bks = cols[0].trim();
+              chungLoaiFull = cols[1].trim();
+            }
+
+            let sucChua = sucChuaVal;
+            if (sucChua && !sucChua.toLowerCase().includes("chỗ")) {
+              sucChua = `${sucChua} chỗ`;
+            }
+
             if (bks && !danhSachXe.some(x => x.bks === bks)) {
-              danhSachXe.push({ bks, chungLoai, sucChua });
+              danhSachXe.push({ bks, chungLoai: chungLoaiFull, sucChua });
             }
           }
         });
-        $('#txtExcelXeTuyen').val(''); // clear ô dán sau khi bóc
+        $('#txtExcelXeTuyen').val(''); 
       }
 
       let html = '';
@@ -825,9 +868,9 @@
         html += `
           <tr class="xe-row-item" data-old-bks="${xe.bks || ''}">
             <td style="text-align: center; font-weight: bold; color: #555;">${idx + 1}</td>
-            <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29B-205.31" style="height: 28px;"></td>
-            <td><input type="text" class="form-control form-chungloai" value="${xe.chungLoai || ''}" placeholder="VD: Daewoo BC095" style="height: 28px;"></td>
-            <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="VD: 60 chỗ" style="height: 28px;"></td>
+            <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29F-019.79" style="height: 28px;"></td>
+            <td><input type="text" class="form-control form-chungloai" value="${xe.chungLoai || ''}" placeholder="VD: Vinfast Green Bus BNE1ELRVN" style="height: 28px;"></td>
+            <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="VD: 68 chỗ" style="height: 28px;"></td>
             <td>
               <select class="form-control form-chuyen-tuyen" style="height: 28px; font-size: 11px;" onchange="thucHienChuyenTuyenNgay(this, '${xe.bks || ''}')">
                 ${tuyenOptions}
@@ -843,7 +886,6 @@
     }
 
     function themDongXeMoi() {
-      // Nếu có dán dữ liệu excel thì bóc tách vào trước
       let danhSachHienTai = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         danhSachHienTai.push({
@@ -897,7 +939,6 @@
 
     // --- KHI LƯU THÔNG TIN TUYẾN & ĐỘI XE ---
     async function xacLapTuyenVaDoiXe() {
-      // Tự động bóc tách Excel nếu người dùng có dán vào ô text trước khi lưu
       renderBangXeForm([]);
 
       const maTuyen = $('#txtMaTuyen').val().trim();
@@ -915,7 +956,6 @@
         return;
       }
 
-      // Gom danh sách xe từ bảng lưới
       const danhSachXe = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
@@ -927,19 +967,16 @@
       });
 
       const soXeKh = danhSachXe.length;
-      // Tổng hợp loại xe
       const setLoai = new Set();
       danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
       const loaiXe = Array.from(setLoai).join(' & ');
 
       try {
-        // 1. Lưu thông tin tuyến
         const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
         }).then(r => r.json());
 
-        // 2. Lưu danh sách xe của tuyến này lên server
         const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ maTuyen, danhSachXe })
@@ -1081,14 +1118,13 @@
       $('#statXeLocked').text(`${tongXeLocked} xe tạm dừng hoạt động`);
     }
 
-    // Nhận diện loại xe từ danh sách xe thực tế
     function tuDongLayLoaiXeCuaTuyen(maTuyen) {
       const matchNorm = chuanHoaMaTuyen(maTuyen);
       const xeTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === matchNorm);
       if (xeTuyen.length === 0) return "";
       const setLoai = new Set();
       xeTuyen.forEach(x => {
-        let ten = `${x.nhanHieu || ''} ${x.chungLoai || ''}`.trim();
+        let ten = chuanHoaTenXe(x);
         if (ten) setLoai.add(ten);
       });
       return Array.from(setLoai).join(' & ');
@@ -1104,7 +1140,6 @@
           const isLocked = t.status === 'locked';
           const badge = isLocked ? '<span class="status-badge status-locked">Khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
           
-          // Số xe kế hoạch đếm thực tế từ danh sách xe thuộc tuyến
           const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
           const khCount = xeCuaTuyen.length || t.soXeKh || t.soXe || 0;
           const vdCount = t.soXeVd || "?";
