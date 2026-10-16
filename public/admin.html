@@ -1293,68 +1293,84 @@
     function tuDongTaoTenTab() {
       const tuyen = $('#selChonTuyen').val();
       const ngayBatDauInput = $('#txtNgayBatDau').val().trim();
-      const ngayKetThucInput = $('#txtNgayKetThuc').val().trim();
 
       if (!tuyen) { $('#txtTenTab').val(""); return; }
       const match = tuyen.match(/^([A-Za-z0-9]+)/);
       const maNgan = match ? match[1] : tuyen;
 
-      const shortStart = formatShortDate(ngayBatDauInput);
-      const shortEnd = formatShortDate(ngayKetThucInput);
+      // Format ngày tháng năm thành dạng d.m.yy hoặc d.m.yyyy (VD: 16.1.26 hoặc 5.6.24)
+      const shortDate = formatShortDateCustom(ngayBatDauInput);
 
       const selectedDays = [];
       $('.chk-ngay-le:checked').each(function() {
         selectedDays.push($(this).val());
       });
 
-      let dayRangeStr = "";
+      let dayStr = "";
       const isFullWeek = (selectedDays.length === 7);
 
-      if (!isFullWeek && selectedDays.length > 0) {
-        const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
-        let ranges = [];
-        let start = null;
-        let prev = null;
-
-        allPossible.forEach(d => {
-          if (selectedDays.includes(d)) {
-            if (!start) start = d;
-            prev = d;
-          } else {
-            if (start) {
-              ranges.push(start === prev ? start : `${start}-${prev}`);
-              start = null;
-              prev = null;
-            }
-          }
-        });
-        if (start) {
-          ranges.push(start === prev ? start : `${start}-${prev}`);
-        }
-        dayRangeStr = ranges.join(", ");
+      if (isFullWeek || selectedDays.length === 0) {
+        // Kiểu 1: [Mã Tuyến] ([Ngày].[Tháng].[Năm]) -> VD: 15 (16.1.26)
+        $('#txtTenTab').val(shortDate ? `${maNgan} (${shortDate})` : maNgan);
+        return;
       }
 
-      let datePart = "";
-      if (shortStart && shortEnd) {
-        datePart = `${shortStart} - ${shortEnd}`;
-      } else if (shortStart) {
-        datePart = shortStart;
+      // Kiểm tra nếu chỉ chọn mỗi Chủ Nhật
+      if (selectedDays.length === 1 && selectedDays[0] === 'CN') {
+        // Kiểu 3: [Mã Tuyến] (CN, [Ngày].[Tháng].[Năm]) -> VD: 07 (CN, 17.8.18)
+        $('#txtTenTab').val(shortDate ? `${maNgan} (CN, ${shortDate})` : `${maNgan} (CN)`);
+        return;
       }
 
-      let finalTab = "";
-      if (isFullWeek) {
-        finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
-      } else {
-        if (dayRangeStr && datePart) {
-          finalTab = `${maNgan} (${dayRangeStr}, ${datePart})`;
-        } else if (dayRangeStr) {
-          finalTab = `${maNgan} (${dayRangeStr})`;
+      // Kiểm tra nếu chọn từ Thứ 2 đến Thứ 7 (2,3,4,5,6,7)
+      const weekDays = ["2", "3", "4", "5", "6", "7"];
+      const isMonToSat = weekDays.every(d => selectedDays.includes(d)) && !selectedDays.includes('CN');
+      if (isMonToSat) {
+        // Kiểu 2: [Mã Tuyến] (2-7, [Ngày].[Tháng].[Năm]) -> VD: 04 (2-7, 5.6.24)
+        $('#txtTenTab').val(shortDate ? `${maNgan} (2-7, ${shortDate})` : `${maNgan} (2-7)`);
+        return;
+      }
+
+      // Kiểu 4: Các trường hợp chia theo box / khoảng ngày tùy chọn (VD: 2-5, 6, 7-CN hoặc tương tự)
+      let ranges = [];
+      let start = null;
+      let prev = null;
+      const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
+
+      allPossible.forEach(d => {
+        if (selectedDays.includes(d)) {
+          if (!start) start = d;
+          prev = d;
         } else {
-          finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
+          if (start) {
+            ranges.push(start === prev ? start : `${start}-${prev}`);
+            start = null;
+            prev = null;
+          }
         }
+      });
+      if (start) {
+        ranges.push(start === prev ? start : `${start}-${prev}`);
       }
+      dayStr = ranges.join(", ");
 
-      $('#txtTenTab').val(finalTab);
+      $('#txtTenTab').val(shortDate ? `${maNgan} (${dayStr}, ${shortDate})` : `${maNgan} (${dayStr})`);
+    }
+
+    // Hàm hỗ trợ format ngày tháng chuẩn d.m.yy (bỏ số 0 thừa ở ngày/tháng nếu có cho đúng mẫu VD của ông)
+    function formatShortDateCustom(dateStr) {
+      if (!dateStr) return "";
+      dateStr = dateStr.trim();
+      const parts = dateStr.split(/[\/\-\.]/);
+      if (parts.length === 3) {
+        let d = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        let y = parseInt(parts[2], 10);
+        if (y >= 2000) y -= 2000;
+        else if (y >= 1900) y -= 1900;
+        return `${d}.${m}.${y}`;
+      }
+      return dateStr;
     }
 
     async function luuBieuDo() {
