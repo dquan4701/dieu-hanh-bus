@@ -521,17 +521,25 @@
                 <div><button class="btn btn-success" onclick="luuThongBaoMacDinh()"><i class="fa fa-save"></i> Lưu thông báo mặc định</button></div>
               </div>
 
-              <!-- 2. Lên lịch thông báo theo khoảng thời gian -->
-              <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 12px;"><i class="fa fa-calendar-plus-o" style="color:#3B86C4;"></i> Lên lịch thông báo theo khoảng thời gian cụ thể:</h4>
+              <!-- 2. Lên lịch thông báo theo khoảng thời gian và giờ cụ thể -->
+              <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 12px;"><i class="fa fa-calendar-plus-o" style="color:#3B86C4;"></i> Lên lịch thông báo theo ngày & giờ cụ thể:</h4>
               <div style="background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px; margin-bottom: 15px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px;">
                   <div>
                     <label style="font-size: 11px; font-weight: bold; color: #555;">Từ ngày:</label>
                     <input type="date" id="txtTuNgay" class="form-control">
                   </div>
                   <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #555;">Từ giờ:</label>
+                    <input type="time" id="txtTuGio" class="form-control" value="00:00">
+                  </div>
+                  <div>
                     <label style="font-size: 11px; font-weight: bold; color: #555;">Đến ngày:</label>
                     <input type="date" id="txtDenNgay" class="form-control">
+                  </div>
+                  <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #555;">Đến giờ:</label>
+                    <input type="time" id="txtDenGio" class="form-control" value="23:59">
                   </div>
                 </div>
                 <div style="margin-bottom: 10px;">
@@ -546,17 +554,16 @@
                 <table class="table-custom">
                   <thead>
                     <tr>
-                      <th style="width: 50px; text-align: center;">STT</th>
-                      <th style="width: 140px;">Từ ngày</th>
-                      <th style="width: 140px;">Đến ngày</th>
+                      <th style="width: 40px; text-align: center;">STT</th>
+                      <th style="width: 160px;">Thời gian bắt đầu</th>
+                      <th style="width: 160px;">Thời gian kết thúc</th>
                       <th>Nội dung thông báo</th>
-                      <th style="width: 90px; text-align: center;">Xóa</th>
+                      <th style="width: 80px; text-align: center;">Xóa</th>
                     </tr>
                   </thead>
                   <tbody id="tblDanhSachLichTB"></tbody>
                 </table>
               </div>
-
             </div>
           </div>
         </div>
@@ -720,18 +727,20 @@
 
     async function themvaoLichThongBao() {
       const tuNgay = $('#txtTuNgay').val();
+      const tuGio = $('#txtTuGio').val() || '00:00';
       const denNgay = $('#txtDenNgay').val();
+      const denGio = $('#txtDenGio').val() || '23:59';
       const noiDung = $('#txtNoiDungLich').val().trim();
 
       if (!tuNgay || !denNgay || !noiDung) {
-        showToast("Vui lòng chọn đầy đủ Từ ngày, Đến ngày và Nội dung!", "error");
+        showToast("Vui lòng chọn đầy đủ ngày và nội dung!", "error");
         return;
       }
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/them-lich-thong-bao`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tuNgay, denNgay, noiDung })
+          body: JSON.stringify({ tuNgay, tuGio, denNgay, denGio, noiDung })
         }).then(r => r.json());
         showToast(res.message, res.success ? 'success' : 'error');
         if (res.success) {
@@ -739,6 +748,28 @@
           taiTaiThongBaoAdmin();
         }
       } catch (err) { showToast('Lỗi kết nối!', 'error'); }
+    }
+
+    function veBangLichThongBao(list) {
+      let html = '';
+      if (!list || list.length === 0) {
+        html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:12px;">Chưa có lịch thông báo nào!</td></tr>';
+      } else {
+        list.forEach((item, idx) => {
+          html += `
+            <tr>
+              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td>${item.tuNgay} ${item.tuGio || '00:00'}</td>
+              <td>${item.denNgay} ${item.denGio || '23:59'}</td>
+              <td>${item.noiDung}</td>
+              <td style="text-align:center;">
+                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="xoaLichThongBao('${item.id || idx}')"><i class="fa fa-trash"></i> Xóa</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      $('#tblDanhSachLichTB').html(html);
     }
 
     async function xoaLichThongBao(id) {
