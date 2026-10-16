@@ -1298,7 +1298,7 @@
       const match = tuyen.match(/^([A-Za-z0-9]+)/);
       const maNgan = match ? match[1] : tuyen;
 
-      // Format ngày tháng năm thành dạng d.m.yy hoặc d.m.yyyy (VD: 16.1.26 hoặc 5.6.24)
+      // Format ngày tháng năm thành dạng d.m.yy (VD: 1.8.18)
       const shortDate = formatShortDateCustom(ngayBatDauInput);
 
       const selectedDays = [];
@@ -1310,15 +1310,15 @@
       const isFullWeek = (selectedDays.length === 7);
 
       if (isFullWeek || selectedDays.length === 0) {
-        // Kiểu 1: [Mã Tuyến] ([Ngày].[Tháng].[Năm]) -> VD: 15 (16.1.26)
+        // Kiểu 1: Cả tuần -> [Mã Tuyến] ([Ngày].[Tháng].[Năm]) -> VD: 15 (16.1.26)
         $('#txtTenTab').val(shortDate ? `${maNgan} (${shortDate})` : maNgan);
         return;
       }
 
       // Kiểm tra nếu chỉ chọn mỗi Chủ Nhật
       if (selectedDays.length === 1 && selectedDays[0] === 'CN') {
-        // Kiểu 3: [Mã Tuyến] (CN, [Ngày].[Tháng].[Năm]) -> VD: 07 (CN, 17.8.18)
-        $('#txtTenTab').val(shortDate ? `${maNgan} (CN, ${shortDate})` : `${maNgan} (CN)`);
+        // Kiểu 3: [Mã Tuyến] ([Ngày].[Tháng].[Năm], CN) -> VD: 07 (17.8.18, CN)
+        $('#txtTenTab').val(shortDate ? `${maNgan} (${shortDate}, CN)` : `${maNgan} (CN)`);
         return;
       }
 
@@ -1326,12 +1326,12 @@
       const weekDays = ["2", "3", "4", "5", "6", "7"];
       const isMonToSat = weekDays.every(d => selectedDays.includes(d)) && !selectedDays.includes('CN');
       if (isMonToSat) {
-        // Kiểu 2: [Mã Tuyến] (2-7, [Ngày].[Tháng].[Năm]) -> VD: 04 (2-7, 5.6.24)
-        $('#txtTenTab').val(shortDate ? `${maNgan} (2-7, ${shortDate})` : `${maNgan} (2-7)`);
+        // Kiểu 2: [Mã Tuyến] ([Ngày].[Tháng].[Năm], 2-7) -> VD: 04 (5.6.24, 2-7)
+        $('#txtTenTab').val(shortDate ? `${maNgan} (${shortDate}, 2-7)` : `${maNgan} (2-7)`);
         return;
       }
 
-      // Kiểu 4: Các trường hợp chia theo box / khoảng ngày tùy chọn (VD: 2-5, 6, 7-CN hoặc tương tự)
+      // Kiểu 4: Các trường hợp chia theo box / khoảng ngày tùy chọn (VD: 19.8.24, 2-5)
       let ranges = [];
       let start = null;
       let prev = null;
@@ -1354,9 +1354,10 @@
       }
       dayStr = ranges.join(", ");
 
-      $('#txtTenTab').val(shortDate ? `${maNgan} (${dayStr}, ${shortDate})` : `${maNgan} (${dayStr})`);
+      // Đảo ngày tháng lên trước, dải ngày ra phía sau: [Mã Tuyến] ([Ngày].[Tháng].[Năm], [Dải ngày])
+      $('#txtTenTab').val(shortDate ? `${maNgan} (${shortDate}, ${dayStr})` : `${maNgan} (${dayStr})`);
     }
-
+    
     // Hàm hỗ trợ format ngày tháng chuẩn d.m.yy (bỏ số 0 thừa ở ngày/tháng nếu có cho đúng mẫu VD của ông)
     function formatShortDateCustom(dateStr) {
       if (!dateStr) return "";
