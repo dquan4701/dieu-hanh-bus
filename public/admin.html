@@ -50,9 +50,7 @@
       display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; flex-shrink: 0;
       margin-left: 0;
     }
-    .sidebar.collapsed {
-      margin-left: -260px !important;
-    }
+    .sidebar.collapsed { margin-left: -260px !important; }
 
     .sidebar-header {
       padding: 15px 20px; background: #1A252F; font-size: 13px; font-weight: bold;
@@ -110,7 +108,7 @@
     }
     .form-control:focus { border-color: #3B86C4; box-shadow: 0 0 0 3px rgba(59, 134, 196, 0.15); }
     .form-control[readonly] { background-color: #EBF2F8; color: #555; cursor: not-allowed; }
-    textarea.form-control { height: 140px; font-family: monospace; max-width: 100%; }
+    textarea.form-control { height: 100px; font-family: monospace; max-width: 100%; }
 
     .btn {
       padding: 7px 16px; font-size: 12px; font-weight: bold; border-radius: 6px;
@@ -128,7 +126,7 @@
     .radio-item { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
 
     .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
-    .table-custom th, .table-custom td { border: 1px solid #D0D7DE; padding: 6px 10px; text-align: left; }
+    .table-custom th, .table-custom td { border: 1px solid #D0D7DE; padding: 6px 10px; text-align: left; vertical-align: middle; }
     .table-custom th { background-color: #F1F4F9; font-weight: bold; color: #333; }
     .table-custom tr:hover { background-color: #F8FAFC; }
     
@@ -137,11 +135,6 @@
     .status-locked { background-color: #FCE8E6; color: #C5221F; }
     .status-has-chart { background-color: #E6F4EA; color: #137333; }
     .status-missing-chart { background-color: #FCE8E6; color: #C5221F; }
-
-    .filter-box {
-      background: #F8FAFC; border: 1px solid #D0D7DE; border-radius: 6px; padding: 12px 15px; margin-bottom: 12px;
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: center;
-    }
 
     .select2-container .select2-selection--single { height: 32px !important; border: 1px solid #ccc !important; border-radius: 6px !important; display: flex; align-items: center; }
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
@@ -158,14 +151,13 @@
     }
     .led-route-number-box {
       flex: 0 0 22%; max-width: 22%; height: 60px; background: rgba(255, 28, 0, 0.05);
-      border: 1px dotted rgba(255, 28, 0, 0.4); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 1; margin-right: 8px; margin-left: 0; z-index: 2; flex-shrink: 0;
+      border: 1px dotted rgba(255, 28, 0, 0.4); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 1; margin-right: 8px; z-index: 2; flex-shrink: 0;
     }
     .led-route-number {
       font-family: 'Share Tech Mono', monospace, Tahoma, sans-serif; font-size: 42px; font-weight: 900; color: #ff1c00;
       text-shadow: 0 0 4px rgba(255, 28, 0, 0.8); line-height: 1; white-space: nowrap; text-align: center;
     }
     .led-route-text-wrap { flex: 1; white-space: nowrap; position: relative; overflow: hidden; order: 2; }
-    
     .led-route-text-container { display: inline-flex; white-space: nowrap; }
     .led-route-text-container.marquee { animation: ledMarquee 14s linear infinite; }
     .led-route-text {
@@ -257,20 +249,14 @@
       const role = sessionStorage.getItem('admin_role');
       const permissions = JSON.parse(sessionStorage.getItem('admin_permissions') || '[]');
 
-      $('#menuTuyen, #menuExcel, #menuDoixe, #menuBieudo, #menuLedSim, #menuThongBao, #menuQuanTriUser, #menuLog').show();
+      $('#menuTuyen, #menuBieudo, #menuLedSim, #menuThongBao, #menuQuanTriUser, #menuLog').show();
 
       if (role === 'master' || sessionStorage.getItem('admin_user') === 'quan') {
         $('#menuQuanTriUser, #menuLog').show();
         return;
       }
-
       $('#menuQuanTriUser, #menuLog').hide();
-
       if (!permissions.includes('tuyen')) $('#menuTuyen').hide();
-      if (!permissions.includes('xe')) { 
-        $('#menuExcel').hide(); 
-        $('#menuDoixe').hide(); 
-      }
       if (!permissions.includes('bieudo')) $('#menuBieudo').hide();
     }
 
@@ -292,8 +278,6 @@
       <ul class="sidebar-menu">
         <li><a class="active" onclick="chuyenTabAdmin('sec-tongquan', this)"><i class="fa fa-tachometer"></i> Tổng quan hệ thống</a></li>
         <li id="menuTuyen"><a onclick="chuyenTabAdmin('sec-tuyen', this)"><i class="fa fa-pencil-square-o"></i> Quản trị Tuyến & Đội xe</a></li>
-        <li id="menuExcel"><a onclick="chuyenTabAdmin('sec-excel', this)"><i class="fa fa-file-excel-o"></i> Nạp danh sách xe Excel</a></li>
-        <li id="menuDoixe"><a onclick="chuyenTabAdmin('sec-doixe', this)"><i class="fa fa-table"></i> Quản lý toàn bộ Đội xe</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
         <li id="menuLedSim"><a onclick="chuyenTabAdmin('sec-ledsim', this)"><i class="fa fa-television"></i> Giả lập LED tuyến</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
@@ -354,19 +338,19 @@
           </div>
         </div>
 
-        <!-- SECTION 2: QUẢN TRỊ TUYẾN -->
+        <!-- SECTION 2: QUẢN TRỊ TUYẾN & ĐỘI XE GỘP -->
         <div id="sec-tuyen" class="content-section">
           <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-pencil-square-o"></i> Quản trị Thông tin Tuyến & Đội xe</span></div>
+            <div class="panel-heading"><span><i class="fa fa-pencil-square-o"></i> Quản trị Thông tin Tuyến & Đội xe tập trung</span></div>
             <div class="panel-body">
-              <div class="form-grid">
+              <div class="form-grid" style="margin-bottom: 20px;">
                 <label style="color:#d9534f; font-weight:bold;">Chế độ thao tác:</label>
                 <div class="input-combo">
-                  <select id="selChonTuyenDeSua" class="form-control select2-search" style="width: 70%;"><option value="">[+ Tạo mới một tuyến hoàn toàn]</option></select>
+                  <select id="selChonTuyenDeSua" class="form-control select2-search" style="width: 70%;" onchange="onChonTuyenDeSuaChange()"><option value="">[+ Tạo mới một tuyến hoàn toàn]</option></select>
                   <button class="btn btn-default" type="button" onclick="resetFormTuyen()"><i class="fa fa-refresh"></i> Làm mới</button>
                 </div>
                 <label>Mã tuyến:</label>
-                <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 85 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
+                <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 01 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
@@ -384,75 +368,50 @@
                 </div>
                 <label>Tên tuyến đầy đủ:</label>
                 <div class="input-combo"><input type="text" id="txtTenTuyen" class="form-control" placeholder="Hệ thống tự động ghép theo Mã và Đầu bến..."></div>
-                <label style="color:#0F86DB; font-weight:bold;">Thông tin phương tiện:</label>
-                <div class="input-combo">
-                  <div style="display:flex; align-items:center; gap:4px;"><span>Xe VD:</span><input type="number" id="txtSoXeVd" class="form-control" placeholder="VD: 12" style="width: 75px;"></div>
-                  <div style="display:flex; align-items:center; gap:4px;"><span>Xe KH:</span><input type="number" id="txtSoXeKh" class="form-control" placeholder="VD: 15" style="width: 75px;"></div>
-                  <input type="text" id="txtLoaiXe" class="form-control" placeholder="Loại xe (VD: Daewoo BC095)" style="flex: 1; min-width: 150px;">
-                  <input type="text" id="txtSucChua" class="form-control" placeholder="Sức chứa (VD: 60 chỗ)" style="width: 130px;">
+                
+                <!-- NẠP NHANH EXCEL HOẶC THÊM XE THỦ CÔNG -->
+                <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
+                <div>
+                  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Dán danh sách từ Excel hoặc thêm từng xe:</span>
+                    <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
+                  </div>
+                  <textarea id="txtExcelXeTuyen" class="form-control" style="height: 65px; margin-bottom: 8px;" placeholder="Dán nhanh danh sách xe từ Excel (Cột B: BKS, Cột C: Chủng loại, Cột D: Sức chứa) vào đây..."></textarea>
+                  
+                  <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 250px; background: #FFF;">
+                    <table class="table-custom" style="margin-top: 0;">
+                      <thead>
+                        <tr>
+                          <th style="width: 40px; text-align: center;">STT</th>
+                          <th>Biển kiểm soát</th>
+                          <th>Chủng loại xe</th>
+                          <th style="width: 110px;">Sức chứa</th>
+                          <th style="width: 140px; text-align: center;">Chuyển tuyến</th>
+                          <th style="width: 50px; text-align: center;">Xóa</th>
+                        </tr>
+                      </thead>
+                      <tbody id="tblFormDanhSachXe">
+                        <!-- Render động -->
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <label style="color:#e67e22; font-weight:bold;">Trạng thái hoạt động:</label>
+
+                <label style="color:#e67e22; font-weight:bold;">Trạng thái:</label>
                 <div class="radio-group">
-                  <label class="radio-item"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;"><i class="fa fa-check-circle"></i> Đang hoạt động</strong></label>
-                  <label class="radio-item"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;"><i class="fa fa-lock"></i> Tạm dừng / Khóa tuyến</strong></label>
+                  <label class="radio-item"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;">Đang hoạt động</strong></label>
+                  <label class="radio-item"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;">Tạm dừng / Khóa tuyến</strong></label>
                 </div>
                 <div></div>
-                <div><button class="btn btn-success" onclick="xacLapTuyen()"><i class="fa fa-save"></i> Lưu thông tin tuyến</button></div>
+                <div>
+                  <button class="btn btn-success" style="padding: 10px 24px;" onclick="xacLapTuyenVaDoiXe()"><i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- SECTION 3: NẠP EXCEL -->
-        <div id="sec-excel" class="content-section">
-          <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-file-excel-o"></i> Nạp Danh sách xe từ Excel</span></div>
-            <div class="panel-body">
-              <p style="margin-bottom:8px; color:#555;">Copy toàn bộ danh sách xe từ Google Sheets/Excel rồi dán vào đây:</p>
-              <textarea id="txtExcelXe" class="form-control" style="height:140px;" placeholder="Dán danh sách xe từ Excel vào đây..."></textarea>
-              <div style="margin-top:10px;"><button class="btn btn-success" onclick="napDanhSachXeExcel()"><i class="fa fa-upload"></i> Bóc tách & Tự động cập nhật số xe KH</button></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 4: QUẢN LÝ ĐỘI XE -->
-        <div id="sec-doixe" class="content-section">
-          <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-table"></i> Quản lý Đội xe toàn hệ thống & Điều chuyển nhanh</span></div>
-            <div class="panel-body">
-              <div class="filter-box">
-                <div><label style="display:block; margin-bottom:4px; font-weight:bold; color:#555;">Xí nghiệp:</label><select id="filterXnXe" class="form-control select2-search" style="width:100%;"><option value="">-- Tất cả xí nghiệp --</option></select></div>
-                <div><label style="display:block; margin-bottom:4px; font-weight:bold; color:#555;">Tuyến:</label><select id="filterTuyenXe" class="form-control select2-search" style="width:100%;" onchange="locBangXeAdmin()"><option value="">-- Tất cả tuyến --</option></select></div>
-                <div><label style="display:block; margin-bottom:4px; font-weight:bold; color:#555;">Tìm kiếm biển số:</label><input type="text" id="filterBksXe" class="form-control" placeholder="Nhập biển số xe..." oninput="locBangXeAdmin()"></div>
-              </div>
-
-              <!-- Thanh thao tác hàng loạt -->
-              <div id="batchActionToolbar" style="display: none; margin-bottom: 12px; padding: 10px 14px; background: #EBF2F8; border: 1px solid #C4D5E5; border-radius: 6px; display: flex; align-items: center; justify-content: space-between;">
-                <span>Đã chọn <strong id="selectedCount">0</strong> xe</span>
-                <button class="btn btn-primary" onclick="moModalChuyenHangLoat()"><i class="fa fa-exchange"></i> Chuyển tuyến hàng loạt</button>
-              </div>
-
-              <div style="overflow-x: auto; max-height: 450px;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th style="width: 40px; text-align: center;"><input type="checkbox" id="chkAllXe" onclick="chonTatCaXe(this)"></th>
-                      <th style="width: 50px; text-align: center;">STT</th>
-                      <th style="width: 80px; text-align: center;">Tuyến</th>
-                      <th style="width: 120px;">Biển số</th>
-                      <th>Chủng loại xe</th>
-                      <th style="width: 90px; text-align: center;">Sức chứa</th>
-                      <th style="width: 180px; text-align: center;">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblQuanLyXeAdmin"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION 5: BIỂU ĐỒ -->
+        <!-- SECTION 3: BIỂU ĐỒ -->
         <div id="sec-bieudo" class="content-section">
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe & Theo dõi biểu đồ thiếu</span></div>
@@ -508,9 +467,7 @@
             <div class="panel-body">
               <div class="form-grid" style="margin-bottom: 20px;">
                 <label>Chọn tuyến mẫu:</label>
-                <div class="input-combo">
-                  <select id="selLedTuyenMau" class="form-control select2-search" style="width: 100%;" onchange="napMauLed()"><option value="">-- Chọn tuyến để mô phỏng --</option></select>
-                </div>
+                <div class="input-combo"><select id="selLedTuyenMau" class="form-control select2-search" style="width: 100%;" onchange="napMauLed()"><option value="">-- Chọn tuyến để mô phỏng --</option></select></div>
                 <label>Số tuyến (LED đỏ):</label>
                 <div class="input-combo"><input type="text" id="inputLedSo" class="form-control" value="BRT01" style="font-weight:bold; color:#ff1c00;" oninput="capNhatMoPhinhLed()"></div>
                 <label>Lộ trình (LED xanh):</label>
@@ -522,9 +479,7 @@
               <div class="led-simulator-box">
                 <div style="color: #888; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"><i class="fa fa-circle" style="color: #ff1c00; font-size: 8px;"></i> Màn hình LED trước xe (Mô phỏng thực tế)</div>
                 <div class="led-display-screen">
-                  <div class="led-route-number-box">
-                    <div class="led-route-number" id="ledDisplayNum">BRT01</div>
-                  </div>
+                  <div class="led-route-number-box"><div class="led-route-number" id="ledDisplayNum">BRT01</div></div>
                   <div class="led-route-text-wrap">
                     <div class="led-route-text-container" id="ledTrack">
                       <div class="led-route-text" id="ledDisplayText">BX KIM MÃ -> BX YÊN NGHĨA</div>
@@ -544,13 +499,9 @@
             <div class="panel-body">
               <div class="form-grid">
                 <label>Nội dung thông báo:</label>
-                <div class="input-combo">
-                  <textarea id="txtNoiDungThongBao" class="form-control" style="height: 100px; font-family: inherit;" placeholder="Nhập nội dung thông báo hiển thị phía trên trang tra cứu..."></textarea>
-                </div>
+                <div class="input-combo"><textarea id="txtNoiDungThongBao" class="form-control" style="height: 100px; font-family: inherit;" placeholder="Nhập nội dung thông báo hiển thị phía trên trang tra cứu..."></textarea></div>
                 <div></div>
-                <div>
-                  <button class="btn btn-success" onclick="luuThongBaoChay()"><i class="fa fa-save"></i> Cập nhật thông báo</button>
-                </div>
+                <div><button class="btn btn-success" onclick="luuThongBaoChay()"><i class="fa fa-save"></i> Cập nhật thông báo</button></div>
               </div>
             </div>
           </div>
@@ -596,7 +547,7 @@
         <!-- SECTION 7: NHẬT KÝ TRUY CẬP WEB -->
         <div id="sec-log" class="content-section">
           <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-history"></i> Lịch sử Khách & Người dùng truy cập Website (Tự động xóa sau 30 ngày)</span></div>
+            <div class="panel-heading"><span><i class="fa fa-history"></i> Lịch sử Khách & Người dùng truy cập Website</span></div>
             <div class="panel-body">
               <div style="overflow-x: auto; max-height: 500px;">
                 <table class="table-custom">
@@ -616,32 +567,6 @@
           </div>
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal điều chuyển xe đơn lẻ -->
-  <div id="modalDieuChuyen" style="display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:#fff; width:450px; border-radius:5px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
-      <h3 style="margin-bottom:15px; font-size:14px; color:#2C3E50;"><i class="fa fa-random"></i> Điều chuyển xe sang tuyến khác</h3>
-      <div style="margin-bottom:12px;"><label>Biển kiểm soát:</label><input type="text" id="dcBks" class="form-control" readonly style="font-weight:bold; margin-top:4px;"></div>
-      <div style="margin-bottom:15px;"><label>Tuyến chuyển đến:</label><select id="dcTuyenMoi" class="form-control select2-search" style="width:100%; margin-top:4px;"></select></div>
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-default" onclick="$('#modalDieuChuyen').css('display','none')">Hủy</button>
-        <button class="btn btn-primary" onclick="xacNhanDieuChuyen()"><i class="fa fa-check"></i> Xác nhận chuyển</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal điều chuyển xe hàng loạt -->
-  <div id="modalDieuChuyenHangLoat" style="display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;">
-    <div style="background:#fff; width:450px; border-radius:5px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.2);">
-      <h3 style="margin-bottom:15px; font-size:14px; color:#2C3E50;"><i class="fa fa-exchange"></i> Chuyển tuyến hàng loạt cho xe đã chọn</h3>
-      <div style="margin-bottom:12px;"><label>Số lượng xe đang chọn:</label><input type="text" id="hlCountText" class="form-control" readonly style="font-weight:bold; margin-top:4px;"></div>
-      <div style="margin-bottom:15px;"><label>Tuyến đích chuyển đến:</label><select id="hlTuyenMoi" class="form-control select2-search" style="width:100%; margin-top:4px;"></select></div>
-      <div style="display:flex; justify-content:flex-end; gap:10px;">
-        <button class="btn btn-default" onclick="$('#modalDieuChuyenHangLoat').css('display','none')">Hủy</button>
-        <button class="btn btn-primary" onclick="xacNhanDieuChuyenHangLoat()"><i class="fa fa-check"></i> Xác nhận chuyển hàng loạt</button>
       </div>
     </div>
   </div>
@@ -705,21 +630,7 @@
       $('#selDauA').on('change', () => { toggleExtraInput('selDauA', 'txtDauAMoi'); tuDongGoiYTenTuyen(); });
       $('#selDauB').on('change', () => { toggleExtraInput('selDauB', 'txtDauBMoi'); tuDongGoiYTenTuyen(); });
       
-      $('#selChonTuyenDeSua').on('change', onChonTuyenDeSuaChange);
       $('#selChonTuyen').on('change', onSelectTuyenChange);
-
-      $('#filterXnXe').on('change', function() {
-        const selectedXn = $(this).val();
-        const $filterTuyen = $('#filterTuyenXe');
-        $filterTuyen.empty().append('<option value="">-- Tất cả tuyến --</option>');
-        mapTuyenChiTiet.forEach(t => {
-          if (!selectedXn || (t.xn || '').toLowerCase() === selectedXn.toLowerCase()) {
-            $filterTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen));
-          }
-        });
-        $filterTuyen.trigger('change.select2');
-        locBangXeAdmin();
-      });
 
       napDuLieuTong();
       capNhatMoPhinhLed();
@@ -758,15 +669,14 @@
       $('#selDauA').val("").trigger('change.select2');
       $('#selDauB').val("").trigger('change.select2');
       $('#txtTenTuyen').val("");
-      $('#txtSoXeVd').val("");
-      $('#txtSoXeKh').val("");
-      $('#txtLoaiXe').val("");
-      $('#txtSucChua').val("");
+      $('#txtExcelXeTuyen').val("");
       $('input[name="rdStatus"][value="active"]').prop('checked', true);
       $('#txtXnMoi, #txtDauAMoi, #txtDauBMoi').hide().val("");
+      renderBangXeForm([]);
       dangLamMoi = false;
     }
 
+    // Khi chọn một tuyến trên form quản trị tuyến
     function onChonTuyenDeSuaChange() {
       if (dangLamMoi) return;
       const ma = $('#selChonTuyenDeSua').val();
@@ -776,15 +686,15 @@
       if (t) {
         $('#txtMaTuyen').val(t.maTuyen).prop('readonly', true);
         $('#txtTenTuyen').val(t.tenTuyen);
-        $('#txtSoXeVd').val(t.soXeVd || t.soXe || "");
-        $('#txtSoXeKh').val(t.soXeKh || t.soXe || "");
-        $('#txtLoaiXe').val(t.loaiXe || "");
-        $('#txtSucChua').val(t.sucChua || "");
         $(`input[name="rdStatus"][value="${t.status || 'active'}"]`).prop('checked', true);
 
         $('#selXn').val(t.xn).trigger('change.select2');
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
+
+        // Lọc xe của tuyến này đổ vào bảng lưới
+        const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
+        renderBangXeForm(xeCuaTuyen);
       }
     }
 
@@ -802,11 +712,15 @@
 
     async function napDuLieuTong(chonMaTuyenMoi = '') {
       try {
-        const res = await fetch(`${API_BASE}/api/danh-muc?admin=true`);
-        const data = await res.json();
-        rawDanhMuc = data.data || [];
-        const allRoutes = data.allRoutes || [];
-        dsBieuDoLuu = data.bieuDoList || [];
+        const [resDM, resXe] = await Promise.all([
+          fetch(`${API_BASE}/api/danh-muc?admin=true`).then(r => r.json()),
+          fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json())
+        ]);
+
+        rawDanhMuc = resDM.data || [];
+        const allRoutes = resDM.allRoutes || [];
+        dsBieuDoLuu = resDM.bieuDoList || [];
+        if (resXe.success) tatCaXeHeThong = resXe.data || [];
 
         dsXn.clear(); dsDauBen.clear(); mapTuyenChiTiet.clear();
 
@@ -831,18 +745,12 @@
         doVaoSelect2("selXn", dsXn, "xí nghiệp");
         doVaoSelect2("selDauA", dsDauBen, "đầu bến A");
         doVaoSelect2("selDauB", dsDauBen, "đầu bến B");
-        doVaoSelect2ThongThuong("filterXnXe", dsXn, "-- Tất cả xí nghiệp --");
-        
+
         const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => {
           return (a.maTuyen || '').localeCompare(b.maTuyen || '', undefined, { numeric: true, sensitivity: 'base' });
         });
 
-        const $filterTuyen = $('#filterTuyenXe');
-        $filterTuyen.empty().append('<option value="">-- Tất cả tuyến --</option>');
-        sortedRoutes.forEach(t => { $filterTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
-        $filterTuyen.trigger('change.select2');
-
-        const $selSua = $('#selChonTuyenDeSua');
+        const $selSua =$('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
         sortedRoutes.forEach(t => {
           const lockText = t.status === 'locked' ? ' [ĐÃ KHÓA]' : '';
@@ -850,18 +758,18 @@
         });
         $selSua.trigger('change.select2');
 
-        const $selTuyen = $('#selChonTuyen');
+        const $selTuyen =$('#selChonTuyen');
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
           const isSelected = chonMaTuyenMoi && (chuanHoaMaTuyen(t.maTuyen) === chuanHoaMaTuyen(chonMaTuyenMoi));
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
-          $(opt).attr('data-xn', t.xn); $selTuyen.append(opt);
+          $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
         });
-        if (selectedVal) $selTuyen.val(selectedVal); $selTuyen.trigger('change.select2');
+        if (selectedVal) $selTuyen.val(selectedVal);$selTuyen.trigger('change.select2');
 
-        const $selLedTuyen = $('#selLedTuyenMau');
+        const $selLedTuyen =$('#selLedTuyenMau');
         $selLedTuyen.empty().append('<option value="">-- Chọn tuyến để mô phỏng --</option>');
         sortedRoutes.forEach(t => { $selLedTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $selLedTuyen.trigger('change.select2');
@@ -869,9 +777,178 @@
         veBangDanhSachTuyen(sortedRoutes);
         veBangTrangThaiBieuDo(sortedRoutes);
         capNhatThongKe();
-        await taiToanBoXeAdmin();
+
+        // Nếu đang chọn sửa 1 tuyến, reload lại bảng xe của tuyến đó
+        const currentSelectedMa = $('#selChonTuyenDeSua').val();
+        if (currentSelectedMa) {
+          const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(currentSelectedMa));
+          renderBangXeForm(xeCuaTuyen);
+        }
       } catch (err) {
         console.error("Lỗi nạp dữ liệu:", err);
+      }
+    }
+
+    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN ---
+    function renderBangXeForm(danhSachXe = []) {
+      // Nếu có dán nhanh từ ô Excel text, bóc tách trước khi render
+      const rawExcel = $('#txtExcelXeTuyen').val().trim();
+      if (rawExcel) {
+        const lines = rawExcel.split("\n");
+        lines.forEach(l => {
+          const cols = l.split("\t");
+          if (cols.length >= 2) {
+            let bks = (cols[1] || cols[0] || "").trim();
+            let chungLoai = (cols[2] || "").trim();
+            let sucChua = (cols[3] || "").trim();
+            if (bks && !danhSachXe.some(x => x.bks === bks)) {
+              danhSachXe.push({ bks, chungLoai, sucChua });
+            }
+          }
+        });
+        $('#txtExcelXeTuyen').val(''); // clear ô dán sau khi bóc
+      }
+
+      let html = '';
+      if (danhSachXe.length === 0) {
+        danhSachXe = [{ bks: '', chungLoai: '', sucChua: '' }];
+      }
+
+      danhSachXe.forEach((xe, idx) => {
+        let tuyenOptions = '<option value="">-- Chuyển tuyến --</option>';
+        mapTuyenChiTiet.forEach(t => {
+          if (t.maTuyen !== $('#txtMaTuyen').val()) {
+            tuyenOptions += `<option value="${t.maTuyen}">Tuyến ${t.maTuyen}</option>`;
+          }
+        });
+
+        html += `
+          <tr class="xe-row-item" data-old-bks="${xe.bks || ''}">
+            <td style="text-align: center; font-weight: bold; color: #555;">${idx + 1}</td>
+            <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29B-205.31" style="height: 28px;"></td>
+            <td><input type="text" class="form-control form-chungloai" value="${xe.chungLoai || ''}" placeholder="VD: Daewoo BC095" style="height: 28px;"></td>
+            <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="VD: 60 chỗ" style="height: 28px;"></td>
+            <td>
+              <select class="form-control form-chuyen-tuyen" style="height: 28px; font-size: 11px;" onchange="thucHienChuyenTuyenNgay(this, '${xe.bks || ''}')">
+                ${tuyenOptions}
+              </select>
+            </td>
+            <td style="text-align: center;">
+              <button type="button" class="btn btn-danger" style="padding: 2px 6px; font-size: 10px;" onclick="$(this).closest('tr').remove(); capNhatLaiSTTForm();"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+      $('#tblFormDanhSachXe').html(html);
+    }
+
+    function themDongXeMoi() {
+      // Nếu có dán dữ liệu excel thì bóc tách vào trước
+      let danhSachHienTai = [];
+      $('#tblFormDanhSachXe .xe-row-item').each(function() {
+        danhSachHienTai.push({
+          bks: $(this).find('.form-bks').val().trim(),
+          chungLoai: $(this).find('.form-chungloai').val().trim(),
+          sucChua: $(this).find('.form-succhua').val().trim()
+        });
+      });
+      danhSachHienTai.push({ bks: '', chungLoai: '', sucChua: '' });
+      renderBangXeForm(danhSachHienTai);
+    }
+
+    function capNhatLaiSTTForm() {
+      $('#tblFormDanhSachXe tr').each(function(i) {
+        $(this).find('td:first').text(i + 1);
+      });
+    }
+
+    async function thucHienChuyenTuyenNgay(selectElem, bks) {
+      const tuyenMoi = $(selectElem).val();
+      if (!bks) {
+        alert("Vui lòng nhập Biển kiểm soát trước khi chuyển tuyến!");
+        $(selectElem).val("");
+        return;
+      }
+      if (!tuyenMoi) return;
+
+      if (confirm(`Xác nhận chuyển xe ${bks} sang Tuyến ${tuyenMoi}?`)) {
+        try {
+          const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bks, tuyenMoi })
+          }).then(r => r.json());
+          showToast(res.message, res.success ? "success" : "error");
+          if (res.success) {
+            $(selectElem).closest('tr').remove();
+            capNhatLaiSTTForm();
+            await taiToanBoXeAdminQuiet();
+          }
+        } catch (e) { showToast("Lỗi kết nối", "error"); }
+      } else {
+        $(selectElem).val("");
+      }
+    }
+
+    async function taiToanBoXeAdminQuiet() {
+      try {
+        const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
+        if (res.success) { tatCaXeHeThong = res.data || []; }
+      } catch (err) {}
+    }
+
+    // --- KHI LƯU THÔNG TIN TUYẾN & ĐỘI XE ---
+    async function xacLapTuyenVaDoiXe() {
+      // Tự động bóc tách Excel nếu người dùng có dán vào ô text trước khi lưu
+      renderBangXeForm([]);
+
+      const maTuyen = $('#txtMaTuyen').val().trim();
+      const selXnVal = $('#selXn').val();
+      const xn = selXnVal === "__NEW__" ? $('#txtXnMoi').val().trim() : selXnVal;
+      const selAVal = $('#selDauA').val();
+      const dauA = selAVal === "__NEW__" ? $('#txtDauAMoi').val().trim() : selAVal;
+      const selBVal = $('#selDauB').val();
+      const dauB = selBVal === "__NEW__" ? $('#txtDauBMoi').val().trim() : selBVal;
+      const tenTuyen = $('#txtTenTuyen').val().trim();
+      const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
+
+      if (!maTuyen || !tenTuyen || !xn) {
+        showToast("Vui lòng điền đủ Mã tuyến, Đơn vị và Tên tuyến!", "error");
+        return;
+      }
+
+      // Gom danh sách xe từ bảng lưới
+      const danhSachXe = [];
+      $('#tblFormDanhSachXe .xe-row-item').each(function() {
+        const bks = $(this).find('.form-bks').val().trim();
+        const chungLoai = $(this).find('.form-chungloai').val().trim();
+        const sucChua = $(this).find('.form-succhua').val().trim();
+        if (bks) {
+          danhSachXe.push({ bks, chungLoai, sucChua, maTuyen, xn, tenTuyen });
+        }
+      });
+
+      const soXeKh = danhSachXe.length;
+      // Tổng hợp loại xe
+      const setLoai = new Set();
+      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
+      const loaiXe = Array.from(setLoai).join(' & ');
+
+      try {
+        // 1. Lưu thông tin tuyến
+        const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
+        }).then(r => r.json());
+
+        // 2. Lưu danh sách xe của tuyến này lên server
+        const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ maTuyen, danhSachXe })
+        }).then(r => r.json());
+
+        showToast("Đã lưu thành công Tuyến & Đội xe!", "success");
+        await napDuLieuTong(maTuyen);
+      } catch (err) {
+        showToast("Lỗi kết nối: " + err, "error");
       }
     }
 
@@ -887,12 +964,10 @@
           const matchedCharts = dsBieuDoLuu.filter(b => {
             let bTuyen = String(b.tuyen || '').trim().toUpperCase();
             let bTab = String(b.tenTab || '').trim().toUpperCase();
-            
             const isMatchTuyenField = (bTuyen === tenTuyenCurrent || chuanHoaMaTuyen(bTuyen) === maTuyenCurrentNorm);
             let matchPrefix = bTab.match(/^([0-9A-Za-z]+)/);
             let maTabPrefixNorm = matchPrefix ? chuanHoaMaTuyen(matchPrefix[1]) : "";
             const isMatchPrefix = (maTabPrefixNorm === maTuyenCurrentNorm);
-
             return isMatchTuyenField || isMatchPrefix;
           });
 
@@ -935,20 +1010,14 @@
     function napBieuDoLenSua(tenTab) {
       const chart = dsBieuDoLuu.find(b => b.tenTab === tenTab);
       if (!chart) return;
-
       $('#selChonTuyen').val(chart.tuyen).trigger('change.select2');
       $('#txtNgayApDung').val(chart.ngayApDung || "");
-      if (chart.phamVi) {
-        $(`input[name="rdPhamVi"][value="${chart.phamVi}"]`).prop('checked', true);
-      }
+      if (chart.phamVi) $(`input[name="rdPhamVi"][value="${chart.phamVi}"]`).prop('checked', true);
       $('#txtTenTab').val(chart.tenTab);
-
       if (chart.rawData && Array.isArray(chart.rawData)) {
-        const textLines = chart.rawData.map(row => row.join("\t")).join("\n");
-        $('#txtRawData').val(textLines);
+        $('#txtRawData').val(chart.rawData.map(row => row.join("\t")).join("\n"));
       }
-
-      chuyenTabAdmin('sec-bieudo', $('.sidebar-menu li a')[4]);
+      chuyenTabAdmin('sec-bieudo', $('.sidebar-menu li a')[2]);
       showToast(`Đã nạp biểu đồ [${tenTab}] lên form chỉnh sửa!`, "success");
     }
 
@@ -967,22 +1036,18 @@
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
-
-      const $track = $('#ledTrack');
-      const $text = $('#ledDisplayText');
-      const $copy = $('#ledDisplayTextCopy');
-      const $wrap = $track.parent();
-
+      const $track =$('#ledTrack');
+      const $text =$('#ledDisplayText');
+      const $copy =$('#ledDisplayTextCopy');
+      const $wrap =$track.parent();
       const khoangCach = "     ➔     ";
-      $text.text(loTrinh); $copy.text(loTrinh + khoangCach);
-      
-      $track.removeClass('marquee'); $copy.hide();
-
+      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
+      $track.removeClass('marquee');$copy.hide();
       setTimeout(() => {
-        if ($text[0].scrollWidth > $wrap[0].clientWidth) {
-          $copy.show(); $track.addClass('marquee');
+        if ($text[0].scrollWidth >$wrap[0].clientWidth) {
+          $copy.show();$track.addClass('marquee');
         } else {
-          $track.removeClass('marquee'); $copy.hide();
+          $track.removeClass('marquee');$copy.hide();
         }
       }, 50);
     }
@@ -998,112 +1063,6 @@
         $('#inputLedLoTrinh').val(loTrinhGoiY.toUpperCase());
         capNhatMoPhinhLed();
       }
-    }
-
-    async function taiToanBoXeAdmin() {
-      try {
-        const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
-        if (res.success) { tatCaXeHeThong = res.data || []; locBangXeAdmin(); }
-      } catch (err) { console.error("Lỗi tải đội xe:", err); }
-    }
-
-    function locBangXeAdmin() {
-      const selectedXn = $('#filterXnXe').val();
-      const selectedTuyenNorm = chuanHoaMaTuyen($('#filterTuyenXe').val());
-      const keyword = $('#filterBksXe').val().trim().toLowerCase();
-      
-      const filtered = tatCaXeHeThong.filter(x => {
-        const matchXn = !selectedXn || (x.xn || '').toLowerCase() === selectedXn.toLowerCase();
-        const matchTuyen = !selectedTuyenNorm || chuanHoaMaTuyen(x.maTuyen) === selectedTuyenNorm;
-        const matchBks = !keyword || (x.bks || '').toLowerCase().includes(keyword);
-        return matchXn && matchTuyen && matchBks;
-      });
-      veBangQuanLyXeAdmin(filtered);
-    }
-
-    function veBangQuanLyXeAdmin(listXe) {
-      let html = '';
-      if (!listXe || listXe.length === 0) {
-        html = '<tr><td colspan="7" style="text-align:center; color:#999; padding:20px;">Không tìm thấy phương tiện nào phù hợp bộ lọc!</td></tr>';
-      } else {
-        listXe.forEach((xe, index) => {
-          html += `<tr>
-            <td style="text-align: center;"><input type="checkbox" class="xe-checkbox" value="${xe.bks}" onchange="capNhatSoLuongChon()"></td>
-            <td style="text-align: center; color: #555;">${index + 1}</td>
-            <td style="text-align: center; font-weight: bold; color: #3B86C4;">${xe.maTuyen || '-'}</td>
-            <td><strong style="color: #111;">${xe.bks}</strong></td>
-            <td>${xe.nhanHieu || ''} ${xe.chungLoai || ''}</td>
-            <td style="text-align: center;">${xe.sucChua || '-'}</td>
-            <td style="text-align: center;">
-              <div style="display:flex; gap:4px; justify-content:center;">
-                <button class="btn btn-primary" style="padding:3px 8px; font-size:11px;" onclick="batModalDieuChuyen('${xe.bks}')"><i class="fa fa-random"></i> Chuyển</button>
-                <button class="btn btn-danger" style="padding:3px 8px; font-size:11px;" onclick="xoaXeHeThong('${xe.bks}')"><i class="fa fa-trash"></i> Xóa</button>
-              </div>
-            </td>
-          </tr>`;
-        });
-      }
-      $('#tblQuanLyXeAdmin').html(html);
-      $('#chkAllXe').prop('checked', false);
-      capNhatSoLuongChon();
-    }
-
-    function chonTatCaXe(masterCheckbox) {
-      $('.xe-checkbox').prop('checked', masterCheckbox.checked);
-      capNhatSoLuongChon();
-    }
-
-    function capNhatSoLuongChon() {
-      const selectedCount = $('.xe-checkbox:checked').length;
-      $('#selectedCount').text(selectedCount);
-      if (selectedCount > 0) {
-        $('#batchActionToolbar').show();
-      } else {
-        $('#batchActionToolbar').hide();
-      }
-    }
-
-    function moModalChuyenHangLoat() {
-      const selectedBks = $('.xe-checkbox:checked').map(function() { return this.value; }).get();
-      if (selectedBks.length === 0) {
-        showToast("Vui lòng chọn ít nhất một xe!", "error");
-        return;
-      }
-      $('#hlCountText').val(`${selectedBks.length} xe được chọn`);
-      const $sel = $('#hlTuyenMoi'); $sel.empty();
-      mapTuyenChiTiet.forEach(t => { $sel.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
-      $sel.select2({ dropdownParent: $('#modalDieuChuyenHangLoat'), language: { noResults: () => "Không tìm thấy" } });
-      $('#modalDieuChuyenHangLoat').css('display', 'flex');
-    }
-
-    async function xacNhanDieuChuyenHangLoat() {
-      const selectedBks = $('.xe-checkbox:checked').map(function() { return this.value; }).get();
-      const tuyenMoi = $('#hlTuyenMoi').val();
-      if (selectedBks.length === 0 || !tuyenMoi) return;
-
-      try {
-        const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe-hang-loat`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bksList: selectedBks, tuyenMoi })
-        }).then(r => r.json());
-        
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) {
-          $('#modalDieuChuyenHangLoat').css('display', 'none');
-          await napDuLieuTong();
-        }
-      } catch (e) { showToast("Lỗi kết nối máy chủ!", "error"); }
-    }
-
-    async function xoaXeHeThong(bks) {
-      if (!confirm(`Xác nhận xóa vĩnh viễn xe [${bks}] khỏi hệ thống?`)) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/xoa-xe`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bks })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) { await taiToanBoXeAdmin(); }
-      } catch (e) { showToast("Lỗi kết nối máy chủ!", "error"); }
     }
 
     function capNhatThongKe() {
@@ -1122,18 +1081,15 @@
       $('#statXeLocked').text(`${tongXeLocked} xe tạm dừng hoạt động`);
     }
 
-    // Hàm tự động quét toàn bộ xe hệ thống để nhận diện & gom nhóm loại xe của tuyến
+    // Nhận diện loại xe từ danh sách xe thực tế
     function tuDongLayLoaiXeCuaTuyen(maTuyen) {
       const matchNorm = chuanHoaMaTuyen(maTuyen);
       const xeTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === matchNorm);
       if (xeTuyen.length === 0) return "";
-
       const setLoai = new Set();
       xeTuyen.forEach(x => {
         let ten = `${x.nhanHieu || ''} ${x.chungLoai || ''}`.trim();
-        if (ten) {
-          setLoai.add(ten + (x.sucChua ? ` (${x.sucChua} chỗ)` : ''));
-        }
+        if (ten) setLoai.add(ten);
       });
       return Array.from(setLoai).join(' & ');
     }
@@ -1147,11 +1103,13 @@
         listToRender.forEach(t => {
           const isLocked = t.status === 'locked';
           const badge = isLocked ? '<span class="status-badge status-locked">Khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
-          const vd = t.soXeVd || t.soXe || ""; const kh = t.soXeKh || t.soXe || "";
           
-          let phuongTienStr = (vd || kh) ? `<strong style="color:#0F86DB;">${vd || '?'}/${kh || '?'} xe</strong>` : '<span style="color:#aaa;">Chưa cập nhật</span>';
-          
-          // Tự động nhận diện loại xe từ danh sách xe thực tế nếu tuyến chưa khai báo cứng
+          // Số xe kế hoạch đếm thực tế từ danh sách xe thuộc tuyến
+          const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
+          const khCount = xeCuaTuyen.length || t.soXeKh || t.soXe || 0;
+          const vdCount = t.soXeVd || "?";
+
+          let phuongTienStr = `<strong style="color:#0F86DB;">${vdCount}/${khCount} xe</strong>`;
           let loaiXeHienThi = t.loaiXe || tuDongLayLoaiXeCuaTuyen(t.maTuyen);
           if (loaiXeHienThi) {
             phuongTienStr += `<div style="color: #444; font-weight: normal; margin-top: 2px; line-height: 1.2;">${loaiXeHienThi}</div>`;
@@ -1177,7 +1135,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]); $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -1192,16 +1150,10 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel = $('#' + elemId);
+      const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
+      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
       $sel.trigger('change.select2');
-    }
-
-    function doVaoSelect2ThongThuong(elemId, dataSet, defaultText) {
-      const $sel = $('#' + elemId);
-      $sel.empty().append(`<option value="">${defaultText}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val))); $sel.trigger('change.select2');
     }
 
     function onSelectTuyenChange() {
@@ -1218,33 +1170,6 @@
       const match = tuyen.match(/^([A-Za-z0-9]+)/);
       const maNgan = match ? match[1] : tuyen;
       $('#txtTenTab').val(ngay ? `${maNgan} (${ngay.replace(/\//g, '.')} - ${phamVi})` : `${maNgan} (${phamVi})`);
-    }
-
-    async function xacLapTuyen() {
-      const maTuyen = $('#txtMaTuyen').val().trim();
-      const selXnVal = $('#selXn').val();
-      const xn = selXnVal === "__NEW__" ? $('#txtXnMoi').val().trim() : selXnVal;
-      const selAVal = $('#selDauA').val();
-      const dauA = selAVal === "__NEW__" ? $('#txtDauAMoi').val().trim() : selAVal;
-      const selBVal = $('#selDauB').val();
-      const dauB = selBVal === "__NEW__" ? $('#txtDauBMoi').val().trim() : selBVal;
-      const tenTuyen = $('#txtTenTuyen').val().trim();
-      const soXeVd = $('#txtSoXeVd').val().trim();
-      const soXeKh = $('#txtSoXeKh').val().trim();
-      const loaiXe = $('#txtLoaiXe').val().trim();
-      const sucChua = $('#txtSucChua').val().trim();
-      const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
-
-      if (!maTuyen || !tenTuyen || !xn) { showToast("Vui lòng điền đủ Mã tuyến, Đơn vị và Tên tuyến!", "error"); return; }
-      try {
-        const res = await fetch(`${API_BASE}/api/tuyen-moi`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maTuyen, tenTuyen, xn, dauA, dauB, soXeVd, soXeKh, loaiXe, sucChua, status })
-        }).then(r => r.json());
-        showToast(res.message, "success");
-        await napDuLieuTong(maTuyen);
-        resetFormTuyen();
-      } catch (err) { showToast("Lỗi kết nối: " + err, "error"); }
     }
 
     async function luuBieuDo() {
@@ -1286,38 +1211,6 @@
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
-    async function napDanhSachXeExcel() {
-      const rawText = $('#txtExcelXe').val().trim();
-      if (!rawText) { showToast("Vui lòng dán dữ liệu Excel!", "error"); return; }
-      try {
-        const res = await fetch(`${API_BASE}/api/import-danh-sach-xe`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rawText })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) { $('#txtExcelXe').val(''); await napDuLieuTong(); }
-      } catch (e) { showToast("Lỗi: " + e, "error"); }
-    }
-
-    function batModalDieuChuyen(bks) {
-      $('#dcBks').val(bks);
-      const $sel = $('#dcTuyenMoi'); $sel.empty();
-      mapTuyenChiTiet.forEach(t => { $sel.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
-      $sel.select2({ dropdownParent: $('#modalDieuChuyen'), language: { noResults: () => "Không tìm thấy" } });
-      $('#modalDieuChuyen').css('display', 'flex');
-    }
-
-    async function xacNhanDieuChuyen() {
-      const bks = $('#dcBks').val(); const tuyenMoi = $('#dcTuyenMoi').val();
-      if (!bks || !tuyenMoi) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bks, tuyenMoi })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) { $('#modalDieuChuyen').css('display', 'none'); await napDuLieuTong(); }
-      } catch (e) { showToast("Lỗi: " + e, "error"); }
-    }
-
     async function taiDanhSachLog() {
       try {
         const res = await fetch(`${API_BASE}/api/admin/danh-sach-log`).then(r => r.json());
@@ -1328,7 +1221,6 @@
             const roleBadge = log.role === 'visitor' 
               ? '<span class="status-badge" style="background:#E2E8F0; color:#475569;">Khách vãng lai</span>' 
               : '<span class="status-badge status-active">Quản trị viên</span>';
-
             html += `
               <tr>
                 <td style="text-align: center; color: #555;">${index + 1}</td>
@@ -1341,7 +1233,7 @@
           });
           $('#tblDanhSachLog').html(html);
         }
-      } catch (e) { console.error("Lỗi tải nhật ký truy cập:", e); }
+      } catch (e) {}
     }
 
     async function taiDanhSachTaiKhoan() {
@@ -1351,16 +1243,12 @@
           let html = '';
           res.data.forEach(acc => {
             const isLocked = acc.status === 'locked';
-            const statusBadge = isLocked 
-              ? '<span class="status-badge status-locked">Tạm khóa</span>' 
-              : '<span class="status-badge status-active">Hoạt động</span>';
-            
+            const statusBadge = isLocked ? '<span class="status-badge status-locked">Tạm khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
             const perms = acc.permissions || [];
             let btnAction = '';
             if (acc.username !== 'quan') {
               const toggleText = isLocked ? 'Mở' : 'Khóa';
               const toggleCls = isLocked ? 'btn-success' : 'btn-warning';
-              
               btnAction = `
                 <div style="display:flex; gap:4px; justify-content:center; align-items:center; flex-wrap:wrap;">
                   <select class="form-control" style="width: 85px; height: 26px; font-size: 11px;" onchange="doiVaiTro('${acc.username}', this.value)">
@@ -1376,7 +1264,6 @@
             } else {
               btnAction = '<span style="color:#888; font-style:italic;">Tối cao</span>';
             }
-
             let permCheckboxes = `
               <div style="display:flex; gap:8px; font-size:11px; flex-wrap:wrap;">
                 <label><input type="checkbox" ${perms.includes('tuyen') ? 'checked' : ''} onchange="doiQuyen('${acc.username}', 'tuyen', this.checked)"> Tuyến</label>
@@ -1385,7 +1272,6 @@
               </div>
             `;
             if (acc.username === 'quan') permCheckboxes = '<span style="color:#137333; font-weight:bold;">Toàn quyền (Master)</span>';
-
             html += `
               <tr>
                 <td><strong>${acc.username}</strong></td>
@@ -1398,24 +1284,21 @@
           });
           $('#tblDanhSachTaiKhoan').html(html);
         }
-      } catch (e) { console.error("Lỗi tải danh sách tài khoản:", e); }
+      } catch (e) {}
     }
 
     async function taoTaiKhoanMoi() {
       const username = $('#newAccUser').val().trim();
       const password = $('#newAccPass').val().trim();
       const role = $('#newAccRole').val();
-      
       let permissions = [];
       $('.new-perm:checked').each(function() { permissions.push($(this).val()); });
-
       if (!username || !password) { showToast("Vui lòng nhập đủ tài khoản và mật khẩu!", "error"); return; }
       try {
         const res = await fetch(`${API_BASE}/api/admin/dang-ky`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, role, permissions })
         }).then(r => r.json());
-
         showToast(res.message, res.success ? "success" : "error");
         if (res.success) {
           $('#newAccUser').val(''); $('#newAccPass').val('');
@@ -1430,16 +1313,13 @@
         const resList = await fetch(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
         const acc = resList.data.find(u => u.username === username);
         if (!acc) return;
-
         let perms = acc.permissions || [];
         if (isChecked && !perms.includes(permName)) perms.push(permName);
         if (!isChecked && perms.includes(permName)) perms = perms.filter(p => p !== permName);
-
         const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, permissions: perms })
         }).then(r => r.json());
-
         showToast(res.message, res.success ? "success" : "error");
       } catch (e) { showToast("Lỗi cập nhật quyền", "error"); }
     }
