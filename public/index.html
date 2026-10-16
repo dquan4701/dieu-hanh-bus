@@ -643,10 +643,9 @@
 
     function timTabPhuHop(xn, tuyen, ngayChonStr, thuDaChon) {
       if (!tuyen) return null;
-      
-      // Lọc chuẩn theo Xí nghiệp và Tuyến (hỗ trợ cả khớp tên đầy đủ lẫn mã tuyến ngắn)
       const maTuyenNgan = tuyen.split('.')[0].trim().toUpperCase();
       
+      // 1. Lọc tất cả các tab biểu đồ của tuyến đó
       let dsTabCuaTuyen = danhMucData.filter(item => {
         let matchXn = !xn || item.xn === xn;
         let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
@@ -654,7 +653,6 @@
         return matchXn && matchTuyen;
       });
 
-      // Nếu lọc ngặt nghèo theo XN không thấy, nới lỏng chỉ lọc theo tên/mã tuyến
       if (dsTabCuaTuyen.length === 0) {
         dsTabCuaTuyen = danhMucData.filter(item => {
           let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
@@ -664,53 +662,68 @@
 
       if (dsTabCuaTuyen.length === 0) return null;
 
-      // Chuẩn hóa thứ đang chọn (VD: "T2" -> "2", "CN" -> "CN")
-      let thuChuan = thuDaChon === "CN" ? "CN" : thuDaChon.replace("T", "");
-
-      // 1. Ưu tiên tìm tab khớp đúng ngày VÀ khớp thứ trong tuần
-      let found = dsTabCuaTuyen.find(item => {
-        let tenTab = String(item.tenTab || "");
-        let info = parseTabInfo(tenTab);
-        let matchDate = (info.dateStr === ngayChonStr);
-        let matchDay = true;
-        
-        if (tenTab.includes('(')) {
-          let ngoacContent = tenTab.substring(tenTab.indexOf('(') + 1, tenTab.lastIndexOf(')'));
-          matchDay = kiemTraThuChinhXac(thuChuan, ngoacContent);
-        }
-        return matchDate && matchDay;
-      });
-
-      if (found) return found.tenTab;
-
-      // 2. Fallback: Lấy tab khớp đúng ngày hiệu lực gần nhất bất kể thứ
-      found = dsTabCuaTuyen.find(item => {
+      // 2. Lọc các tab khớp đúng ngày hiệu lực trước
+      let dsCungNgay = dsTabCuaTuyen.filter(item => {
         let info = parseTabInfo(item.tenTab);
         return info.dateStr === ngayChonStr;
       });
 
-      if (found) return found.tenTab;
+      if (dsCungNgay.length === 0) {
+        return dsTabCuaTuyen[0].tenTab || null;
+      }
 
-      // 3. Fallback cuối cùng: Lấy luôn tab đầu tiên tìm thấy của tuyến đó
-      return dsTabCuaTuyen[0].tenTab || null;
+      // 3. Tìm tab trong ngày khớp CHÍNH XÁC với thứ đang chọn dựa trên dải ngày đã gán trong tên tab
+      let matchedTab = dsCungNgay.find(item => {
+        return kiemTraNgayThuKhop(item.tenTab, thuDaChon);
+      });
+
+      if (matchedTab) return matchedTab.tenTab;
+
+      // 4. Fallback: Nếu không tìm thấy dải thứ khớp chính xác, trả về tab đầu tiên của ngày đó
+      return dsCungNgay[0].tenTab || dsTabCuaTuyen[0].tenTab || null;
     }
 
-    function kiemTraThuChinhXac(thuHienTai, content) {
-      content = content.trim();
-      if (content === "" || content.includes('Cả tuần') || (content.includes('2-7') && thuHienTai !== 'CN')) return true;
-      if (content === 'CN' && thuHienTai === 'CN') return true;
+    // Hàm tự động phân tích dải ngày/thứ nằm trong tên tab (vd: 2-6, 7-CN, 2-5, v.v.)
+    function kiemTraNgayThuKhop(tabName, thuDaChon) {
+      let targetDay = (thuDaChon === "CN") ? "CN" : thuDaChon.replace("T", "");
       
-      if (content.includes('-')) {
-        let parts = content.split('-');
-        let start = parseInt(parts[0].replace(/\D/g, ''), 10);
-        let endStr = parts[1].replace(/\D/g, '');
-        let end = endStr ? parseInt(endStr, 10) : start;
-        let currentNum = (thuHienTai === 'CN') ? 8 : parseInt(thuHienTai, 10);
-        return currentNum >= start && currentNum <= end;
+      let parenMatch = String(tabName).match(/\(([^)]+)\)/);
+      if (!parenMatch) return true; // Không có ngoặc thì mặc định áp dụng mọi ngày
+      
+      let innerText = parenMatch[1]; // Lấy nội dung trong ngoặc, ví dụ: "1.4.18, 2-6"
+      
+      // Nếu trong ngoặc không chứa ký hiệu ngày/thứ (chỉ có mỗi ngày tháng) -> hiểu là cả tuần
+      let hasDays = /2|3|4|5|6|7|CN/i.test(innerText);
+      if (!hasDays) return true; 
+      
+      let parts = innerText.split(',').map(s => s.trim());
+      // Lọc ra phần dải thứ (bỏ qua đoạn chứa định dạng ngày tháng d.m.yy)
+      let dayParts = parts.filter(p => !p.match(/^\d{1,2}[\/\.]\d{1,2}[\/\.]\d{2,4}$/));
+      if (dayParts.length === 0) return true;
+      
+      let dayStr = dayParts.join(", ");
+      let tokens = dayStr.split(',').map(s => s.trim());
+      
+      for (let token of tokens) {
+        if (token.includes('-')) {
+          let rangeParts = token.split('-').map(s => s.trim());
+          let startStr = rangeParts[0].toUpperCase();
+          let endStr = rangeParts[1].toUpperCase();
+          
+          let parseVal = (val) => (val === "CN" ? 8 : parseInt(val, 10));
+          let startVal = parseVal(startStr);
+          let endVal = parseVal(endStr);
+          let targetVal = parseVal(targetDay);
+          
+          if (!isNaN(startVal) && !isNaN(endVal) && !isNaN(targetVal)) {
+            if (targetVal >= startVal && targetVal <= endVal) return true;
+          }
+        } else {
+          if (token.toUpperCase() === targetDay.toUpperCase()) return true;
+        }
       }
       
-      let items = content.split(/[\,\s]+/).map(i => i.trim());
-      return items.includes(thuHienTai);
+      return false;
     }
     
     async function xemBieuDo() {
