@@ -1200,11 +1200,14 @@
       const matchNorm = chuanHoaMaTuyen(maTuyen);
       const xeTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === matchNorm);
       if (xeTuyen.length === 0) return "";
+      
       const setLoai = new Set();
       xeTuyen.forEach(x => {
         let ten = chuanHoaTenXe(x);
         if (ten) setLoai.add(ten);
       });
+      
+      // Chuyển tập hợp các loại xe thành chuỗi nối nhau bằng dấu &
       return Array.from(setLoai).join(' & ');
     }
 
