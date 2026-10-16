@@ -546,7 +546,8 @@
     function parseTabInfo(tabName) {
       if (!tabName) return { dayRange: "Cả tuần", dateStr: "Hiện hành", dateObj: new Date(0), sortKey: "00000000" };
       
-      const match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
+      // Hỗ trợ bắt cả năm 4 số (2026) lẫn năm 2 số (18, 24) ở dạng d.m.yy hoặc d/m/yyyy
+      let match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       let dateObj = new Date(0);
       let dateStr = "Hiện hành";
       let sortKey = "00000000";
@@ -555,7 +556,7 @@
         let d = parseInt(match[1], 10);
         let mo = parseInt(match[2], 10);
         let y = parseInt(match[3], 10);
-        if (y < 100) y += 2000;
+        if (y < 100) y += 2000; // Quy đổi năm 2 số (18 -> 2018)
         
         dateObj = new Date(y, mo - 1, d);
         
@@ -567,9 +568,9 @@
       }
 
       let dayRange = "Cả tuần";
-      const parts = tabName.split(',');
+      let parts = tabName.split(',');
       if (parts.length > 1) {
-        dayRange = parts[1].replace(')', '').trim(); 
+        dayRange = parts.slice(1).join(',').replace(')', '').trim(); 
       } else if (tabName.includes("CN")) {
         dayRange = "CN";
       }
