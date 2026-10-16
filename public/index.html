@@ -550,26 +550,30 @@
     }
 
     // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
+    // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
     function parseDateInfo(str) {
       if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null, dayRange: "Cả tuần" };
       str = String(str).trim();
 
-      // Bắt chuỗi ngày tháng năm ở cuối (VD: 16.1.26, 5.6.24, 17.8.18, 20.6.26)
-      const match = str.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/);
+      // Dùng ganch chân $ ở cuối hoặc tìm tất cả các cụm ngày, lấy cụm CUỐI CÙNG làm ngày hiệu lực chuẩn
+      const matches = [...str.matchAll(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/g)];
       let dateObj = null;
       let label = "Hiện hành";
       let sortKey = "00000000";
 
-      if (match) {
-        let d = parseInt(match[1], 10);
-        let m = parseInt(match[2], 10);
-        let y = parseInt(match[3], 10);
-        if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      if (matches.length > 0) {
+        // Lấy kết quả khớp cuối cùng trong chuỗi tên tab (chính là ngày .[Tháng].[Năm] ở cuối)
+        let m = matches[matches.length - 1];
+        let d = parseInt(m[1], 10);
+        let mo = parseInt(m[2], 10);
+        let y = parseInt(m[3], 10);
+        
+        if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
           if (y < 100) y += 2000;
-          dateObj = new Date(y, m - 1, d);
+          dateObj = new Date(y, mo - 1, d);
           
           let dd = String(d).padStart(2, '0');
-          let mm = String(m).padStart(2, '0');
+          let mm = String(mo).padStart(2, '0');
           label = `${dd}/${mm}/${y}`;
           sortKey = `${y}${mm}${dd}`;
         }
@@ -578,12 +582,12 @@
       // Xác định dải ngày trong tuần (Kiểu 2, 3, 4)
       let dayRange = "Cả tuần";
       if (str.includes("CN") && !str.includes("2-7") && !str.includes("7-CN")) {
-        if (!str.includes("7-CN")) dayRange = "CN";
-      } 
+        dayRange = "CN";
+      }
       
       const rangeMatch = str.match(/\(([^,)]+),/);
       if (rangeMatch) {
-        dayRange = rangeMatch[1].trim(); // Lấy "2-7", "2-5", "6", "7-CN"...
+        dayRange = rangeMatch[1].trim(); // Lấy "2-7", "2-5", "6", "7-CN", "CN"...
       }
 
       return { label, sortKey, dateObj, dayRange };
@@ -593,7 +597,6 @@
     function kiemTraNgayThuKhop(dayRange, thuDaChon) {
       if (!dayRange || dayRange === "Cả tuần") return true;
       
-      // Chuyển đổi chuẩn mã thứ (T2 -> 2, T3 -> 3, ..., CN -> CN)
       let targetNum = thuDaChon === "CN" ? "CN" : thuDaChon.replace("T", "");
 
       if (dayRange === "CN") return targetNum === "CN";
@@ -603,17 +606,14 @@
         let start = parts[0].trim();
         let end = parts[1].trim();
         
-        // Nếu là khoảng số (VD: 2-7 hoặc 2-5)
         if (!isNaN(start) && !isNaN(targetNum)) {
           let s = parseInt(start, 10);
           let e = parseInt(end, 10);
           let t = parseInt(targetNum, 10);
           return t >= s && t <= e;
         }
-        // Trường hợp khoảng có chứa CN (VD: 7-CN)
         if (targetNum === "CN" && (end === "CN" || start === "CN")) return true;
       } else {
-        // Ngày đơn lẻ (VD: "6")
         return dayRange === targetNum;
       }
       return true;
@@ -656,6 +656,12 @@
       }
     }
 
+    function onDayChange() {
+      if ($('#selTuyen').val() && $('#selNgayApDung').val()) {
+        xemBieuDo();
+      }
+    }
+
     // 4. HÀM TÌM KIẾM BIỂU ĐỒ KẾ CẬN GẦN NHẤT THEO NGÀY VÀ THỨ ĐƯỢC CHỌN
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
       const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
@@ -675,7 +681,6 @@
       // Bước 1: Lọc ra các tab khớp với Thứ người dùng đang tích chọn
       let hopLeTheoThu = parsedTabs.filter(t => kiemTraNgayThuKhop(t.info.dayRange, thuDaChon));
 
-      // Nếu không tìm thấy tab khớp đúng thứ, lấy toàn bộ danh sách để quét ngày
       let candidatePool = hopLeTheoThu.length > 0 ? hopLeTheoThu : parsedTabs;
       if (candidatePool.length === 0) return null;
 
