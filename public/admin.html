@@ -621,6 +621,13 @@
       return String(str).toUpperCase().replace(/[^0-9A-Z]/g, '');
     }
 
+    // THUẬT TOÁN SẮP XẾP THÔNG MINH (ALPHANUMERIC: Số từ bé đến lớn, sau đó đến chữ cái ABC)
+    function sapXepThongMinh(a, b) {
+      let strA = String(a || "").trim();
+      let strB = String(b || "").trim();
+      return strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
     $(document).ready(function() {
       $('.select2-search').select2({
         language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
@@ -705,8 +712,10 @@
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
 
-        // Lọc xe và chuẩn hóa hiển thị đầy đủ Nhãn hiệu + Chủng loại
+        // Lọc xe của tuyến, sắp xếp theo biển số ABC rồi đổ vào bảng lưới
         const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
+        xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
+
         const formattedXe = xeCuaTuyen.map(x => ({
           bks: x.bks,
           chungLoai: chuanHoaTenXe(x),
@@ -765,8 +774,9 @@
         doVaoSelect2("selDauA", dsDauBen, "đầu bến A");
         doVaoSelect2("selDauB", dsDauBen, "đầu bến B");
 
+        // SẮP XẾP THÔNG MINH CHO DANH SÁCH TUYẾN
         const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => {
-          return (a.maTuyen || '').localeCompare(b.maTuyen || '', undefined, { numeric: true, sensitivity: 'base' });
+          return sapXepThongMinh(a.maTuyen, b.maTuyen);
         });
 
         const $selSua =$('#selChonTuyenDeSua');
@@ -800,6 +810,8 @@
         const currentSelectedMa = $('#selChonTuyenDeSua').val();
         if (currentSelectedMa) {
           const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(currentSelectedMa));
+          xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
+
           const formattedXe = xeCuaTuyen.map(x => ({
             bks: x.bks,
             chungLoai: chuanHoaTenXe(x),
@@ -825,7 +837,6 @@
             let chungLoaiGoc = (cols[2] || "").trim();
             let sucChuaVal = (cols[4] || cols[3] || "").trim();
 
-            // Nếu người dùng dán cấu trúc từ file ảnh Excel (Cột A: BKS, Cột B: Nhãn hiệu, Cột C: Chủng loại)
             let chungLoaiFull = chungLoaiGoc;
             if (nhanHieu && chungLoaiGoc && !chungLoaiGoc.toLowerCase().includes(nhanHieu.toLowerCase())) {
               chungLoaiFull = `${nhanHieu} ${chungLoaiGoc}`;
@@ -833,7 +844,6 @@
               chungLoaiFull = nhanHieu;
             }
 
-            // Phòng hờ dán dạng 2 cột: BKS | Chủng loại
             if (!chungLoaiGoc && cols.length === 2) {
               bks = cols[0].trim();
               chungLoaiFull = cols[1].trim();
@@ -851,6 +861,9 @@
         });
         $('#txtExcelXeTuyen').val(''); 
       }
+
+      // Sắp xếp danh sách xe theo biển số ABC từ bé đến lớn
+      danhSachXe.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
       let html = '';
       if (danhSachXe.length === 0) {
@@ -1187,7 +1200,9 @@
     function doVaoSelect2(elemId, dataSet, label) {
       const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
-      Array.from(dataSet).sort().forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
+      // Sắp xếp danh sách option theo thứ tự Alpha B (số từ bé đến lớn)
+      const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
+      sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
       $sel.trigger('change.select2');
     }
 
