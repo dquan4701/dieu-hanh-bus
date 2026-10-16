@@ -44,6 +44,7 @@
 
     .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
+    /* MENU TRÁI */
     .sidebar {
       width: 260px; background-color: #2C3E50; color: #FFF;
       display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; flex-shrink: 0;
@@ -901,7 +902,7 @@
     function renderBangXeForm(danhSachXe = []) {
       let html = '';
       if (danhSachXe.length === 0) {
-        danhSachXe = [{ bks: '', macXe: '', namSx: '', sucChua: '' }];
+        danhSachXe = [{ bks: '', macXe: '', sucChua: '' }];
       }
 
       danhSachXe.forEach((xe, idx) => {
@@ -928,7 +929,6 @@
                 ${mauOptions}
               </select>
             </td>
-            <td><input type="text" class="form-control form-namsx" value="${xe.namSx || ''}" placeholder="VD: 2022" style="height: 28px; text-align: center;"></td>
             <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="Tự động..." style="height: 28px;" readonly></td>
             <td>
               <select class="form-control form-chuyen-tuyen" style="height: 28px; font-size: 11px;" onchange="thucHienChuyenTuyenNgay(this, '${xe.bks || ''}')">
@@ -957,11 +957,10 @@
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
           macXe: $(this).find('.form-macxe').val(),
-          namSx: $(this).find('.form-namsx').val().trim(),
           sucChua: $(this).find('.form-succhua').val().trim()
         });
       });
-      danhSachHienTai.push({ bks: '', macXe: '', namSx: '', sucChua: '' });
+      danhSachHienTai.push({ bks: '', macXe: '', sucChua: '' });
       renderBangXeForm(danhSachHienTai);
     }
 
@@ -1024,11 +1023,10 @@
         const $opt =$(this).find('.form-macxe').find(':selected');
         const nhanHieu = $opt.attr('data-nhanhieu') || "";
         const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-macxe').val() || "";
-        const namSx = $(this).find('.form-namsx').val().trim();
         const sucChua = $(this).find('.form-succhua').val().trim();
 
         if (bks) {
-          danhSachXe.push({ bks, nhanHieu, chungLoai, namSx, sucChua, maTuyen, xn, tenTuyen });
+          danhSachXe.push({ bks, nhanHieu, chungLoai, sucChua, maTuyen, xn, tenTuyen });
         }
       });
 
