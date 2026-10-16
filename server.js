@@ -59,7 +59,7 @@ function parseTabDate(tabName) {
   return { sortKey: "00000000", dateObj: new Date(0) };
 }
 
-// HÀM ĐỒNG BỘ: CHỈ QUÉT SỐ NỐT TỪ BIỂU ĐỒ MỚI NHẤT, BỎ QUA HOÀN TOÀN CÁC BIỂU ĐỒ CŨ
+// HÀM ĐỒNG BỘ: CHỈ LẤY SỐ NỐT TỪ BIỂU ĐỒ MỚI NHẤT, BIỂU ĐỒ CŨ CHỈ ĐỂ THAM KHẢO/TRA CỨU
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
@@ -101,7 +101,7 @@ async function cleanAndSyncData(data) {
     });
   }
 
-  // Với mỗi tuyến, chọn ra biểu đồ có ngày hiệu lực MỚI NHẤT
+  // Với mỗi tuyến, chỉ chọn biểu đồ có ngày hiệu lực MỚI NHẤT để tính toán số nốt vận doanh
   const maxNotMap = {};
   for (let ma in tuyenChartsMap) {
     const charts = tuyenChartsMap[ma];
@@ -129,7 +129,7 @@ async function cleanAndSyncData(data) {
     tObj.soXe = realKh;
 
     let foundVd = maxNotMap[maT];
-    // Gán số xe vận doanh theo số nốt của biểu đồ MỚI NHẤT, tuyệt đối không bị biểu đồ cũ đè
+    // Gán số xe vận doanh theo số nốt của biểu đồ MỚI NHẤT, bỏ qua các biểu đồ cũ
     if (foundVd && foundVd > 0) {
       tObj.soXeVd = foundVd;
     } else {
