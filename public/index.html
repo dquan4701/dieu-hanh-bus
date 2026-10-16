@@ -21,7 +21,6 @@
       padding-bottom: 75px;
     }
 
-    /* Hiệu ứng mượt mà kiểu iOS */
     button, .btn-view, select, input, .nav-btn {
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.2s ease;
@@ -31,7 +30,6 @@
       transition-duration: 0.1s !important;
     }
 
-    /* Thanh thông báo chạy */
     .marquee-container {
       background: #EBF2F8;
       color: #1A5276;
@@ -335,12 +333,12 @@
 
           <label class="form-label">Ngày trong tuần:</label>
           <div class="days-row">
-            <label class="day-item"><input type="radio" name="rdDay" value="T2" checked onchange="onDayChange()"> Thứ 2</label>
-            <label class="day-item"><input type="radio" name="rdDay" value="T3" onchange="onDayChange()"> Thứ 3</label>
-            <label class="day-item"><input type="radio" name="rdDay" value="T4" onchange="onDayChange()"> Thứ 4</label>
-            <label class="day-item"><input type="radio" name="rdDay" value="T5" onchange="onDayChange()"> Thứ 5</label>
-            <label class="day-item"><input type="radio" name="rdDay" value="T6" onchange="onDayChange()"> Thứ 6</label>
-            <label class="day-item"><input type="radio" name="rdDay" value="T7" onchange="onDayChange()"> Thứ 7</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="2" checked onchange="onDayChange()"> Thứ 2</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="3" onchange="onDayChange()"> Thứ 3</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="4" onchange="onDayChange()"> Thứ 4</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="5" onchange="onDayChange()"> Thứ 5</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="6" onchange="onDayChange()"> Thứ 6</label>
+            <label class="day-item"><input type="radio" name="rdDay" value="7" onchange="onDayChange()"> Thứ 7</label>
             <label class="day-item"><input type="radio" name="rdDay" value="CN" onchange="onDayChange()"> Chủ nhật</label>
           </div>
 
@@ -390,7 +388,6 @@
     let allRoutes = [];
     let timeoutSearch = null;
 
-    // THUẬT TOÁN SẮP XẾP THÔNG MINH ALPHANUMERIC (Số từ bé đến lớn, sau đó đến chữ cái ABC)
     function sapXepThongMinh(a, b) {
       let strA = String(a || "").trim();
       let strB = String(b || "").trim();
@@ -399,7 +396,8 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active');
+      $('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -444,7 +442,7 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box =$('#ketQuaTraCuuXe');
+      const $box = $('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
@@ -463,7 +461,6 @@
             return cleanBks.includes(cleanQuery);
           });
 
-          // Sắp xếp kết quả tìm kiếm xe theo biển số ABC
           matched.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
           if (matched.length === 0) {
@@ -515,10 +512,9 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn =$('#selXn');
+        const $selXn = $('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
         
-        // Sắp xếp danh sách Xí nghiệp theo Alpha B
         Array.from(xnSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(xn => {
           $selXn.append(new Option(xn, xn));
         });
@@ -530,60 +526,84 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen =$('#selTuyen');
-      const $selNgay =$('#selNgayApDung');
+      const $selTuyen = $('#selTuyen');
+      const $selNgay = $('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
-      if (!xn) { $selTuyen.trigger('change');$selNgay.trigger('change'); return; }
+      if (!xn) { $selTuyen.trigger('change'); $selNgay.trigger('change'); return; }
 
       const tuyenSet = new Set();
       allRoutes.forEach(r => { if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen); });
       danhMucData.forEach(item => { if (item.xn === xn && item.tuyen) tuyenSet.add(item.tuyen); });
 
-      // Sắp xếp danh sách Tuyến theo thứ tự Alphanumeric chuẩn xác (số từ bé đến lớn)
       Array.from(tuyenSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(tuyen => {
         $selTuyen.append(new Option(tuyen, tuyen));
       });
-      $selTuyen.trigger('change');$selNgay.trigger('change');
+      $selTuyen.trigger('change'); $selNgay.trigger('change');
     }
 
+    // ĐỌC VÀ PARSE NGÀY THÁNG MỚI DẠNG d.m.yy TỪ TÊN TAB
     function parseDateInfo(str) {
-      if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
+      if (!str) return { label: "Hiện hành", sortKey: "00000000", startObj: null, endObj: null };
       str = String(str).trim();
 
-      const match = str.match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
-      if (match) {
-        let d = parseInt(match[1], 10);
-        let m = parseInt(match[2], 10);
-        let y = parseInt(match[3], 10);
-        if (y < 100) y += 2000;
+      // Tìm tất cả các mốc ngày dạng d.m.yy hoặc d/m/yyyy
+      const dateMatches = [...str.matchAll(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/g)];
+      
+      let startObj = null;
+      let endObj = null;
+      let label = "Hiện hành";
+      let sortKey = "00000000";
 
-        const dStr = String(d).padStart(2, '0');
-        const mStr = String(m).padStart(2, '0');
-        return {
-          label: `${dStr}/${mStr}/${y}`,
-          sortKey: `${y}${mStr}${dStr}`,
-          dateObj: new Date(y, m - 1, d)
-        };
+      if (dateMatches.length > 0) {
+        let m1 = dateMatches[0];
+        let d1 = parseInt(m1[1], 10), mo1 = parseInt(m1[2], 10), y1 = parseInt(m1[3], 10);
+        if (y1 < 100) y1 += 2000;
+        startObj = new Date(y1, mo1 - 1, d1);
+        sortKey = `${y1}${String(mo1).padStart(2,'0')}${String(d1).padStart(2,'0')}`;
+        label = `${String(d1).padStart(2,'0')}/${String(mo1).padStart(2,'0')}/${y1}`;
+
+        if (dateMatches.length > 1) {
+          let m2 = dateMatches[1];
+          let d2 = parseInt(m2[1], 10), mo2 = parseInt(m2[2], 10), y2 = parseInt(m2[3], 10);
+          if (y2 < 100) y2 += 2000;
+          endObj = new Date(y2, mo2 - 1, d2);
+        }
       }
-      return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
+
+      return { label, sortKey, startObj, endObj, rawText: str };
     }
 
-    function detectTabType(tabItem) {
-      const txt = String(tabItem.tenTab || "").toLowerCase();
-      if (txt.includes("cn") || txt.includes("chủ nhật")) return "sunday";
-      if (txt.includes("2-7") || txt.includes("thứ 2") || txt.includes("ngày thường") || txt.includes("t2-t7")) return "weekday";
-      return "weekday";
+    // NHẬN DIỆN TAB KHỚP VỚI THỨ ĐANG CHỌN (VD: "2-6" hoặc "CN")
+    function detectTabMatch(tabName, thuDaChon) {
+      const txt = String(tabName || "").toLowerCase();
+      const isCN = (thuDaChon === "CN");
+
+      if (isCN) {
+        return txt.includes("cn") || txt.includes("chủ nhật");
+      } else {
+        if (txt.includes(",")) {
+          const dayPart = txt.split(",")[0].toLowerCase();
+          if (dayPart.includes("-")) {
+            const [fromD, toD] = dayPart.split("-").map(s => parseInt(s.trim(), 10));
+            const curD = parseInt(thuDaChon, 10);
+            return !isNaN(fromD) && !isNaN(curD) && curD >= fromD && curD <= toD;
+          }
+          return dayPart.includes(thuDaChon);
+        }
+        // Nếu tab không ghi thứ (lịch cả tuần) thì khớp mọi ngày
+        return !txt.includes("cn") && !txt.includes("chủ nhật");
+      }
     }
 
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay =$('#selNgayApDung');
+      const $selNgay = $('#selNgayApDung');
 
-      $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
+      $selNgay.empty().append('<option value="">Chọn ngày hiệu lực</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
 
       const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
@@ -621,12 +641,13 @@
     }
 
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
-      const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
-      if (bieuDoList.length === 0) return null;
-      if (bieuDoList.length === 1) return bieuDoList[0].tenTab;
+      const bieuDoList = danhMucData.filter(item => {
+        let matchTuyen = item.tuyen === tuyen || String(item.tuyen).includes(tuyen);
+        let matchXn = !xn || item.xn === xn;
+        return matchTuyen && matchXn;
+      });
 
-      const isChuNhat = (thuDaChon === "CN");
-      const targetType = isChuNhat ? "sunday" : "weekday";
+      if (bieuDoList.length === 0) return null;
 
       let targetDateObj = null;
       const parts = ngayApDungChuan.split('/');
@@ -636,19 +657,22 @@
 
       const parsedTabs = bieuDoList.map(item => ({
         ...item,
-        tabType: detectTabType(item),
         dateInfo: parseDateInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      let candidateTabs = parsedTabs.filter(t => t.tabType === targetType);
-      if (candidateTabs.length === 0) {
-        candidateTabs = parsedTabs; 
-      }
+      // Lọc các tab khớp với thứ trong tuần
+      let candidateTabs = parsedTabs.filter(t => detectTabMatch(t.tenTab, thuDaChon));
+      if (candidateTabs.length === 0) candidateTabs = parsedTabs;
 
+      // Hiệu lực thời gian: Tab có startObj <= targetDateObj VÀ (endObj >= targetDateObj hoặc không có endObj)
       if (targetDateObj && !isNaN(targetDateObj.getTime())) {
         const validTabs = candidateTabs.filter(t => {
-          if (!t.dateInfo.dateObj) return true;
-          return t.dateInfo.dateObj <= targetDateObj;
+          const { startObj, endObj } = t.dateInfo;
+          if (!startObj) return true;
+          if (endObj) {
+            return startObj <= targetDateObj && targetDateObj <= endObj;
+          }
+          return startObj <= targetDateObj;
         });
 
         if (validTabs.length > 0) {
@@ -665,10 +689,10 @@
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
       const ngayApDung = $('#selNgayApDung').val();
-      const thuDaChon = $('input[name="rdDay"]:checked').val() || "T2";
+      const thuDaChon = $('input[name="rdDay"]:checked').val() || "2";
 
       if (!xn || !tuyen || !ngayApDung) {
-        alert("Vui lòng chọn đầy đủ Đơn vị chủ quản, Tuyến xe và Ngày áp dụng!");
+        alert("Vui lòng chọn đầy đủ Đơn vị chủ quản, Tuyến xe và Ngày hiệu lực!");
         return;
       }
 
@@ -678,7 +702,8 @@
         return;
       }
 
-      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view');
+      $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
