@@ -41,6 +41,7 @@ async function cleanOldLogs() {
   }
 }
 
+// HÀM ĐỒNG BỘ: CHỈ QUÉT SỐ NỐT TỪ BIỂU ĐỒ MỚI NHẤT, BỎ QUA BIỂU ĐỒ CŨ (2018, 2019...)
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
@@ -68,8 +69,15 @@ async function cleanAndSyncData(data) {
 
   const maxNotMap = {};
   if (Array.isArray(data.bieuDoList)) {
-    data.bieuDoList.forEach(item => {
+    // Đảo ngược mảng để duyệt biểu đồ mới nhất trước
+    const sortedBieuDo = [...data.bieuDoList].reverse();
+    sortedBieuDo.forEach(item => {
       const rawData = item.rawData;
+      const tabName = String(item.tenTab || item.bieuDo || "").toLowerCase();
+      
+      // LOẠI BỎ HOÀN TOÀN CÁC BIỂU ĐỒ CŨ KHÔNG CHO GHI ĐÈ SỐ XE VẬN DOANH
+      if (tabName.includes("2018") || tabName.includes("2019") || tabName.includes("2020")) return;
+
       if (Array.isArray(rawData)) {
         let maxNot = 0;
         rawData.forEach(row => {
@@ -82,7 +90,7 @@ async function cleanAndSyncData(data) {
           let matchMa = tuyenStr.match(/^([A-Za-z0-9]+)/);
           if (matchMa) {
             let ma = matchMa[1].toUpperCase();
-            if (!maxNotMap[ma] || maxNot > maxNotMap[ma]) {
+            if (!maxNotMap[ma]) {
               maxNotMap[ma] = maxNot;
             }
           }
@@ -100,7 +108,10 @@ async function cleanAndSyncData(data) {
     tObj.soXe = realKh;
 
     let foundVd = maxNotMap[maT];
-    if (foundVd && foundVd > 0) {
+    // Giữ nguyên số xe vận doanh nếu đã thiết lập thủ công hợp lý (< 30 xe), tránh biểu đồ cũ ghi đè
+    if (tObj.soXeVd && tObj.soXeVd > 0 && tObj.soXeVd < 30) {
+      // Giữ nguyên giá trị hiện tại
+    } else if (foundVd && foundVd > 0 && foundVd < 30) {
       tObj.soXeVd = foundVd;
     } else {
       tObj.soXeVd = tObj.soXeVd && tObj.soXeVd > 0 ? tObj.soXeVd : (realKh || 0);
@@ -642,9 +653,7 @@ app.post('/api/dieu-chuyen-xe-hang-loat', async (req, res) => {
 
     await saveRawDataFast(raw);
     res.json({ success: true, message: `Đã điều chuyển thành công ${count} xe sang tuyến [${tuyenMoi}]!` });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
 app.listen(PORT, () => {
