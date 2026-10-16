@@ -208,23 +208,8 @@
 
   <script>
     const API_BASE = "https://dieu-hanh-bus.onrender.com";
-    const ADMIN_TOKEN_KEY = 'admin_token';
 
-    async function api(url, options = {}) {
-      const headers = new Headers(options.headers || {});
-      const token = sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-
-      const res = await fetch(url, { ...options, headers });
-      if (res.status === 401 && token) {
-        sessionStorage.clear();
-        showToast('Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!', 'error');
-        setTimeout(() => location.reload(), 900);
-      }
-      return res;
-    }
-
-    if (sessionStorage.getItem('admin_authenticated') === 'true' && sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
+    if (sessionStorage.getItem('admin_authenticated') === 'true') {
       $('#authOverlay').remove();
       $('body').removeClass('locked');
       apDungQuyenTruyCap();
@@ -233,24 +218,25 @@
     async function xuLyDangNhapAdmin() {
       const username = $('#txtAdminId').val().trim();
       const password = $('#txtAdminPass').val().trim();
-      const $errorBox = $('#authErrorMsg');
+      const $errorBox =$('#authErrorMsg');
 
       try {
-        const res = await api(`${API_BASE}/api/admin/login`, {
+        const res = await fetch(`${API_BASE}/api/admin/login`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         }).then(r => r.json());
 
-        if (res.success && res.token) {
-          sessionStorage.setItem(ADMIN_TOKEN_KEY, res.token);
+        if (res.success) {
           sessionStorage.setItem('admin_authenticated', 'true');
           sessionStorage.setItem('admin_role', res.role);
           sessionStorage.setItem('admin_user', username);
           sessionStorage.setItem('admin_permissions', JSON.stringify(res.permissions || []));
           
+          // Đảm bảo gỡ bỏ lớp khóa màn hình và xóa khung đăng nhập ngay lập tức
           $('body').removeClass('locked');
           $('#authOverlay').fadeOut(300, function() { $(this).remove(); });
-          showToast(res.message, "success");
+          showToast(res.message || "Đăng nhập thành công!", "success");
+          
           apDungQuyenTruyCap();
           await napDuLieuTong();
         } else {
@@ -258,7 +244,7 @@
           $('#txtAdminPass').val('').focus();
         }
       } catch (err) {
-        $errorBox.text("Tài khoản không tồn tại trên hệ thống");
+        $errorBox.text("Tài khoản không tồn tại trên hệ thống hoặc lỗi kết nối");
       }
     }
 
