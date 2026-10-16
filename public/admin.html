@@ -419,26 +419,46 @@
               <div class="form-grid">
                 <label>Chọn tuyến:</label>
                 <div class="input-combo"><select id="selChonTuyen" class="form-control select2-search" style="width: 100%;"><option value="">Chọn tuyến</option></select></div>
+                
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo"><input type="text" id="txtBieuDoXn" class="form-control" readonly placeholder="Tự động hiển thị theo tuyến..."></div>
-                <label>Ngày áp dụng:</label>
-                <div class="input-combo"><input type="text" id="txtNgayApDung" class="form-control" oninput="tuDongTaoTenTab()" placeholder="dd/mm/yyyy (Ví dụ: 08/10/2026)"></div>
-                <label>Phạm vi ngày:</label>
-                <div class="radio-group">
-                  <label class="radio-item"><input type="radio" name="rdPhamVi" value="Cả tuần" checked onchange="tuDongTaoTenTab()"> Cả tuần (T2-CN)</label>
-                  <label class="radio-item"><input type="radio" name="rdPhamVi" value="Thứ 2 - Thứ 7" onchange="tuDongTaoTenTab()"> Thứ 2 - Thứ 7 (T2-T7)</label>
-                  <label class="radio-item"><input type="radio" name="rdPhamVi" value="Chủ nhật" onchange="tuDongTaoTenTab()"> Chủ nhật (CN)</label>
+                
+                <label>Ngày hiệu lực:</label>
+                <div class="input-combo" style="display: flex; gap: 8px;">
+                  <input type="text" id="txtNgayBatDau" class="form-control" oninput="tuDongTaoTenTab()" placeholder="Từ ngày: dd/mm/yyyy (VD: 01/05/2024)" style="max-width: 240px;">
+                  <span style="font-weight: bold; color: #555;">đến</span>
+                  <input type="text" id="txtNgayKetThuc" class="form-control" oninput="tuDongTaoTenTab()" placeholder="Đến ngày: dd/mm/yyyy (Tùy chọn)" style="max-width: 240px;">
                 </div>
-                <label>Tên tab nhận diện:</label>
-                <div class="input-combo"><input type="text" id="txtTenTab" class="form-control" readonly placeholder="Hệ thống tự động ghép..."></div>
+
+                <label>Phạm vi ngày trong tuần:</label>
+                <div>
+                  <div style="margin-bottom: 8px;">
+                    <label class="radio-item" style="font-weight: bold; color: #1B4F72;"><input type="checkbox" id="chkCaTuan" onchange="toggleCaTuan(this)"> [☑] Chọn Cả tuần (T2 - Chủ nhật)</label>
+                  </div>
+                  <div class="days-row" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: #F8FAFC; padding: 8px 12px; border: 1px solid #D0D7DE; border-radius: 6px;">
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="2" onchange="onCheckboxDayChange()"> Thứ 2</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="3" onchange="onCheckboxDayChange()"> Thứ 3</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="4" onchange="onCheckboxDayChange()"> Thứ 4</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="5" onchange="onCheckboxDayChange()"> Thứ 5</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="6" onchange="onCheckboxDayChange()"> Thứ 6</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="7" onchange="onCheckboxDayChange()"> Thứ 7</label>
+                    <label class="day-item"><input type="checkbox" class="chk-ngay-le" value="CN" onchange="onCheckboxDayChange()"> Chủ nhật</label>
+                  </div>
+                </div>
+
+                <label>Tên tab / File nhận diện:</label>
+                <div class="input-combo"><input type="text" id="txtTenTab" class="form-control" readonly placeholder="Hệ thống tự động sinh theo chuẩn cấu trúc..." style="background: #EBF2F8; font-weight: bold; color: #0F86DB;"></div>
+                
                 <label>Dữ liệu giờ (Excel):</label>
                 <textarea id="txtRawData" class="form-control" placeholder="Copy cả bảng từ Excel/Sheets dán vào đây..."></textarea>
+                
                 <div></div>
                 <div style="display: flex; gap: 12px; align-items: center;">
                   <button class="btn btn-primary" onclick="luuBieuDo()"><i class="fa fa-upload"></i> Lưu biểu đồ</button>
                   <button class="btn btn-danger" type="button" onclick="xoaBieuDo()"><i class="fa fa-trash"></i> Xóa biểu đồ này</button>
                 </div>
               </div>
+
               <div style="margin-top: 25px; border-top: 1px solid #D0D7DE; padding-top: 15px;">
                 <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 10px;"><i class="fa fa-exclamation-triangle" style="color:#e67e22;"></i> Kiểm tra trạng thái Biểu đồ các tuyến:</h4>
                 <div style="overflow-x: auto; max-height: 300px;">
@@ -621,7 +641,6 @@
       return String(str).toUpperCase().replace(/[^0-9A-Z]/g, '');
     }
 
-    // THUẬT TOÁN SẮP XẾP THÔNG MINH (ALPHANUMERIC: Số từ bé đến lớn, sau đó đến chữ cái ABC)
     function sapXepThongMinh(a, b) {
       let strA = String(a || "").trim();
       let strB = String(b || "").trim();
@@ -639,9 +658,117 @@
       
       $('#selChonTuyen').on('change', onSelectTuyenChange);
 
+      // Mặc định tick chọn cả tuần khi mới vào
+      $('#chkCaTuan').prop('checked', true);
+      $('.chk-ngay-le').prop('checked', true);
+      tuDongTaoTenTab();
+
       napDuLieuTong();
       capNhatMoPhinhLed();
     });
+
+    // LOGIC TICK CHỌN CẢ TUẦN / NGÀY LẺ THÔNG MINH
+    function toggleCaTuan(elem) {
+      const isChecked = $(elem).prop('checked');
+      $('.chk-ngay-le').prop('checked', isChecked);
+      tuDongTaoTenTab();
+    }
+
+    function onCheckboxDayChange() {
+      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
+      $('#chkCaTuan').prop('checked', allChecked);
+      tuDongTaoTenTab();
+    }
+
+    // CHUYỂN ĐỔI NGÀY THÀNH ĐỊNH DẠNG d.m.yy (VD: 01/05/2024 -> 1.5.24)
+    function formatShortDate(dateStr) {
+      if (!dateStr) return "";
+      dateStr = dateStr.trim();
+      const parts = dateStr.split(/[\/\-\.]/);
+      if (parts.length === 3) {
+        let d = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        let y = parseInt(parts[2], 10);
+        if (y >= 2000) y -= 2000;
+        else if (y >= 1900) y -= 1900;
+        return `${d}.${m}.${y}`;
+      }
+      return dateStr;
+    }
+
+    // TỰ ĐỘNG GỘP NHÓM THỨ VÀ SINH TÊN TAB THEO ĐÚNG CHUẨN YÊU CẦU
+    function tuDongTaoTenTab() {
+      const tuyen = $('#selChonTuyen').val();
+      const ngayBatDauInput = $('#txtNgayBatDau').val().trim();
+      const ngayKetThucInput = $('#txtNgayKetThuc').val().trim();
+
+      if (!tuyen) { $('#txtTenTab').val(""); return; }
+      const match = tuyen.match(/^([A-Za-z0-9]+)/);
+      const maNgan = match ? match[1] : tuyen;
+
+      const shortStart = formatShortDate(ngayBatDauInput);
+      const shortEnd = formatShortDate(ngayKetThucInput);
+
+      // Gom nhóm các thứ được chọn
+      const selectedDays = [];
+      $('.chk-ngay-le:checked').each(function() {
+        selectedDays.push($(this).val());
+      });
+
+      let dayRangeStr = "";
+      const isFullWeek = (selectedDays.length === 7);
+
+      if (!isFullWeek && selectedDays.length > 0) {
+        // Thuật toán gộp liên tiếp (VD: 2,3,4,5,6 -> 2-6)
+        const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
+        let ranges = [];
+        let start = null;
+        let prev = null;
+
+        allPossible.forEach(d => {
+          if (selectedDays.includes(d)) {
+            if (!start) start = d;
+            prev = d;
+          } else {
+            if (start) {
+              ranges.push(start === prev ? start : `${start}-${prev}`);
+              start = null;
+              prev = null;
+            }
+          }
+        });
+        if (start) {
+          ranges.push(start === prev ? start : `${start}-${prev}`);
+        }
+        dayRangeStr = ranges.join(", ");
+      }
+
+      // Xây dựng chuỗi ngày tháng (có hoặc không có khoảng kết thúc)
+      let datePart = "";
+      if (shortStart && shortEnd) {
+        datePart = `${shortStart} - ${shortEnd}`;
+      } else if (shortStart) {
+        datePart = shortStart;
+      }
+
+      // Ghép nối hoàn chỉnh tên tab
+      let finalTab = "";
+      if (isFullWeek) {
+        // Trường hợp cả tuần: [Mã Tuyến] ([Ngày].[Tháng].[Năm])
+        finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
+      } else {
+        // Trường hợp theo nhóm ngày: [Mã Tuyến] ([Thứ], [Ngày].[Tháng].[Năm])
+        if (dayRangeStr && datePart) {
+          finalTab = `${maNgan} (${dayRangeStr}, ${datePart})`;
+        } else if (dayRangeStr) {
+          finalTab = `${maNgan} (${dayRangeStr})`;
+        } else {
+          finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
+        }
+      }
+
+      $('#txtTenTab').val(finalTab);
+    }
 
     async function taiTaiThongBaoAdmin() {
       try {
@@ -683,7 +810,6 @@
       dangLamMoi = false;
     }
 
-    // Hàm chuẩn hóa tên xe: Gộp nhãn hiệu và chủng loại thành 1 chuỗi hoàn chỉnh
     function chuanHoaTenXe(xe) {
       let nhanHieu = (xe.nhanHieu || "").trim();
       let chungLoai = (xe.chungLoai || "").trim();
@@ -696,7 +822,6 @@
       return chungLoai || nhanHieu || "";
     }
 
-    // Khi chọn một tuyến trên form quản trị tuyến
     function onChonTuyenDeSuaChange() {
       if (dangLamMoi) return;
       const ma = $('#selChonTuyenDeSua').val();
@@ -712,7 +837,6 @@
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
 
-        // Lọc xe của tuyến, sắp xếp theo biển số ABC rồi đổ vào bảng lưới
         const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
         xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
@@ -774,7 +898,6 @@
         doVaoSelect2("selDauA", dsDauBen, "đầu bến A");
         doVaoSelect2("selDauB", dsDauBen, "đầu bến B");
 
-        // SẮP XẾP THÔNG MINH CHO DANH SÁCH TUYẾN
         const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => {
           return sapXepThongMinh(a.maTuyen, b.maTuyen);
         });
@@ -824,7 +947,6 @@
       }
     }
 
-    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN ---
     function renderBangXeForm(danhSachXe = []) {
       const rawExcel = $('#txtExcelXeTuyen').val().trim();
       if (rawExcel) {
@@ -862,7 +984,6 @@
         $('#txtExcelXeTuyen').val(''); 
       }
 
-      // Sắp xếp danh sách xe theo biển số ABC từ bé đến lớn
       danhSachXe.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
       let html = '';
@@ -950,7 +1071,6 @@
       } catch (err) {}
     }
 
-    // --- KHI LƯU THÔNG TIN TUYẾN & ĐỘI XE ---
     async function xacLapTuyenVaDoiXe() {
       renderBangXeForm([]);
 
@@ -1061,8 +1181,7 @@
       const chart = dsBieuDoLuu.find(b => b.tenTab === tenTab);
       if (!chart) return;
       $('#selChonTuyen').val(chart.tuyen).trigger('change.select2');
-      $('#txtNgayApDung').val(chart.ngayApDung || "");
-      if (chart.phamVi) $(`input[name="rdPhamVi"][value="${chart.phamVi}"]`).prop('checked', true);
+      $('#txtNgayBatDau').val(chart.ngayApDung || "");
       $('#txtTenTab').val(chart.tenTab);
       if (chart.rawData && Array.isArray(chart.rawData)) {
         $('#txtRawData').val(chart.rawData.map(row => row.join("\t")).join("\n"));
@@ -1200,7 +1319,6 @@
     function doVaoSelect2(elemId, dataSet, label) {
       const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
-      // Sắp xếp danh sách option theo thứ tự Alpha B (số từ bé đến lớn)
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
       sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
       $sel.trigger('change.select2');
@@ -1212,26 +1330,15 @@
       tuDongTaoTenTab();
     }
 
-    function tuDongTaoTenTab() {
-      const tuyen = $('#selChonTuyen').val();
-      const ngay = $('#txtNgayApDung').val().trim();
-      const phamVi = $('input[name="rdPhamVi"]:checked').val() || "Cả tuần";
-      if (!tuyen) { $('#txtTenTab').val(""); return; }
-      const match = tuyen.match(/^([A-Za-z0-9]+)/);
-      const maNgan = match ? match[1] : tuyen;
-      $('#txtTenTab').val(ngay ? `${maNgan} (${ngay.replace(/\//g, '.')} - ${phamVi})` : `${maNgan} (${phamVi})`);
-    }
-
     async function luuBieuDo() {
       const tuyen = $('#selChonTuyen').val();
       const xn = $('#txtBieuDoXn').val();
-      const ngayApDung = $('#txtNgayApDung').val().trim();
-      const phamVi = $('input[name="rdPhamVi"]:checked').val() || "Cả tuần";
+      const ngayApDung = $('#txtNgayBatDau').val().trim();
       const tenTab = $('#txtTenTab').val().trim();
       const rawText = $('#txtRawData').val().trim();
 
       if (!tuyen) { showToast("Vui lòng chọn Tuyến!", "error"); return; }
-      if (!ngayApDung || !rawText) { showToast("Vui lòng điền Ngày áp dụng và dán Dữ liệu giờ!", "error"); return; }
+      if (!ngayApDung || !rawText || !tenTab) { showToast("Vui lòng điền Ngày hiệu lực và dán Dữ liệu giờ!", "error"); return; }
 
       const lines = rawText.split("\n"); const rawData = []; let maxCols = 0;
       lines.forEach(l => { if (l.trim()) { const cols = l.split("\t"); if (cols.length > maxCols) maxCols = cols.length; rawData.push(cols); } });
@@ -1240,7 +1347,7 @@
       try {
         const res = await fetch(`${API_BASE}/api/luu-bieu-do`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ xn, tuyen, bieuDo: `${ngayApDung} (${phamVi})`, tenTab, rawData, ngayApDung, phamVi })
+          body: JSON.stringify({ xn, tuyen, bieuDo: ngayApDung, tenTab, rawData, ngayApDung })
         }).then(r => r.json());
         showToast(res.message, "success");
         $('#txtRawData').val("");
@@ -1257,7 +1364,7 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenTab })
         }).then(r => r.json());
         showToast(res.message, "success");
-        if (res.success) { await napDuLieuTong(); $('#txtRawData').val(""); $('#txtNgayApDung').val(""); tuDongTaoTenTab(); }
+        if (res.success) { await napDuLieuTong(); $('#txtRawData').val(""); $('#txtNgayBatDau').val(""); tuDongTaoTenTab(); }
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
