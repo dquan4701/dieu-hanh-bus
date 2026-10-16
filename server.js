@@ -41,21 +41,25 @@ async function cleanOldLogs() {
   }
 }
 
-// Hàm phân tích ngày tháng từ tên tab (VD: "01 (01.08.18 - Cả tuần)" -> tạo ra đối tượng thời gian chuẩn để so sánh)
+// Hàm trích xuất ngày tháng hiệu lực từ tên tab (VD: "02 (1.5.24)" hoặc "02 (1.5.24 - 1.7.24)")
 function parseTabDate(tabName) {
-  if (!tabName) return new Date(0);
-  const match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
-  if (match) {
-    let d = parseInt(match[1], 10);
-    let m = parseInt(match[2], 10);
-    let y = parseInt(match[3], 10);
-    if (y < 100) y += 2000; // 18 -> 2018, 25 -> 2025...
-    return new Date(y, m - 1, d);
+  if (!tabName) return { sortKey: "00000000", dateObj: new Date(0) };
+  const matches = [...String(tabName).matchAll(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/g)];
+  if (matches.length > 0) {
+    // Lấy mốc ngày cuối cùng hoặc ngày đầu tiên làm chuẩn so sánh
+    let m = matches[matches.length - 1];
+    let d = parseInt(m[1], 10);
+    let mo = parseInt(m[2], 10);
+    let y = parseInt(m[3], 10);
+    if (y < 100) y += 2000;
+    const dateObj = new Date(y, mo - 1, d);
+    const sortKey = `${y}${String(mo).padStart(2,'0')}${String(d).padStart(2,'0')}`;
+    return { sortKey, dateObj };
   }
-  return new Date(0); // Không có ngày thì coi như cũ nhất
+  return { sortKey: "00000000", dateObj: new Date(0) };
 }
 
-// HÀM ĐỒNG BỘ THÔNG MINH: CHỈ LẤY SỐ NỐT TỪ BIỂU ĐỒ CÓ NGÀY THÁNG MỚI NHẤT CHO TỪNG TUYẾN
+// HÀM ĐỒNG BỘ: CHỈ QUÉT SỐ NỐT TỪ BIỂU ĐỒ MỚI NHẤT, BỎ QUA HOÀN TOÀN CÁC BIỂU ĐỒ CŨ
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
@@ -81,7 +85,6 @@ async function cleanAndSyncData(data) {
     }
   });
 
-  // Gom nhóm các biểu đồ theo Mã tuyến, sau đó sắp xếp tìm ra biểu đồ có ngày mới nhất cho từng tuyến
   const tuyenChartsMap = {};
   if (Array.isArray(data.bieuDoList)) {
     data.bieuDoList.forEach(item => {
@@ -92,19 +95,18 @@ async function cleanAndSyncData(data) {
         if (!tuyenChartsMap[ma]) tuyenChartsMap[ma] = [];
         tuyenChartsMap[ma].push({
           ...item,
-          dateObj: parseTabDate(item.tenTab || item.bieuDo || "")
+          dateInfo: parseTabDate(item.tenTab || item.bieuDo || "")
         });
       }
     });
   }
 
-  // Với mỗi tuyến, chỉ lấy biểu đồ có dateObj mới nhất (gần hiện tại nhất) để tính số nốt vận doanh
+  // Với mỗi tuyến, chọn ra biểu đồ có ngày hiệu lực MỚI NHẤT
   const maxNotMap = {};
   for (let ma in tuyenChartsMap) {
     const charts = tuyenChartsMap[ma];
-    // Sắp xếp tăng dần theo thời gian, biểu đồ mới nhất sẽ nằm ở cuối mảng
-    charts.sort((a, b) => a.dateObj - b.dateObj);
-    const latestChart = charts[charts.length - 1]; // Lấy biểu đồ mới nhất
+    charts.sort((a, b) => a.dateInfo.dateObj - b.dateInfo.dateObj);
+    const latestChart = charts[charts.length - 1]; // Biểu đồ mới nhất
 
     if (latestChart && Array.isArray(latestChart.rawData)) {
       let maxNot = 0;
@@ -127,7 +129,7 @@ async function cleanAndSyncData(data) {
     tObj.soXe = realKh;
 
     let foundVd = maxNotMap[maT];
-    // Gán số xe vận doanh theo số nốt của biểu đồ MỚI NHẤT
+    // Gán số xe vận doanh theo số nốt của biểu đồ MỚI NHẤT, tuyệt đối không bị biểu đồ cũ đè
     if (foundVd && foundVd > 0) {
       tObj.soXeVd = foundVd;
     } else {
@@ -482,7 +484,7 @@ app.post('/api/luu-bieu-do', async (req, res) => {
     if (!tenTab || !rawData) return res.status(400).json({ success: false, message: 'Thiếu dữ liệu!' });
     const raw = await getRawData();
     if (!Array.isArray(raw.bieuDoList)) raw.bieuDoList = [];
-    const newTabObj = { xn: xn || "", tuyen: tuyen || "", bieuDo: bieuDo || "Cả tuần", tenTab, rawData };
+    const newTabObj = { xn: xn || "", tuyen: tuyen || "", bieuDo: bieuDo || "", tenTab, rawData };
     const idx = raw.bieuDoList.findIndex(b => String(b.tenTab || '').trim() === String(tenTab).trim());
     if (idx >= 0) raw.bieuDoList[idx] = newTabObj;
     else raw.bieuDoList.push(newTabObj);
