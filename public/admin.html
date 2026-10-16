@@ -44,7 +44,6 @@
 
     .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
 
-    /* MENU TRÁI */
     .sidebar {
       width: 260px; background-color: #2C3E50; color: #FFF;
       display: flex; flex-direction: column; transition: all 0.3s ease; z-index: 1000; flex-shrink: 0;
@@ -607,12 +606,10 @@
 
     function chuyenTabAdmin(sectionId, element) {
       $('.content-section').removeClass('active');
-      $('.sidebar-menu li a').removeClass('active');
-      $('#' + sectionId).addClass('active');
+      $('.sidebar-menu li a').removeClass('active');$('#' + sectionId).addClass('active');
       $(element).addClass('active');
 
-      const titleText = $(element).text().trim();
-      $('#navTitle').text(titleText);
+      const titleText = $(element).text().trim();$('#navTitle').text(titleText);
 
       if (window.innerWidth <= 768) { $('#sidebarMenu').addClass('collapsed'); }
 
@@ -643,8 +640,7 @@
       return strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' });
     }
 
-    $(document).ready(function() {
-      $('.select2-search').select2({
+    $(document).ready(function() {$('.select2-search').select2({
         language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
       });
 
@@ -778,7 +774,7 @@
 
         const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => sapXepThongMinh(a.maTuyen, b.maTuyen));
 
-        const $selSua = $('#selChonTuyenDeSua');
+        const $selSua =$('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
         sortedRoutes.forEach(t => {
           const lockText = t.status === 'locked' ? ' [ĐÃ KHÓA]' : '';
@@ -786,18 +782,18 @@
         });
         $selSua.trigger('change.select2');
 
-        const $selTuyen = $('#selChonTuyen');
+        const $selTuyen =$('#selChonTuyen');
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
           const isSelected = chonMaTuyenMoi && (chuanHoaMaTuyen(t.maTuyen) === chuanHoaMaTuyen(chonMaTuyenMoi));
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
-          $(opt).attr('data-xn', t.xn); $selTuyen.append(opt);
+          $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
         });
-        if (selectedVal) $selTuyen.val(selectedVal); $selTuyen.trigger('change.select2');
+        if (selectedVal) $selTuyen.val(selectedVal);$selTuyen.trigger('change.select2');
 
-        const $selLedTuyen = $('#selLedTuyenMau');
+        const $selLedTuyen =$('#selLedTuyenMau');
         $selLedTuyen.empty().append('<option value="">-- Chọn tuyến để mô phỏng --</option>');
         sortedRoutes.forEach(t => { $selLedTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $selLedTuyen.trigger('change.select2');
@@ -825,7 +821,6 @@
       }
     }
 
-    // --- RENDER BẢNG QUẢN LÝ MÁC XE MẪU ---
     function veBangXeMauAdmin() {
       let html = '';
       if (!danhMucXeMau || danhMucXeMau.length === 0) {
@@ -903,7 +898,6 @@
       } catch (e) { showToast("Lỗi kết nối", "error"); }
     }
 
-    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (CÓ THÊM NĂM SX) ---
     function renderBangXeForm(danhSachXe = []) {
       let html = '';
       if (danhSachXe.length === 0) {
@@ -1260,299 +1254,6 @@
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
       sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.trigger('change.select2');
-    }
-
-    function onSelectTuyenChange() {
-      const opt = $('#selChonTuyen').find(':selected');
-      $('#txtBieuDoXn').val(opt.attr('data-xn') || "");
-      tuDongTaoTenTab();
-    }
-
-    function toggleCaTuan(elem) {
-      const isChecked = $(elem).prop('checked');$('.chk-ngay-le').prop('checked', isChecked);
-      tuDongTaoTenTab();
-    }
-
-    function onCheckboxDayChange() {
-      const allChecked = $('.chk-ngay-le').length ===$('.chk-ngay-le:checked').length;
-      $('#chkCaTuan').prop('checked', allChecked);
-      tuDongTaoTenTab();
-    }
-
-    function formatShortDate(dateStr) {
-      if (!dateStr) return "";
-      dateStr = dateStr.trim();
-      const parts = dateStr.split(/[\/\-\.]/);
-      if (parts.length === 3) {
-        let d = parseInt(parts[0], 10);
-        let m = parseInt(parts[1], 10);
-        let y = parseInt(parts[2], 10);
-        if (y >= 2000) y -= 2000;
-        else if (y >= 1900) y -= 1900;
-        return `${d}.${m}.${y}`;
-      }
-      return dateStr;
-    }
-
-    function tuDongTaoTenTab() {
-      const tuyen = $('#selChonTuyen').val();
-      const ngayBatDauInput = $('#txtNgayBatDau').val().trim();
-      const ngayKetThucInput = $('#txtNgayKetThuc').val().trim();
-
-      if (!tuyen) { $('#txtTenTab').val(""); return; }
-      const match = tuyen.match(/^([A-Za-z0-9]+)/);
-      const maNgan = match ? match[1] : tuyen;
-
-      const shortStart = formatShortDate(ngayBatDauInput);
-      const shortEnd = formatShortDate(ngayKetThucInput);
-
-      const selectedDays = [];
-      $('.chk-ngay-le:checked').each(function() {
-        selectedDays.push($(this).val());
-      });
-
-      let dayRangeStr = "";
-      const isFullWeek = (selectedDays.length === 7);
-
-      if (!isFullWeek && selectedDays.length > 0) {
-        const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
-        let ranges = [];
-        let start = null;
-        let prev = null;
-
-        allPossible.forEach(d => {
-          if (selectedDays.includes(d)) {
-            if (!start) start = d;
-            prev = d;
-          } else {
-            if (start) {
-              ranges.push(start === prev ? start : `${start}-${prev}`);
-              start = null;
-              prev = null;
-            }
-          }
-        });
-        if (start) {
-          ranges.push(start === prev ? start : `${start}-${prev}`);
-        }
-        dayRangeStr = ranges.join(", ");
-      }
-
-      let datePart = "";
-      if (shortStart && shortEnd) {
-        datePart = `${shortStart} - ${shortEnd}`;
-      } else if (shortStart) {
-        datePart = shortStart;
-      }
-
-      let finalTab = "";
-      if (isFullWeek) {
-        finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
-      } else {
-        if (dayRangeStr && datePart) {
-          finalTab = `${maNgan} (${dayRangeStr}, ${datePart})`;
-        } else if (dayRangeStr) {
-          finalTab = `${maNgan} (${dayRangeStr})`;
-        } else {
-          finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
-        }
-      }
-
-      $('#txtTenTab').val(finalTab);
-    }
-
-    async function luuBieuDo() {
-      const tuyen = $('#selChonTuyen').val();
-      const xn = $('#txtBieuDoXn').val();
-      const ngayApDung = $('#txtNgayBatDau').val().trim();
-      const tenTab = $('#txtTenTab').val().trim();
-      const rawText = $('#txtRawData').val().trim();
-
-      if (!tuyen) { showToast("Vui lòng chọn Tuyến!", "error"); return; }
-      if (!ngayApDung || !rawText || !tenTab) { showToast("Vui lòng điền Ngày hiệu lực và dán Dữ liệu giờ!", "error"); return; }
-
-      const lines = rawText.split("\n"); const rawData = []; let maxCols = 0;
-      lines.forEach(l => { if (l.trim()) { const cols = l.split("\t"); if (cols.length > maxCols) maxCols = cols.length; rawData.push(cols); } });
-      rawData.forEach(row => { while (row.length < maxCols) row.push(""); });
-
-      try {
-        const res = await fetch(`${API_BASE}/api/luu-bieu-do`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ xn, tuyen, bieuDo: ngayApDung, tenTab, rawData, ngayApDung })
-        }).then(r => r.json());
-        showToast(res.message, "success");
-        $('#txtRawData').val("");
-        await napDuLieuTong();
-      } catch (err) { showToast("Lỗi: " + err, "error"); }
-    }
-
-    async function xoaBieuDo() {
-      const tenTab = $('#txtTenTab').val().trim();
-      if (!tenTab) { showToast("Chưa chọn biểu đồ để xóa!", "error"); return; }
-      if (!confirm(`Xóa vĩnh viễn biểu đồ [${tenTab}]?`)) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/xoa-bieu-do`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenTab })
-        }).then(r => r.json());
-        showToast(res.message, "success");
-        if (res.success) { await napDuLieuTong(); $('#txtRawData').val(""); $('#txtNgayBatDau').val(""); tuDongTaoTenTab(); }
-      } catch (err) { showToast("Lỗi: " + err, "error"); }
-    }
-
-    async function taiDanhSachLog() {
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/danh-sach-log`).then(r => r.json());
-        if (res.success) {
-          let html = '';
-          res.data.forEach((log, index) => {
-            const timeFormatted = new Date(log.createdAt).toLocaleString('vi-VN');
-            const roleBadge = log.role === 'visitor' 
-              ? '<span class="status-badge" style="background:#E2E8F0; color:#475569;">Khách vãng lai</span>' 
-              : '<span class="status-badge status-active">Quản trị viên</span>';
-            html += `
-              <tr>
-                <td style="text-align: center; color: #555;">${index + 1}</td>
-                <td><strong>${log.username}</strong> ${roleBadge}</td>
-                <td>${log.action}</td>
-                <td style="font-family: monospace; color: #666;">${log.ip || 'Ẩn danh'}</td>
-                <td style="text-align: center; color: #555;">${timeFormatted}</td>
-              </tr>
-            `;
-          });
-          $('#tblDanhSachLog').html(html);
-        }
-      } catch (e) {}
-    }
-
-    async function taiDanhSachTaiKhoan() {
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
-        if (res.success) {
-          let html = '';
-          res.data.forEach(acc => {
-            const isLocked = acc.status === 'locked';
-            const statusBadge = isLocked ? '<span class="status-badge status-locked">Tạm khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
-            const perms = acc.permissions || [];
-            let btnAction = '';
-            if (acc.username !== 'quan') {
-              const toggleText = isLocked ? 'Mở' : 'Khóa';
-              const toggleCls = isLocked ? 'btn-success' : 'btn-warning';
-              btnAction = `
-                <div style="display:flex; gap:4px; justify-content:center; align-items:center; flex-wrap:wrap;">
-                  <select class="form-control" style="width: 85px; height: 26px; font-size: 11px;" onchange="doiVaiTro('${acc.username}', this.value)">
-                    <option value="staff" ${acc.role === 'staff' ? 'selected' : ''}>Bình thường</option>
-                    <option value="master" ${acc.role === 'master' ? 'selected' : ''}>Quản trị</option>
-                  </select>
-                  <input type="password" id="pass_${acc.username}" class="form-control" placeholder="MK mới" style="width: 70px; height: 26px; font-size: 11px;">
-                  <button class="btn btn-primary" style="padding:2px 4px; font-size:10px;" onclick="doiMatKhau('${acc.username}')">Đổi MK</button>
-                  <button class="btn ${toggleCls}" style="padding:2px 5px; font-size:11px;" onclick="doiTrangThaiTaiKhoan('${acc.username}', '${isLocked ? 'active' : 'locked'}')">${toggleText}</button>
-                  <button class="btn btn-danger" style="padding:2px 5px; font-size:11px;" onclick="xoaTaiKhoan('${acc.username}')"><i class="fa fa-trash"></i></button>
-                </div>
-              `;
-            } else {
-              btnAction = '<span style="color:#888; font-style:italic;">Tối cao</span>';
-            }
-            let permCheckboxes = `
-              <div style="display:flex; gap:8px; font-size:11px; flex-wrap:wrap;">
-                <label><input type="checkbox" ${perms.includes('tuyen') ? 'checked' : ''} onchange="doiQuyen('${acc.username}', 'tuyen', this.checked)"> Tuyến</label>
-                <label><input type="checkbox" ${perms.includes('xe') ? 'checked' : ''} onchange="doiQuyen('${acc.username}', 'xe', this.checked)"> Xe</label>
-                <label><input type="checkbox" ${perms.includes('bieudo') ? 'checked' : ''} onchange="doiQuyen('${acc.username}', 'bieudo', this.checked)"> Biểu đồ</label>
-              </div>
-            `;
-            if (acc.username === 'quan') permCheckboxes = '<span style="color:#137333; font-weight:bold;">Toàn quyền (Master)</span>';
-            html += `
-              <tr>
-                <td><strong>${acc.username}</strong></td>
-                <td>${acc.role === 'master' ? 'Quản trị' : 'Bình thường'}</td>
-                <td>${permCheckboxes}</td>
-                <td style="text-align: center;">${statusBadge}</td>
-                <td style="text-align: center;">${btnAction}</td>
-              </tr>
-            `;
-          });
-          $('#tblDanhSachTaiKhoan').html(html);
-        }
-      } catch (e) {}
-    }
-
-    async function taoTaiKhoanMoi() {
-      const username = $('#newAccUser').val().trim();
-      const password = $('#newAccPass').val().trim();
-      const role = $('#newAccRole').val();
-      let permissions = [];
-      $('.new-perm:checked').each(function() { permissions.push($(this).val()); });
-      if (!username || !password) { showToast("Vui lòng nhập đủ tài khoản và mật khẩu!", "error"); return; }
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/dang-ky`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password, role, permissions })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) {
-          $('#newAccUser').val(''); $('#newAccPass').val('');
-          $('.new-perm').prop('checked', false);
-          taiDanhSachTaiKhoan();
-        }
-      } catch (e) { showToast("Lỗi kết nối", "error"); }
-    }
-
-    async function doiQuyen(username, permName, isChecked) {
-      try {
-        const resList = await fetch(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
-        const acc = resList.data.find(u => u.username === username);
-        if (!acc) return;
-        let perms = acc.permissions || [];
-        if (isChecked && !perms.includes(permName)) perms.push(permName);
-        if (!isChecked && perms.includes(permName)) perms = perms.filter(p => p !== permName);
-        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, permissions: perms })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-      } catch (e) { showToast("Lỗi cập nhật quyền", "error"); }
-    }
-
-    async function doiTrangThaiTaiKhoan(username, newStatus) {
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, status: newStatus })
-        }).then(r => r.json());
-        showToast(res.message, "success"); taiDanhSachTaiKhoan();
-      } catch (e) { showToast("Lỗi thao tác", "error"); }
-    }
-
-    async function doiVaiTro(username, newRole) {
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, role: newRole })
-        }).then(r => r.json());
-        showToast(res.message, "success"); taiDanhSachTaiKhoan();
-      } catch (e) { showToast("Lỗi thao tác", "error"); }
-    }
-
-    async function doiMatKhau(username) {
-      const newPassword = $(`#pass_${username}`).val().trim();
-      if (!newPassword) { showToast("Vui lòng nhập mật khẩu mới!", "error"); return; }
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/doi-mat-khau`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, newPassword })
-        }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
-        if (res.success) { $(`#pass_${username}`).val(''); }
-      } catch (e) { showToast("Lỗi kết nối", "error"); }
-    }
-
-    async function xoaTaiKhoan(username) {
-      if (!confirm(`Xác nhận xóa tài khoản [${username}]?`)) return;
-      try {
-        const res = await fetch(`${API_BASE}/api/admin/xoa-tai-khoan`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username })
-        }).then(r => r.json());
-        showToast(res.message, "success"); taiDanhSachTaiKhoan();
-      } catch (e) { showToast("Lỗi thao tác", "error"); }
     }
   </script>
 </body>
