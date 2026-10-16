@@ -390,6 +390,13 @@
     let allRoutes = [];
     let timeoutSearch = null;
 
+    // THUẬT TOÁN SẮP XẾP THÔNG MINH ALPHANUMERIC (Số từ bé đến lớn, sau đó đến chữ cái ABC)
+    function sapXepThongMinh(a, b) {
+      let strA = String(a || "").trim();
+      let strB = String(b || "").trim();
+      return strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
       $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
@@ -456,6 +463,9 @@
             return cleanBks.includes(cleanQuery);
           });
 
+          // Sắp xếp kết quả tìm kiếm xe theo biển số ABC
+          matched.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
+
           if (matched.length === 0) {
             $box.html('<p style="text-align:center; color:#d9534f; padding:15px; font-weight:bold;">Không tìm thấy biển số phù hợp!</p>');
             return;
@@ -507,7 +517,12 @@
 
         const $selXn =$('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
-        Array.from(xnSet).sort().forEach(xn => $selXn.append(new Option(xn, xn)));$selXn.trigger('change');
+        
+        // Sắp xếp danh sách Xí nghiệp theo Alpha B
+        Array.from(xnSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(xn => {
+          $selXn.append(new Option(xn, xn));
+        });
+        $selXn.trigger('change');
       } catch (err) {
         console.error("Lỗi khi tải danh mục:", err);
       }
@@ -527,13 +542,13 @@
       allRoutes.forEach(r => { if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen); });
       danhMucData.forEach(item => { if (item.xn === xn && item.tuyen) tuyenSet.add(item.tuyen); });
 
-      Array.from(tuyenSet).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).forEach(tuyen => {
+      // Sắp xếp danh sách Tuyến theo thứ tự Alphanumeric chuẩn xác (số từ bé đến lớn)
+      Array.from(tuyenSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(tuyen => {
         $selTuyen.append(new Option(tuyen, tuyen));
       });
       $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
-    // 1. Phân tích ngày tháng thông minh từ tên file kiểu d.m.yy (vd: 05.10.26, 1.4.25...)
     function parseDateInfo(str) {
       if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
       str = String(str).trim();
@@ -543,7 +558,7 @@
         let d = parseInt(match[1], 10);
         let m = parseInt(match[2], 10);
         let y = parseInt(match[3], 10);
-        if (y < 100) y += 2000; // Đổi 25, 26 thành 2025, 2026
+        if (y < 100) y += 2000;
 
         const dStr = String(d).padStart(2, '0');
         const mStr = String(m).padStart(2, '0');
@@ -556,12 +571,11 @@
       return { label: "Hiện hành", sortKey: "00000000", dateObj: null };
     }
 
-    // 2. Nhận diện loại tab (Ngày thường 2-7 hay Chủ nhật) dựa vào ký hiệu trong tên tab
     function detectTabType(tabItem) {
       const txt = String(tabItem.tenTab || "").toLowerCase();
       if (txt.includes("cn") || txt.includes("chủ nhật")) return "sunday";
       if (txt.includes("2-7") || txt.includes("thứ 2") || txt.includes("ngày thường") || txt.includes("t2-t7")) return "weekday";
-      return "weekday"; // Mặc định nếu không ghi gì thì coi như lịch ngày thường
+      return "weekday";
     }
 
     function onTuyenChange() {
@@ -585,7 +599,7 @@
       const sortedDates = Array.from(dateSet).sort((a, b) => {
         const pA = parseDateInfo(a);
         const pB = parseDateInfo(b);
-        return pB.sortKey.localeCompare(pA.sortKey); // Mới nhất lên đầu
+        return pB.sortKey.localeCompare(pA.sortKey);
       });
 
       sortedDates.forEach(dateLabel => {
@@ -606,7 +620,6 @@
       }
     }
 
-    // 3. LOGIC TÌM TAB CHUẨN XÁC THEO HIỆU LỰC THỜI GIAN VÀ THỨ TRONG TUẦN
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
       const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
       if (bieuDoList.length === 0) return null;
@@ -627,13 +640,11 @@
         dateInfo: parseDateInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      // Lọc các tab khớp với loại ngày (Weekday hoặc Sunday)
       let candidateTabs = parsedTabs.filter(t => t.tabType === targetType);
       if (candidateTabs.length === 0) {
         candidateTabs = parsedTabs; 
       }
 
-      // Thuật toán Effective Date: Lọc các tab có ngày áp dụng <= ngày tra cứu, sau đó lấy mốc gần nhất
       if (targetDateObj && !isNaN(targetDateObj.getTime())) {
         const validTabs = candidateTabs.filter(t => {
           if (!t.dateInfo.dateObj) return true;
@@ -646,7 +657,6 @@
         }
       }
 
-      // Mặc định lấy mốc mới nhất
       candidateTabs.sort((a, b) => b.dateInfo.sortKey.localeCompare(a.dateInfo.sortKey));
       return candidateTabs[0].tenTab;
     }
