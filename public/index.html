@@ -549,23 +549,20 @@
       $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
-    // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
-    // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
-    // 1. HÀM BÓC TÁCH CHUẨN 4 KIỂU TÊN TAB (Dùng chung cho dropdown và tìm kiếm)
+    // 1. HÀM BÓC TÁCH CHUẨN FORM MỚI: [Mã Tuyến] ([Ngày].[Tháng].[Năm], [Thứ])
     function parseTabInfo(tabName) {
       if (!tabName) return { dayRange: "Cả tuần", dateStr: "Hiện hành", dateObj: new Date(0), sortKey: "00000000" };
       
-      // Bắt chuỗi ngày tháng năm ở cuối (VD: 16.1.26, 5.6.24, 17.8.18) bằng matchAll để lấy mốc cuối cùng chính xác nhất
-      const matches = [...String(tabName).matchAll(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/g)];
+      // Bắt cụm ngày tháng năm nằm ở đầu tiên ngay sau dấu ngoặc mở (VD: 1.8.18 hoặc 16.1.26)
+      const match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       let dateObj = new Date(0);
       let dateStr = "Hiện hành";
       let sortKey = "00000000";
       
-      if (matches.length > 0) {
-        let m = matches[matches.length - 1];
-        let d = parseInt(m[1], 10);
-        let mo = parseInt(m[2], 10);
-        let y = parseInt(m[3], 10);
+      if (match) {
+        let d = parseInt(match[1], 10);
+        let mo = parseInt(match[2], 10);
+        let y = parseInt(match[3], 10);
         if (y < 100) y += 2000;
         
         dateObj = new Date(y, mo - 1, d);
@@ -577,15 +574,13 @@
         sortKey = `${yyyy}${mm}${dd}`;
       }
 
-      // Xác định dải ngày trong tuần từ tên tab (Kiểu 2, 3, 4)
+      // Xác định dải ngày trong tuần (nằm ở phía sau dấu phẩy, ví dụ: 2-7, CN, 2-5)
       let dayRange = "Cả tuần";
-      if (tabName.includes("CN") && !tabName.includes("2-7") && !tabName.includes("7-CN")) {
+      const parts = tabName.split(',');
+      if (parts.length > 1) {
+        dayRange = parts[1].replace(')', '').trim(); 
+      } else if (tabName.includes("CN")) {
         dayRange = "CN";
-      } else {
-        const rangeMatch = tabName.match(/\(([^,)]+),/);
-        if (rangeMatch) {
-          dayRange = rangeMatch[1].trim(); // Lấy "2-7", "2-5", "6", "7-CN"...
-        }
       }
 
       return { dayRange, dateStr, dateObj, sortKey };
@@ -687,6 +682,7 @@
 
       return candidatePool[0].tenTab;
     }
+
     async function xemBieuDo() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
@@ -728,7 +724,6 @@
       }
       return str;
     }
-
     function chuyenPhut(t) {
       if (!t) return 0;
       const p = t.split(":");
