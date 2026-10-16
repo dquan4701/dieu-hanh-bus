@@ -21,7 +21,6 @@
       padding-bottom: 75px;
     }
 
-    /* Hiệu ứng mượt mà kiểu iOS */
     button, .btn-view, select, input, .nav-btn {
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease, box-shadow 0.2s ease;
@@ -31,7 +30,6 @@
       transition-duration: 0.1s !important;
     }
 
-    /* Thanh thông báo chạy */
     .marquee-container {
       background: #EBF2F8;
       color: #1A5276;
@@ -292,7 +290,6 @@
 </head>
 <body>
 
-  <!-- Thanh thông báo chạy -->
   <div class="marquee-container" id="marqueeWrapper">
     <i class="fa fa-bullhorn"></i>
     <div class="marquee-text-wrap">
@@ -390,7 +387,6 @@
     let allRoutes = [];
     let timeoutSearch = null;
 
-    // THUẬT TOÁN SẮP XẾP THÔNG MINH ALPHANUMERIC (Số từ bé đến lớn, sau đó đến chữ cái ABC)
     function sapXepThongMinh(a, b) {
       let strA = String(a || "").trim();
       let strB = String(b || "").trim();
@@ -399,7 +395,8 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active');
+      $('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -444,7 +441,7 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box =$('#ketQuaTraCuuXe');
+      const $box = $('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
@@ -463,7 +460,6 @@
             return cleanBks.includes(cleanQuery);
           });
 
-          // Sắp xếp kết quả tìm kiếm xe theo biển số ABC
           matched.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
           if (matched.length === 0) {
@@ -515,10 +511,9 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn =$('#selXn');
+        const $selXn = $('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
         
-        // Sắp xếp danh sách Xí nghiệp theo Alpha B
         Array.from(xnSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(xn => {
           $selXn.append(new Option(xn, xn));
         });
@@ -530,30 +525,27 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen =$('#selTuyen');
-      const $selNgay =$('#selNgayApDung');
+      const $selTuyen = $('#selTuyen');
+      const $selNgay = $('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
-      if (!xn) { $selTuyen.trigger('change');$selNgay.trigger('change'); return; }
+      if (!xn) { $selTuyen.trigger('change'); $selNgay.trigger('change'); return; }
 
       const tuyenSet = new Set();
       allRoutes.forEach(r => { if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen); });
       danhMucData.forEach(item => { if (item.xn === xn && item.tuyen) tuyenSet.add(item.tuyen); });
 
-      // Sắp xếp danh sách Tuyến theo thứ tự Alphanumeric chuẩn xác (số từ bé đến lớn)
       Array.from(tuyenSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(tuyen => {
         $selTuyen.append(new Option(tuyen, tuyen));
       });
-      $selTuyen.trigger('change');$selNgay.trigger('change');
+      $selTuyen.trigger('change'); $selNgay.trigger('change');
     }
 
-    // 1. HÀM BÓC TÁCH CHUẨN FORM MỚI: [Mã Tuyến] ([Ngày].[Tháng].[Năm], [Thứ])
     function parseTabInfo(tabName) {
       if (!tabName) return { dayRange: "Cả tuần", dateStr: "Hiện hành", dateObj: new Date(0), sortKey: "00000000" };
       
-      // Bắt cụm ngày tháng năm nằm ở đầu tiên ngay sau dấu ngoặc mở (VD: 1.8.18 hoặc 16.1.26)
       const match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       let dateObj = new Date(0);
       let dateStr = "Hiện hành";
@@ -574,7 +566,6 @@
         sortKey = `${yyyy}${mm}${dd}`;
       }
 
-      // Xác định dải ngày trong tuần (nằm ở phía sau dấu phẩy, ví dụ: 2-7, CN, 2-5)
       let dayRange = "Cả tuần";
       const parts = tabName.split(',');
       if (parts.length > 1) {
@@ -586,7 +577,6 @@
       return { dayRange, dateStr, dateObj, sortKey };
     }
 
-    // 2. HÀM KIỂM TRA NGÀY TRONG TUẦN CÓ KHỚP VỚI TAB KHÔNG
     function kiemTraNgayThuKhop(dayRange, thuDaChon) {
       if (!dayRange || dayRange === "Cả tuần") return true;
       
@@ -608,11 +598,10 @@
       return true;
     }
 
-    // 3. HÀM NẠP DROPDOWN NGÀY ÁP DỤNG
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay =$('#selNgayApDung');
+      const $selNgay = $('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
@@ -623,7 +612,7 @@
       bieuDoCuaTuyen.forEach(item => {
         const info = parseTabInfo(item.tenTab || item.bieuDo || "");
         if (info.sortKey !== "00000000") {
-          dateSet.add(info.dateStr); // Thêm ngày chuẩn dd/mm/yyyy vào dropdown
+          dateSet.add(info.dateStr); 
         }
       });
 
@@ -651,7 +640,6 @@
       }
     }
 
-    // 4. HÀM TÌM KIẾM BIỂU ĐỒ KẾ CẬN GẦN NHẤT THEO NGÀY VÀ THỨ ĐƯỢC CHỌN
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
       const bieuDoList = danhMucData.filter(item => item.xn === xn && (item.tuyen === tuyen || item.tuyen.startsWith(tuyen)));
       if (bieuDoList.length === 0) return null;
@@ -667,13 +655,11 @@
         info: parseTabInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      // Lọc ra các tab khớp với Thứ người dùng đang tích chọn
       let hopLeTheoThu = parsedTabs.filter(t => kiemTraNgayThuKhop(t.info.dayRange, thuDaChon));
       let candidatePool = hopLeTheoThu.length > 0 ? hopLeTheoThu : parsedTabs;
       
       if (candidatePool.length === 0) return null;
 
-      // Sắp xếp tìm ra biểu đồ có ngày hiệu lực kế cận gần nhất với ngày được chọn
       candidatePool.sort((a, b) => {
         let diffA = Math.abs(targetDateObj - a.info.dateObj);
         let diffB = Math.abs(targetDateObj - b.info.dateObj);
@@ -700,7 +686,8 @@
         return;
       }
 
-      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view'); 
+      $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
