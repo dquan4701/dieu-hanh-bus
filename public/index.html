@@ -551,54 +551,51 @@
 
     // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
     // 1. Hàm bóc tách ngày tháng và dải ngày trong tuần từ 4 kiểu tên tab chuẩn
-    function parseDateInfo(str) {
-      if (!str) return { label: "Hiện hành", sortKey: "00000000", dateObj: null, dayRange: "Cả tuần" };
-      str = String(str).trim();
-
-      // Dùng ganch chân $ ở cuối hoặc tìm tất cả các cụm ngày, lấy cụm CUỐI CÙNG làm ngày hiệu lực chuẩn
-      const matches = [...str.matchAll(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/g)];
-      let dateObj = null;
-      let label = "Hiện hành";
+    // 1. HÀM BÓC TÁCH CHUẨN 4 KIỂU TÊN TAB (Dùng chung cho dropdown và tìm kiếm)
+    function parseTabInfo(tabName) {
+      if (!tabName) return { dayRange: "Cả tuần", dateStr: "Hiện hành", dateObj: new Date(0), sortKey: "00000000" };
+      
+      // Bắt chuỗi ngày tháng năm ở cuối (VD: 16.1.26, 5.6.24, 17.8.18) bằng matchAll để lấy mốc cuối cùng chính xác nhất
+      const matches = [...String(tabName).matchAll(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/g)];
+      let dateObj = new Date(0);
+      let dateStr = "Hiện hành";
       let sortKey = "00000000";
-
+      
       if (matches.length > 0) {
-        // Lấy kết quả khớp cuối cùng trong chuỗi tên tab (chính là ngày .[Tháng].[Năm] ở cuối)
         let m = matches[matches.length - 1];
         let d = parseInt(m[1], 10);
         let mo = parseInt(m[2], 10);
         let y = parseInt(m[3], 10);
+        if (y < 100) y += 2000;
         
-        if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) {
-          if (y < 100) y += 2000;
-          dateObj = new Date(y, mo - 1, d);
-          
-          let dd = String(d).padStart(2, '0');
-          let mm = String(mo).padStart(2, '0');
-          label = `${dd}/${mm}/${y}`;
-          sortKey = `${y}${mm}${dd}`;
+        dateObj = new Date(y, mo - 1, d);
+        
+        let dd = String(d).padStart(2, '0');
+        let mm = String(mo).padStart(2, '0');
+        let yyyy = String(y);
+        dateStr = `${dd}/${mm}/${yyyy}`;
+        sortKey = `${yyyy}${mm}${dd}`;
+      }
+
+      // Xác định dải ngày trong tuần từ tên tab (Kiểu 2, 3, 4)
+      let dayRange = "Cả tuần";
+      if (tabName.includes("CN") && !tabName.includes("2-7") && !tabName.includes("7-CN")) {
+        dayRange = "CN";
+      } else {
+        const rangeMatch = tabName.match(/\(([^,)]+),/);
+        if (rangeMatch) {
+          dayRange = rangeMatch[1].trim(); // Lấy "2-7", "2-5", "6", "7-CN"...
         }
       }
 
-      // Xác định dải ngày trong tuần (Kiểu 2, 3, 4)
-      let dayRange = "Cả tuần";
-      if (str.includes("CN") && !str.includes("2-7") && !str.includes("7-CN")) {
-        dayRange = "CN";
-      }
-      
-      const rangeMatch = str.match(/\(([^,)]+),/);
-      if (rangeMatch) {
-        dayRange = rangeMatch[1].trim(); // Lấy "2-7", "2-5", "6", "7-CN", "CN"...
-      }
-
-      return { label, sortKey, dateObj, dayRange };
+      return { dayRange, dateStr, dateObj, sortKey };
     }
 
-    // 2. Hàm kiểm tra xem ngày trong tuần (T2-T7, CN) có khớp với dải ngày của tab không
+    // 2. HÀM KIỂM TRA NGÀY TRONG TUẦN CÓ KHỚP VỚI TAB KHÔNG
     function kiemTraNgayThuKhop(dayRange, thuDaChon) {
       if (!dayRange || dayRange === "Cả tuần") return true;
       
       let targetNum = thuDaChon === "CN" ? "CN" : thuDaChon.replace("T", "");
-
       if (dayRange === "CN") return targetNum === "CN";
       
       if (dayRange.includes("-")) {
@@ -607,10 +604,7 @@
         let end = parts[1].trim();
         
         if (!isNaN(start) && !isNaN(targetNum)) {
-          let s = parseInt(start, 10);
-          let e = parseInt(end, 10);
-          let t = parseInt(targetNum, 10);
-          return t >= s && t <= e;
+          return parseInt(targetNum, 10) >= parseInt(start, 10) && parseInt(targetNum, 10) <= parseInt(end, 10);
         }
         if (targetNum === "CN" && (end === "CN" || start === "CN")) return true;
       } else {
@@ -619,7 +613,7 @@
       return true;
     }
 
-    // 3. Hàm nạp danh sách ngày áp dụng vào dropdown ở giao diện tra cứu
+    // 3. HÀM NẠP DROPDOWN NGÀY ÁP DỤNG
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
@@ -628,19 +622,19 @@
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
 
-      const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
+      const bieuDoCuaTuyen = danhMucData.filter(item => item.xn === xn && (item.tuyen === tuyen || item.tuyen.startsWith(tuyen)));
       
       const dateSet = new Set();
       bieuDoCuaTuyen.forEach(item => {
-        const dInfo = parseDateInfo(item.tenTab || item.bieuDo || "");
-        if (dInfo.sortKey !== "00000000") {
-          dateSet.add(dInfo.label); // Đưa về chuẩn dd/mm/yyyy hiển thị lên dropdown
+        const info = parseTabInfo(item.tenTab || item.bieuDo || "");
+        if (info.sortKey !== "00000000") {
+          dateSet.add(info.dateStr); // Thêm ngày chuẩn dd/mm/yyyy vào dropdown
         }
       });
 
       const sortedDates = Array.from(dateSet).sort((a, b) => {
-        const pA = parseDateInfo(a);
-        const pB = parseDateInfo(b);
+        const pA = parseTabInfo(a);
+        const pB = parseTabInfo(b);
         return pB.sortKey.localeCompare(pA.sortKey);
       });
 
@@ -664,10 +658,10 @@
 
     // 4. HÀM TÌM KIẾM BIỂU ĐỒ KẾ CẬN GẦN NHẤT THEO NGÀY VÀ THỨ ĐƯỢC CHỌN
     function timTabPhuHop(xn, tuyen, ngayApDungChuan, thuDaChon) {
-      const bieuDoList = danhMucData.filter(item => item.xn === xn && item.tuyen === tuyen);
+      const bieuDoList = danhMucData.filter(item => item.xn === xn && (item.tuyen === tuyen || item.tuyen.startsWith(tuyen)));
       if (bieuDoList.length === 0) return null;
 
-      let targetDateObj = null;
+      let targetDateObj = new Date(0);
       const parts = ngayApDungChuan.split('/');
       if (parts.length === 3) {
         targetDateObj = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
@@ -675,29 +669,24 @@
 
       const parsedTabs = bieuDoList.map(item => ({
         ...item,
-        info: parseDateInfo(item.tenTab || item.bieuDo || "")
+        info: parseTabInfo(item.tenTab || item.bieuDo || "")
       }));
 
-      // Bước 1: Lọc ra các tab khớp với Thứ người dùng đang tích chọn
+      // Lọc ra các tab khớp với Thứ người dùng đang tích chọn
       let hopLeTheoThu = parsedTabs.filter(t => kiemTraNgayThuKhop(t.info.dayRange, thuDaChon));
-
       let candidatePool = hopLeTheoThu.length > 0 ? hopLeTheoThu : parsedTabs;
+      
       if (candidatePool.length === 0) return null;
 
-      // Bước 2: Tìm biểu đồ có ngày hiệu lực KẾ CẬN GẦN NHẤT so với ngày người dùng chọn
-      if (targetDateObj && !isNaN(targetDateObj.getTime())) {
-        candidatePool.sort((a, b) => {
-          let diffA = Math.abs(targetDateObj - (a.info.dateObj || new Date(0)));
-          let diffB = Math.abs(targetDateObj - (b.info.dateObj || new Date(0)));
-          return diffA - diffB;
-        });
-      } else {
-        candidatePool.sort((a, b) => b.info.sortKey.localeCompare(a.info.sortKey));
-      }
+      // Sắp xếp tìm ra biểu đồ có ngày hiệu lực kế cận gần nhất với ngày được chọn
+      candidatePool.sort((a, b) => {
+        let diffA = Math.abs(targetDateObj - a.info.dateObj);
+        let diffB = Math.abs(targetDateObj - b.info.dateObj);
+        return diffA - diffB;
+      });
 
       return candidatePool[0].tenTab;
     }
-
     async function xemBieuDo() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
