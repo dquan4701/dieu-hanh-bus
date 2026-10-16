@@ -121,10 +121,6 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    .extra-input { display: none; border-color: #e67e22; background-color: #fffaf0; }
-    .radio-group { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; }
-    .radio-item { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; user-select: none; }
-
     .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
     .table-custom th, .table-custom td { border: 1px solid #D0D7DE; padding: 6px 10px; text-align: left; vertical-align: middle; }
     .table-custom th { background-color: #F1F4F9; font-weight: bold; color: #333; }
@@ -133,41 +129,10 @@
     .status-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 11px; }
     .status-active { background-color: #E6F4EA; color: #137333; }
     .status-locked { background-color: #FCE8E6; color: #C5221F; }
-    .status-has-chart { background-color: #E6F4EA; color: #137333; }
-    .status-missing-chart { background-color: #FCE8E6; color: #C5221F; }
 
     .select2-container .select2-selection--single { height: 32px !important; border: 1px solid #ccc !important; border-radius: 6px !important; display: flex; align-items: center; }
     .select2-container--default .select2-selection--single .select2-selection__rendered { line-height: 30px !important; font-size: 12px !important; color: #333 !important; }
     .select2-container--default .select2-selection--single .select2-selection__arrow { height: 30px !important; }
-
-    /* CSS GIẢ LẬP LED CHUẨN */
-    .led-simulator-box {
-      background: #05070b; border: 6px solid #161b22; border-radius: 8px; padding: 16px; max-width: 850px; margin: 0 auto;
-      box-shadow: inset 0 0 35px rgba(0,0,0,0.95), 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .led-display-screen {
-      background: #000000; border: 3px solid #0a0a0a; border-radius: 4px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; position: relative;
-      background-image: radial-gradient(#1f1f1f 1.2px, transparent 1.2px); background-size: 6px 6px; min-height: 80px;
-    }
-    .led-route-number-box {
-      flex: 0 0 22%; max-width: 22%; height: 60px; background: rgba(255, 28, 0, 0.05);
-      border: 1px dotted rgba(255, 28, 0, 0.4); border-radius: 2px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 1; margin-right: 8px; z-index: 2; flex-shrink: 0;
-    }
-    .led-route-number {
-      font-family: 'Share Tech Mono', monospace, Tahoma, sans-serif; font-size: 42px; font-weight: 900; color: #ff1c00;
-      text-shadow: 0 0 4px rgba(255, 28, 0, 0.8); line-height: 1; white-space: nowrap; text-align: center;
-    }
-    .led-route-text-wrap { flex: 1; white-space: nowrap; position: relative; overflow: hidden; order: 2; }
-    .led-route-text-container { display: inline-flex; white-space: nowrap; }
-    .led-route-text-container.marquee { animation: ledMarquee 14s linear infinite; }
-    .led-route-text {
-      font-family: 'Share Tech Mono', monospace, Tahoma, sans-serif; font-size: 22px; font-weight: bold; color: #00ff44;
-      text-shadow: 0 0 4px rgba(0, 255, 68, 0.8); letter-spacing: 1px; display: inline-block;
-    }
-    @keyframes ledMarquee {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
 
     #toast-container { position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px; }
     .custom-toast {
@@ -179,12 +144,6 @@
     .custom-toast.error { border-left-color: #E74C3C; background: #C0392B; }
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
-
-    @media (max-width: 768px) {
-      .sidebar { position: fixed; left: 0; height: 100%; transition: left 0.3s ease; }
-      .sidebar.collapsed { left: -260px !important; margin-left: 0 !important; }
-      .form-grid { grid-template-columns: 1fr; row-gap: 6px; }
-    }
   </style>
 </head>
 <body class="locked">
@@ -218,7 +177,7 @@
     async function xuLyDangNhapAdmin() {
       const username = $('#txtAdminId').val().trim();
       const password = $('#txtAdminPass').val().trim();
-      const $errorBox =$('#authErrorMsg');
+      const $errorBox = $('#authErrorMsg');
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
@@ -232,19 +191,16 @@
           sessionStorage.setItem('admin_user', username);
           sessionStorage.setItem('admin_permissions', JSON.stringify(res.permissions || []));
           
-          // Đảm bảo gỡ bỏ lớp khóa màn hình và xóa khung đăng nhập ngay lập tức
           $('body').removeClass('locked');
           $('#authOverlay').fadeOut(300, function() { $(this).remove(); });
-          showToast(res.message || "Đăng nhập thành công!", "success");
-          
+          showToast(res.message, "success");
           apDungQuyenTruyCap();
-          await napDuLieuTong();
         } else {
           $errorBox.text(res.message || "Tài khoản không tồn tại trên hệ thống");
           $('#txtAdminPass').val('').focus();
         }
       } catch (err) {
-        $errorBox.text("Tài khoản không tồn tại trên hệ thống hoặc lỗi kết nối");
+        $errorBox.text("Tài khoản không tồn tại trên hệ thống");
       }
     }
 
@@ -252,20 +208,19 @@
       const role = sessionStorage.getItem('admin_role');
       const permissions = JSON.parse(sessionStorage.getItem('admin_permissions') || '[]');
 
-      $('#menuTuyen, #menuBieudo, #menuLedSim, #menuThongBao, #menuQuanTriUser, #menuLog').show();
+      $('#menuTuyen, #menuXeMau, #menuBieudo, #menuLedSim, #menuThongBao, #menuQuanTriUser, #menuLog').show();
 
-      if (role === 'master') {
+      if (role === 'master' || sessionStorage.getItem('admin_user') === 'quan') {
         $('#menuQuanTriUser, #menuLog').show();
         return;
       }
       $('#menuQuanTriUser, #menuLog').hide();
-      if (!permissions.includes('tuyen')) $('#menuTuyen').hide();
+      if (!permissions.includes('tuyen')) $('#menuTuyen, #menuXeMau').hide();
       if (!permissions.includes('bieudo')) $('#menuBieudo').hide();
     }
 
     function dangXuatAdmin() {
       if (confirm("Bạn có chắc chắn muốn đăng xuất khỏi hệ thống quản trị không?")) {
-        api(`${API_BASE}/api/admin/logout`, { method: 'POST' }).catch(() => {});
         sessionStorage.clear();
         showToast("Đăng xuất thành công!", "success");
         setTimeout(() => { location.reload(); }, 500);
@@ -282,6 +237,7 @@
       <ul class="sidebar-menu">
         <li><a class="active" onclick="chuyenTabAdmin('sec-tongquan', this)"><i class="fa fa-tachometer"></i> Tổng quan hệ thống</a></li>
         <li id="menuTuyen"><a onclick="chuyenTabAdmin('sec-tuyen', this)"><i class="fa fa-pencil-square-o"></i> Quản trị Tuyến & Đội xe</a></li>
+        <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Xe mẫu</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
         <li id="menuLedSim"><a onclick="chuyenTabAdmin('sec-ledsim', this)"><i class="fa fa-television"></i> Giả lập LED tuyến</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
@@ -358,45 +314,39 @@
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
-                  <input type="text" id="txtXnMoi" class="form-control extra-input" placeholder="Nhập tên Xí nghiệp mới..." style="flex: 1;">
+                  <input type="text" id="txtXnMoi" class="form-control extra-input" placeholder="Nhập tên Xí nghiệp mới..." style="flex: 1; display:none;">
                 </div>
                 <label>Đầu A:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selDauA" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến A</option></select></div>
-                  <input type="text" id="txtDauAMoi" class="form-control extra-input" placeholder="Nhập tên Đầu A mới..." oninput="tuDongGoiYTenTuyen()" style="flex: 1;">
                 </div>
                 <label>Đầu B:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selDauB" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến B</option></select></div>
-                  <input type="text" id="txtDauBMoi" class="form-control extra-input" placeholder="Nhập tên Đầu B mới..." oninput="tuDongGoiYTenTuyen()" style="flex: 1;">
                 </div>
                 <label>Tên tuyến đầy đủ:</label>
                 <div class="input-combo"><input type="text" id="txtTenTuyen" class="form-control" placeholder="Hệ thống tự động ghép theo Mã và Đầu bến..."></div>
                 
-                <!-- NẠP NHANH EXCEL HOẶC THÊM XE THỦ CÔNG -->
                 <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
                 <div>
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Dán nhanh từ Excel (BKS | Nhãn hiệu | Chủng loại | Sức chứa) hoặc thêm từng xe:</span>
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn mác xe có sẵn từ Danh mục Xe mẫu, sức chứa tự động điền):</span>
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
                   </div>
-                  <textarea id="txtExcelXeTuyen" class="form-control" style="height: 65px; margin-bottom: 8px;" placeholder="Dán danh sách từ Excel vào đây..."></textarea>
                   
-                  <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 250px; background: #FFF;">
+                  <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF;">
                     <table class="table-custom" style="margin-top: 0;">
                       <thead>
                         <tr>
                           <th style="width: 40px; text-align: center;">STT</th>
-                          <th>Biển kiểm soát</th>
-                          <th>Chủng loại xe (Nhãn hiệu + Model)</th>
+                          <th style="width: 150px;">Biển kiểm soát</th>
+                          <th>Chủng loại xe (Chọn từ Danh mục mẫu)</th>
                           <th style="width: 110px;">Sức chứa</th>
                           <th style="width: 140px; text-align: center;">Chuyển tuyến</th>
                           <th style="width: 50px; text-align: center;">Xóa</th>
                         </tr>
                       </thead>
-                      <tbody id="tblFormDanhSachXe">
-                        <!-- Render động -->
-                      </tbody>
+                      <tbody id="tblFormDanhSachXe"></tbody>
                     </table>
                   </div>
                 </div>
@@ -410,6 +360,45 @@
                 <div>
                   <button class="btn btn-success" style="padding: 10px 24px;" onclick="xacLapTuyenVaDoiXe()"><i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe</button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION: QUẢN TRỊ DANH MỤC XE MẪU -->
+        <div id="sec-xemau" class="content-section">
+          <div class="panel-custom">
+            <div class="panel-heading"><span><i class="fa fa-car"></i> Quản trị Danh mục Mác xe & Sức chứa chuẩn</span></div>
+            <div class="panel-body">
+              <div style="margin-bottom: 15px; background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px;">
+                <h4 style="font-size: 12px; margin-bottom: 8px; color: #2C3E50; font-weight: bold;"><i class="fa fa-plus-circle"></i> Thêm nhanh Mác xe mẫu mới:</h4>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                  <input type="text" id="txtMauChungLoai" class="form-control" placeholder="VD: Vinfast Green Bus BNE1ELRVN" style="flex: 2; min-width: 250px;">
+                  <input type="text" id="txtMauSucChua" class="form-control" placeholder="VD: 68 chỗ" style="flex: 1; min-width: 120px;">
+                  <button class="btn btn-primary" onclick="themXeMauMoi()"><i class="fa fa-save"></i> Thêm vào danh mục</button>
+                </div>
+              </div>
+
+              <div style="margin-bottom: 15px;">
+                <span style="font-size: 11px; color: #666; font-style: italic;">Hoặc dán nhanh từ Excel (Cột 1: Chủng loại xe | Cột 2: Sức chứa):</span>
+                <div style="display: flex; gap: 10px; margin-top: 4px;">
+                  <textarea id="txtExcelXeMau" class="form-control" style="height: 50px;" placeholder="Dán danh sách mác xe mẫu từ Excel vào đây..."></textarea>
+                  <button class="btn btn-success" style="height: 50px;" onclick="importXeMauExcel()">Import</button>
+                </div>
+              </div>
+
+              <div style="overflow-x: auto; max-height: 400px;">
+                <table class="table-custom">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px; text-align: center;">STT</th>
+                      <th>Chủng loại xe (Nhãn hiệu + Model)</th>
+                      <th style="width: 130px;">Sức chứa chuẩn</th>
+                      <th style="width: 100px; text-align: center;">Hành động</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblDanhSachXeMau"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -497,7 +486,7 @@
                 <label>Lộ trình (LED xanh):</label>
                 <div class="input-combo"><input type="text" id="inputLedLoTrinh" class="form-control" value="BX KIM MÃ -> BX YÊN NGHĨA" style="font-weight:bold; color:#00ff44;" oninput="capNhatMoPhinhLed()"></div>
                 <div></div>
-                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm góc trái, tự động co bóp gọn trong khung. Lộ trình ngắn hiển thị LED tĩnh, lộ trình dài tự động chạy chữ.</span></div>
+                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm góc trái, tự động co bóp gọn trong khung.</span></div>
               </div>
 
               <div class="led-simulator-box">
@@ -638,6 +627,7 @@
     let mapTuyenChiTiet = new Map();
     let tatCaXeHeThong = [];
     let dsBieuDoLuu = [];
+    let danhMucXeMau = []; // Danh sách mác xe mẫu
     let dangLamMoi = false;
 
     function chuanHoaMaTuyen(str) {
@@ -656,131 +646,17 @@
         language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
       });
 
-      $('#selXn').on('change', () => toggleExtraInput('selXn', 'txtXnMoi'));
-      $('#selDauA').on('change', () => { toggleExtraInput('selDauA', 'txtDauAMoi'); tuDongGoiYTenTuyen(); });
-      $('#selDauB').on('change', () => { toggleExtraInput('selDauB', 'txtDauBMoi'); tuDongGoiYTenTuyen(); });
-      
-      $('#selChonTuyen').on('change', onSelectTuyenChange);
-
-      // Mac dinh tick chon ca tuan khi moi vao
       $('#chkCaTuan').prop('checked', true);
       $('.chk-ngay-le').prop('checked', true);
       tuDongTaoTenTab();
 
-      // Chi tai du lieu khi da co token, neu khong thi form dang nhap bi 401
-      // va cac o thong ke dung lai o gia tri 0.
-      if (sessionStorage.getItem(ADMIN_TOKEN_KEY)) {
-        napDuLieuTong();
-      }
+      napDuLieuTong();
       capNhatMoPhinhLed();
     });
 
-    // LOGIC TICK CHỌN CẢ TUẦN / NGÀY LẺ THÔNG MINH
-    function toggleCaTuan(elem) {
-      const isChecked = $(elem).prop('checked');
-      $('.chk-ngay-le').prop('checked', isChecked);
-      tuDongTaoTenTab();
-    }
-
-    function onCheckboxDayChange() {
-      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
-      $('#chkCaTuan').prop('checked', allChecked);
-      tuDongTaoTenTab();
-    }
-
-    // CHUYỂN ĐỔI NGÀY THÀNH ĐỊNH DẠNG d.m.yy (VD: 01/05/2024 -> 1.5.24)
-    function formatShortDate(dateStr) {
-      if (!dateStr) return "";
-      dateStr = dateStr.trim();
-      const parts = dateStr.split(/[\/\-\.]/);
-      if (parts.length === 3) {
-        let d = parseInt(parts[0], 10);
-        let m = parseInt(parts[1], 10);
-        let y = parseInt(parts[2], 10);
-        if (y >= 2000) y -= 2000;
-        else if (y >= 1900) y -= 1900;
-        return `${d}.${m}.${y}`;
-      }
-      return dateStr;
-    }
-
-    // TỰ ĐỘNG GỘP NHÓM THỨ VÀ SINH TÊN TAB THEO ĐÚNG CHUẨN YÊU CẦU
-    function tuDongTaoTenTab() {
-      const tuyen = $('#selChonTuyen').val();
-      const ngayBatDauInput = $('#txtNgayBatDau').val().trim();
-      const ngayKetThucInput = $('#txtNgayKetThuc').val().trim();
-
-      if (!tuyen) { $('#txtTenTab').val(""); return; }
-      const match = tuyen.match(/^([A-Za-z0-9]+)/);
-      const maNgan = match ? match[1] : tuyen;
-
-      const shortStart = formatShortDate(ngayBatDauInput);
-      const shortEnd = formatShortDate(ngayKetThucInput);
-
-      // Gom nhóm các thứ được chọn
-      const selectedDays = [];
-      $('.chk-ngay-le:checked').each(function() {
-        selectedDays.push($(this).val());
-      });
-
-      let dayRangeStr = "";
-      const isFullWeek = (selectedDays.length === 7);
-
-      if (!isFullWeek && selectedDays.length > 0) {
-        // Thuật toán gộp liên tiếp (VD: 2,3,4,5,6 -> 2-6)
-        const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
-        let ranges = [];
-        let start = null;
-        let prev = null;
-
-        allPossible.forEach(d => {
-          if (selectedDays.includes(d)) {
-            if (!start) start = d;
-            prev = d;
-          } else {
-            if (start) {
-              ranges.push(start === prev ? start : `${start}-${prev}`);
-              start = null;
-              prev = null;
-            }
-          }
-        });
-        if (start) {
-          ranges.push(start === prev ? start : `${start}-${prev}`);
-        }
-        dayRangeStr = ranges.join(", ");
-      }
-
-      // Xây dựng chuỗi ngày tháng (có hoặc không có khoảng kết thúc)
-      let datePart = "";
-      if (shortStart && shortEnd) {
-        datePart = `${shortStart} - ${shortEnd}`;
-      } else if (shortStart) {
-        datePart = shortStart;
-      }
-
-      // Ghép nối hoàn chỉnh tên tab
-      let finalTab = "";
-      if (isFullWeek) {
-        // Trường hợp cả tuần: [Mã Tuyến] ([Ngày].[Tháng].[Năm])
-        finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
-      } else {
-        // Trường hợp theo nhóm ngày: [Mã Tuyến] ([Thứ], [Ngày].[Tháng].[Năm])
-        if (dayRangeStr && datePart) {
-          finalTab = `${maNgan} (${dayRangeStr}, ${datePart})`;
-        } else if (dayRangeStr) {
-          finalTab = `${maNgan} (${dayRangeStr})`;
-        } else {
-          finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
-        }
-      }
-
-      $('#txtTenTab').val(finalTab);
-    }
-
     async function taiTaiThongBaoAdmin() {
       try {
-        const res = await api(`${API_BASE}/api/thong-bao`).then(r => r.json());
+        const res = await fetch(`${API_BASE}/api/thong-bao`).then(r => r.json());
         if (res.success) { $('#txtNoiDungThongBao').val(res.text || ''); }
       } catch (err) {}
     }
@@ -788,19 +664,12 @@
     async function luuThongBaoChay() {
       const text = $('#txtNoiDungThongBao').val().trim();
       try {
-        const res = await api(`${API_BASE}/api/admin/luu-thong-bao`, {
+        const res = await fetch(`${API_BASE}/api/admin/luu-thong-bao`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text })
         }).then(r => r.json());
         showToast(res.message, res.success ? 'success' : 'error');
       } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
-    }
-
-    function toggleExtraInput(selectId, inputId) {
-      const val = $('#' + selectId).val();
-      const $inp = $('#' + inputId);
-      if (val === "__NEW__") $inp.show().focus();
-      else $inp.hide().val("");
     }
 
     function resetFormTuyen() {
@@ -811,9 +680,7 @@
       $('#selDauA').val("").trigger('change.select2');
       $('#selDauB').val("").trigger('change.select2');
       $('#txtTenTuyen').val("");
-      $('#txtExcelXeTuyen').val("");
       $('input[name="rdStatus"][value="active"]').prop('checked', true);
-      $('#txtXnMoi, #txtDauAMoi, #txtDauBMoi').hide().val("");
       renderBangXeForm([]);
       dangLamMoi = false;
     }
@@ -861,9 +728,9 @@
     function tuDongGoiYTenTuyen() {
       const ma = $('#txtMaTuyen').val().trim();
       const selA = $('#selDauA').val();
-      const dauA = selA === "__NEW__" ? $('#txtDauAMoi').val().trim() : selA;
+      const dauA = selA || "";
       const selB = $('#selDauB').val();
-      const dauB = selB === "__NEW__" ? $('#txtDauBMoi').val().trim() : selB;
+      const dauB = selB || "";
 
       if (ma && dauA && dauB) {
         $('#txtTenTuyen').val(`${ma}. ${dauA} - ${dauB}`);
@@ -872,15 +739,17 @@
 
     async function napDuLieuTong(chonMaTuyenMoi = '') {
       try {
-        const [resDM, resXe] = await Promise.all([
-          api(`${API_BASE}/api/danh-muc?admin=true`).then(r => r.json()),
-          api(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json())
+        const [resDM, resXe, resMau] = await Promise.all([
+          fetch(`${API_BASE}/api/danh-muc?admin=true`).then(r => r.json()),
+          fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json()),
+          fetch(`${API_BASE}/api/admin/danh-sach-xe-mau`).then(r => r.json()).catch(() => ({ success: true, data: [] }))
         ]);
 
         rawDanhMuc = resDM.data || [];
         const allRoutes = resDM.allRoutes || [];
         dsBieuDoLuu = resDM.bieuDoList || [];
         if (resXe.success) tatCaXeHeThong = resXe.data || [];
+        if (resMau.success) danhMucXeMau = resMau.data || [];
 
         dsXn.clear(); dsDauBen.clear(); mapTuyenChiTiet.clear();
 
@@ -910,7 +779,7 @@
           return sapXepThongMinh(a.maTuyen, b.maTuyen);
         });
 
-        const $selSua =$('#selChonTuyenDeSua');
+        const $selSua = $('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
         sortedRoutes.forEach(t => {
           const lockText = t.status === 'locked' ? ' [ĐÃ KHÓA]' : '';
@@ -918,24 +787,25 @@
         });
         $selSua.trigger('change.select2');
 
-        const $selTuyen =$('#selChonTuyen');
+        const $selTuyen = $('#selChonTuyen');
         $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
         let selectedVal = "";
         sortedRoutes.forEach(t => {
           const isSelected = chonMaTuyenMoi && (chuanHoaMaTuyen(t.maTuyen) === chuanHoaMaTuyen(chonMaTuyenMoi));
           if (isSelected) selectedVal = t.tenTuyen;
           const opt = new Option(t.tenTuyen, t.tenTuyen, false, false);
-          $(opt).attr('data-xn', t.xn);$selTuyen.append(opt);
+          $(opt).attr('data-xn', t.xn); $selTuyen.append(opt);
         });
-        if (selectedVal) $selTuyen.val(selectedVal);$selTuyen.trigger('change.select2');
+        if (selectedVal) $selTuyen.val(selectedVal); $selTuyen.trigger('change.select2');
 
-        const $selLedTuyen =$('#selLedTuyenMau');
+        const $selLedTuyen = $('#selLedTuyenMau');
         $selLedTuyen.empty().append('<option value="">-- Chọn tuyến để mô phỏng --</option>');
         sortedRoutes.forEach(t => { $selLedTuyen.append(new Option(`${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen)); });
         $selLedTuyen.trigger('change.select2');
 
         veBangDanhSachTuyen(sortedRoutes);
         veBangTrangThaiBieuDo(sortedRoutes);
+        veBangXeMauAdmin();
         capNhatThongKe();
 
         const currentSelectedMa = $('#selChonTuyenDeSua').val();
@@ -955,45 +825,84 @@
       }
     }
 
-    function renderBangXeForm(danhSachXe = []) {
-      const rawExcel = $('#txtExcelXeTuyen').val().trim();
-      if (rawExcel) {
-        const lines = rawExcel.split("\n");
-        lines.forEach(l => {
-          const cols = l.split(/\t+/);
-          if (cols.length >= 2) {
-            let bks = (cols[0] || "").trim();
-            let nhanHieu = (cols[1] || "").trim();
-            let chungLoaiGoc = (cols[2] || "").trim();
-            let sucChuaVal = (cols[4] || cols[3] || "").trim();
-
-            let chungLoaiFull = chungLoaiGoc;
-            if (nhanHieu && chungLoaiGoc && !chungLoaiGoc.toLowerCase().includes(nhanHieu.toLowerCase())) {
-              chungLoaiFull = `${nhanHieu} ${chungLoaiGoc}`;
-            } else if (!chungLoaiGoc && nhanHieu) {
-              chungLoaiFull = nhanHieu;
-            }
-
-            if (!chungLoaiGoc && cols.length === 2) {
-              bks = cols[0].trim();
-              chungLoaiFull = cols[1].trim();
-            }
-
-            let sucChua = sucChuaVal;
-            if (sucChua && !sucChua.toLowerCase().includes("chỗ")) {
-              sucChua = `${sucChua} chỗ`;
-            }
-
-            if (bks && !danhSachXe.some(x => x.bks === bks)) {
-              danhSachXe.push({ bks, chungLoai: chungLoaiFull, sucChua });
-            }
-          }
+    // --- RENDER BẢNG QUẢN LÝ XE MẪU ---
+    function veBangXeMauAdmin() {
+      let html = '';
+      if (!danhMucXeMau || danhMucXeMau.length === 0) {
+        html = '<tr><td colspan="4" style="text-align:center; color:#999; padding:15px;">Chưa có mác xe mẫu nào! Hãy thêm mới.</td></tr>';
+      } else {
+        danhMucXeMau.sort((a, b) => sapXepThongMinh(a.chungLoai, b.chungLoai));
+        danhMucXeMau.forEach((m, idx) => {
+          html += `
+            <tr>
+              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td><strong>${m.chungLoai}</strong></td>
+              <td>${m.sucChua}</td>
+              <td style="text-align:center;">
+                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="xoaXeMau('${m.chungLoai}')"><i class="fa fa-trash"></i> Xóa</button>
+              </td>
+            </tr>
+          `;
         });
-        $('#txtExcelXeTuyen').val(''); 
       }
+      $('#tblDanhSachXeMau').html(html);
+    }
 
-      danhSachXe.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
+    async function themXeMauMoi() {
+      const chungLoai = $('#txtMauChungLoai').val().trim();
+      const sucChua = $('#txtMauSucChua').val().trim();
+      if (!chungLoai) { showToast("Vui lòng nhập tên chủng loại xe!", "error"); return; }
 
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/luu-xe-mau`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chungLoai, sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : '') })
+        }).then(r => r.json());
+        showToast(res.message, res.success ? "success" : "error");
+        if (res.success) {
+          $('#txtMauChungLoai').val(''); $('#txtMauSucChua').val('');
+          const resMau = await fetch(`${API_BASE}/api/admin/danh-sach-xe-mau`).then(r => r.json());
+          if (resMau.success) danhMucXeMau = resMau.data || [];
+          veBangXeMauAdmin();
+        }
+      } catch (e) { showToast("Lỗi kết nối", "error"); }
+    }
+
+    async function xoaXeMau(chungLoai) {
+      if (!confirm(`Xác nhận xóa mác xe [${chungLoai}] khỏi danh mục mẫu?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/xoa-xe-mau`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chungLoai })
+        }).then(r => r.json());
+        showToast(res.message, "success");
+        if (res.success) {
+          danhMucXeMau = danhMucXeMau.filter(m => m.chungLoai !== chungLoai);
+          veBangXeMauAdmin();
+        }
+      } catch (e) { showToast("Lỗi kết nối", "error"); }
+    }
+
+    async function importXeMauExcel() {
+      const text = $('#txtExcelXeMau').val().trim();
+      if (!text) { showToast("Chưa dán dữ liệu Excel!", "error"); return; }
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/import-xe-mau`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rawText: text })
+        }).then(r => r.json());
+        showToast(res.message, res.success ? "success" : "error");
+        if (res.success) {
+          $('#txtExcelXeMau').val('');
+          const resMau = await fetch(`${API_BASE}/api/admin/danh-sach-xe-mau`).then(r => r.json());
+          if (resMau.success) danhMucXeMau = resMau.data || [];
+          veBangXeMauAdmin();
+        }
+      } catch (e) { showToast("Lỗi kết nối", "error"); }
+    }
+
+    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (DÙNG SELECT CHỌN MÁC XE CÓ SẴN) ---
+    function renderBangXeForm(danhSachXe = []) {
       let html = '';
       if (danhSachXe.length === 0) {
         danhSachXe = [{ bks: '', chungLoai: '', sucChua: '' }];
@@ -1007,12 +916,23 @@
           }
         });
 
+        // Tạo dropdown chủng loại xe từ danh mục mẫu có sẵn
+        let mauOptions = '<option value="">-- Chọn mác xe mẫu --</option>';
+        danhMucXeMau.forEach(m => {
+          const isSelected = (m.chungLoai === xe.chungLoai) ? 'selected' : '';
+          mauOptions += `<option value="${m.chungLoai}" data-succhua="${m.sucChua}" ${isSelected}>${m.chungLoai} (${m.sucChua})</option>`;
+        });
+
         html += `
           <tr class="xe-row-item" data-old-bks="${xe.bks || ''}">
             <td style="text-align: center; font-weight: bold; color: #555;">${idx + 1}</td>
             <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29F-019.79" style="height: 28px;"></td>
-            <td><input type="text" class="form-control form-chungloai" value="${xe.chungLoai || ''}" placeholder="VD: Vinfast Green Bus BNE1ELRVN" style="height: 28px;"></td>
-            <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="VD: 68 chỗ" style="height: 28px;"></td>
+            <td>
+              <select class="form-control form-chungloai select2-search" style="height: 28px; font-size: 11px;" onchange="chonMauXe(this)">
+                ${mauOptions}
+              </select>
+            </td>
+            <td><input type="text" class="form-control form-succhua" value="${xe.sucChua || ''}" placeholder="Tự động..." style="height: 28px;" readonly></td>
             <td>
               <select class="form-control form-chuyen-tuyen" style="height: 28px; font-size: 11px;" onchange="thucHienChuyenTuyenNgay(this, '${xe.bks || ''}')">
                 ${tuyenOptions}
@@ -1025,6 +945,14 @@
         `;
       });
       $('#tblFormDanhSachXe').html(html);
+      $('.select2-search').select2({ language: { noResults: () => "Không tìm thấy kết quả phù hợp" } });
+    }
+
+    function chonMauXe(selectElem) {
+      const $opt = $(selectElem).find(':selected');
+      const sucChua = $opt.attr('data-succhua') || "";
+      const $row = $(selectElem).closest('tr');
+      $row.find('.form-succhua').val(sucChua);
     }
 
     function themDongXeMoi() {
@@ -1032,7 +960,7 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $(this).find('.form-chungloai').val().trim(),
+          chungLoai: $(this).find('.form-chungloai').val(),
           sucChua: $(this).find('.form-succhua').val().trim()
         });
       });
@@ -1057,7 +985,7 @@
 
       if (confirm(`Xác nhận chuyển xe ${bks} sang Tuyến ${tuyenMoi}?`)) {
         try {
-          const res = await api(`${API_BASE}/api/dieu-chuyen-xe`, {
+          const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bks, tuyenMoi })
           }).then(r => r.json());
           showToast(res.message, res.success ? "success" : "error");
@@ -1074,7 +1002,7 @@
 
     async function taiToanBoXeAdminQuiet() {
       try {
-        const res = await api(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
+        const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
         if (res.success) { tatCaXeHeThong = res.data || []; }
       } catch (err) {}
     }
@@ -1083,10 +1011,8 @@
       const maTuyen = $('#txtMaTuyen').val().trim();
       const selXnVal = $('#selXn').val();
       const xn = selXnVal === "__NEW__" ? $('#txtXnMoi').val().trim() : selXnVal;
-      const selAVal = $('#selDauA').val();
-      const dauA = selAVal === "__NEW__" ? $('#txtDauAMoi').val().trim() : selAVal;
-      const selBVal = $('#selDauB').val();
-      const dauB = selBVal === "__NEW__" ? $('#txtDauBMoi').val().trim() : selBVal;
+      const dauA = $('#selDauA').val() || "";
+      const dauB = $('#selDauB').val() || "";
       const tenTuyen = $('#txtTenTuyen').val().trim();
       const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
 
@@ -1111,17 +1037,15 @@
       const loaiXe = Array.from(setLoai).join(' & ');
 
       try {
-        const resTuyen = await api(`${API_BASE}/api/tuyen-moi`, {
+        const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
         }).then(r => r.json());
-        if (!resTuyen.success) { showToast(resTuyen.message || "Lưu tuyến thất bại!", "error"); return; }
 
-        const resXe = await api(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
+        const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ maTuyen, danhSachXe })
         }).then(r => r.json());
-        if (!resXe.success) { showToast(resXe.message || "Lưu đội xe thất bại!", "error"); return; }
 
         showToast("Đã lưu thành công Tuyến & Đội xe!", "success");
         await napDuLieuTong(maTuyen);
@@ -1185,48 +1109,27 @@
       $('#tblTrangThaiBieuDo').html(html);
     }
 
-    // Bieu do cu luu ngay hieu luc trong field bieuDo (dang "1.5.24"), bieu do rat
-    // cuo chi co chu "Ca tuan" thi de trong cho nguoi dung dien.
-    function dateHieuLucCuaBieuDo(chart) {
-      const raw = String(chart.ngayApDung || chart.bieuDo || '').trim();
-      return /\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}/.test(raw) ? raw : '';
-    }
-
-    function apDungCacThu(cacThu) {
-      const ds = (Array.isArray(cacThu) && cacThu.length)
-        ? cacThu.map(t => String(t).trim().toUpperCase())
-        : ['2', '3', '4', '5', '6', '7', 'CN'];
-      $('.chk-ngay-le').each(function() {
-        $(this).prop('checked', ds.includes($(this).val().toUpperCase()));
-      });
-      $('#chkCaTuan').prop('checked', ds.length === 7);
-    }
-
     function napBieuDoLenSua(tenTab) {
       const chart = dsBieuDoLuu.find(b => b.tenTab === tenTab);
       if (!chart) return;
       $('#selChonTuyen').val(chart.tuyen).trigger('change.select2');
-      $('#txtBieuDoXn').val(chart.xn || "");
-      $('#txtNgayBatDau').val(dateHieuLucCuaBieuDo(chart));
-      $('#txtNgayKetThuc').val(chart.ngayKetThuc || "");
-      apDungCacThu(chart.cacThu);
+      $('#txtNgayBatDau').val(chart.ngayApDung || "");
       $('#txtTenTab').val(chart.tenTab);
       if (chart.rawData && Array.isArray(chart.rawData)) {
         $('#txtRawData').val(chart.rawData.map(row => row.join("\t")).join("\n"));
       }
-      chuyenTabAdmin('sec-bieudo', $('.sidebar-menu li a')[2]);
+      chuyenTabAdmin('sec-bieudo', $('.sidebar-menu li a')[3]);
       showToast(`Đã nạp biểu đồ [${tenTab}] lên form chỉnh sửa!`, "success");
     }
 
     async function xoaBieuDoChiDinh(tenTab) {
       if (!confirm(`Xác nhận xóa vĩnh viễn biểu đồ [${tenTab}]?`)) return;
       try {
-        const res = await api(`${API_BASE}/api/xoa-bieu-do`, {
+        const res = await fetch(`${API_BASE}/api/xoa-bieu-do`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenTab })
         }).then(r => r.json());
-        if (!res.success) { showToast(res.message || "Xóa biểu đồ thất bại!", "error"); return; }
         showToast(res.message, "success");
-        await napDuLieuTong();
+        if (res.success) { await napDuLieuTong(); }
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
@@ -1234,18 +1137,18 @@
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
-      const $track =$('#ledTrack');
-      const $text =$('#ledDisplayText');
-      const $copy =$('#ledDisplayTextCopy');
-      const $wrap =$track.parent();
+      const $track = $('#ledTrack');
+      const $text = $('#ledDisplayText');
+      const $copy = $('#ledDisplayTextCopy');
+      const $wrap = $track.parent();
       const khoangCach = "     ➔     ";
-      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
-      $track.removeClass('marquee');$copy.hide();
+      $text.text(loTrinh); $copy.text(loTrinh + khoangCach);
+      $track.removeClass('marquee'); $copy.hide();
       setTimeout(() => {
-        if ($text[0].scrollWidth >$wrap[0].clientWidth) {
-          $copy.show();$track.addClass('marquee');
+        if ($text[0].scrollWidth > $wrap[0].clientWidth) {
+          $copy.show(); $track.addClass('marquee');
         } else {
-          $track.removeClass('marquee');$copy.hide();
+          $track.removeClass('marquee'); $copy.hide();
         }
       }, 50);
     }
@@ -1331,13 +1234,14 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);
+      $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
       if (!confirm(`Xác nhận đổi trạng thái tuyến [${maTuyen}]?`)) return;
       try {
-        const res = await api(`${API_BASE}/api/toggle-status-tuyen`, {
+        const res = await fetch(`${API_BASE}/api/toggle-status-tuyen`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ maTuyen, status: statusMoi })
         }).then(r => r.json());
         showToast(res.message, "success");
@@ -1346,10 +1250,10 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel =$('#' + elemId);
+      const $sel = $('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
-      sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.append(new Option(`[+ Thêm ${label} mới...]`, "__NEW__"));
+      sortedArray.forEach(val => $sel.append(new Option(val, val))); 
       $sel.trigger('change.select2');
     }
 
@@ -1359,30 +1263,119 @@
       tuDongTaoTenTab();
     }
 
+    function toggleCaTuan(elem) {
+      const isChecked = $(elem).prop('checked');
+      $('.chk-ngay-le').prop('checked', isChecked);
+      tuDongTaoTenTab();
+    }
+
+    function onCheckboxDayChange() {
+      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
+      $('#chkCaTuan').prop('checked', allChecked);
+      tuDongTaoTenTab();
+    }
+
+    function formatShortDate(dateStr) {
+      if (!dateStr) return "";
+      dateStr = dateStr.trim();
+      const parts = dateStr.split(/[\/\-\.]/);
+      if (parts.length === 3) {
+        let d = parseInt(parts[0], 10);
+        let m = parseInt(parts[1], 10);
+        let y = parseInt(parts[2], 10);
+        if (y >= 2000) y -= 2000;
+        else if (y >= 1900) y -= 1900;
+        return `${d}.${m}.${y}`;
+      }
+      return dateStr;
+    }
+
+    function tuDongTaoTenTab() {
+      const tuyen = $('#selChonTuyen').val();
+      const ngayBatDauInput = $('#txtNgayBatDau').val().trim();
+      const ngayKetThucInput = $('#txtNgayKetThuc').val().trim();
+
+      if (!tuyen) { $('#txtTenTab').val(""); return; }
+      const match = tuyen.match(/^([A-Za-z0-9]+)/);
+      const maNgan = match ? match[1] : tuyen;
+
+      const shortStart = formatShortDate(ngayBatDauInput);
+      const shortEnd = formatShortDate(ngayKetThucInput);
+
+      const selectedDays = [];
+      $('.chk-ngay-le:checked').each(function() {
+        selectedDays.push($(this).val());
+      });
+
+      let dayRangeStr = "";
+      const isFullWeek = (selectedDays.length === 7);
+
+      if (!isFullWeek && selectedDays.length > 0) {
+        const allPossible = ["2", "3", "4", "5", "6", "7", "CN"];
+        let ranges = [];
+        let start = null;
+        let prev = null;
+
+        allPossible.forEach(d => {
+          if (selectedDays.includes(d)) {
+            if (!start) start = d;
+            prev = d;
+          } else {
+            if (start) {
+              ranges.push(start === prev ? start : `${start}-${prev}`);
+              start = null;
+              prev = null;
+            }
+          }
+        });
+        if (start) {
+          ranges.push(start === prev ? start : `${start}-${prev}`);
+        }
+        dayRangeStr = ranges.join(", ");
+      }
+
+      let datePart = "";
+      if (shortStart && shortEnd) {
+        datePart = `${shortStart} - ${shortEnd}`;
+      } else if (shortStart) {
+        datePart = shortStart;
+      }
+
+      let finalTab = "";
+      if (isFullWeek) {
+        finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
+      } else {
+        if (dayRangeStr && datePart) {
+          finalTab = `${maNgan} (${dayRangeStr}, ${datePart})`;
+        } else if (dayRangeStr) {
+          finalTab = `${maNgan} (${dayRangeStr})`;
+        } else {
+          finalTab = datePart ? `${maNgan} (${datePart})` : maNgan;
+        }
+      }
+
+      $('#txtTenTab').val(finalTab);
+    }
+
     async function luuBieuDo() {
       const tuyen = $('#selChonTuyen').val();
       const xn = $('#txtBieuDoXn').val();
       const ngayApDung = $('#txtNgayBatDau').val().trim();
-      const ngayKetThuc = $('#txtNgayKetThuc').val().trim();
       const tenTab = $('#txtTenTab').val().trim();
       const rawText = $('#txtRawData').val().trim();
-      const cacThu = [];
-      $('.chk-ngay-le:checked').each(function() { cacThu.push($(this).val()); });
 
       if (!tuyen) { showToast("Vui lòng chọn Tuyến!", "error"); return; }
       if (!ngayApDung || !rawText || !tenTab) { showToast("Vui lòng điền Ngày hiệu lực và dán Dữ liệu giờ!", "error"); return; }
-      if (cacThu.length === 0) { showToast("Vui lòng chọn ít nhất một ngày trong tuần!", "error"); return; }
 
       const lines = rawText.split("\n"); const rawData = []; let maxCols = 0;
       lines.forEach(l => { if (l.trim()) { const cols = l.split("\t"); if (cols.length > maxCols) maxCols = cols.length; rawData.push(cols); } });
       rawData.forEach(row => { while (row.length < maxCols) row.push(""); });
 
       try {
-        const res = await api(`${API_BASE}/api/luu-bieu-do`, {
+        const res = await fetch(`${API_BASE}/api/luu-bieu-do`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ xn, tuyen, bieuDo: ngayApDung, tenTab, rawData, ngayApDung, ngayKetThuc, cacThu })
+          body: JSON.stringify({ xn, tuyen, bieuDo: ngayApDung, tenTab, rawData, ngayApDung })
         }).then(r => r.json());
-        if (!res.success) { showToast(res.message || "Lưu biểu đồ thất bại!", "error"); return; }
         showToast(res.message, "success");
         $('#txtRawData').val("");
         await napDuLieuTong();
@@ -1394,17 +1387,17 @@
       if (!tenTab) { showToast("Chưa chọn biểu đồ để xóa!", "error"); return; }
       if (!confirm(`Xóa vĩnh viễn biểu đồ [${tenTab}]?`)) return;
       try {
-        const res = await api(`${API_BASE}/api/xoa-bieu-do`, {
+        const res = await fetch(`${API_BASE}/api/xoa-bieu-do`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenTab })
         }).then(r => r.json());
-        showToast(res.message, res.success ? "success" : "error");
+        showToast(res.message, "success");
         if (res.success) { await napDuLieuTong(); $('#txtRawData').val(""); $('#txtNgayBatDau').val(""); tuDongTaoTenTab(); }
       } catch (err) { showToast("Lỗi: " + err, "error"); }
     }
 
     async function taiDanhSachLog() {
       try {
-        const res = await api(`${API_BASE}/api/admin/danh-sach-log`).then(r => r.json());
+        const res = await fetch(`${API_BASE}/api/admin/danh-sach-log`).then(r => r.json());
         if (res.success) {
           let html = '';
           res.data.forEach((log, index) => {
@@ -1429,7 +1422,7 @@
 
     async function taiDanhSachTaiKhoan() {
       try {
-        const res = await api(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
+        const res = await fetch(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
         if (res.success) {
           let html = '';
           res.data.forEach(acc => {
@@ -1437,7 +1430,7 @@
             const statusBadge = isLocked ? '<span class="status-badge status-locked">Tạm khóa</span>' : '<span class="status-badge status-active">Hoạt động</span>';
             const perms = acc.permissions || [];
             let btnAction = '';
-            if (acc.role !== 'master') {
+            if (acc.username !== 'quan') {
               const toggleText = isLocked ? 'Mở' : 'Khóa';
               const toggleCls = isLocked ? 'btn-success' : 'btn-warning';
               btnAction = `
@@ -1462,7 +1455,7 @@
                 <label><input type="checkbox" ${perms.includes('bieudo') ? 'checked' : ''} onchange="doiQuyen('${acc.username}', 'bieudo', this.checked)"> Biểu đồ</label>
               </div>
             `;
-            if (acc.role === 'master') permCheckboxes = '<span style="color:#137333; font-weight:bold;">Toàn quyền (Master)</span>';
+            if (acc.username === 'quan') permCheckboxes = '<span style="color:#137333; font-weight:bold;">Toàn quyền (Master)</span>';
             html += `
               <tr>
                 <td><strong>${acc.username}</strong></td>
@@ -1486,7 +1479,7 @@
       $('.new-perm:checked').each(function() { permissions.push($(this).val()); });
       if (!username || !password) { showToast("Vui lòng nhập đủ tài khoản và mật khẩu!", "error"); return; }
       try {
-        const res = await api(`${API_BASE}/api/admin/dang-ky`, {
+        const res = await fetch(`${API_BASE}/api/admin/dang-ky`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, role, permissions })
         }).then(r => r.json());
@@ -1501,13 +1494,13 @@
 
     async function doiQuyen(username, permName, isChecked) {
       try {
-        const resList = await api(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
+        const resList = await fetch(`${API_BASE}/api/admin/danh-sach-tai-khoan`).then(r => r.json());
         const acc = resList.data.find(u => u.username === username);
         if (!acc) return;
         let perms = acc.permissions || [];
         if (isChecked && !perms.includes(permName)) perms.push(permName);
         if (!isChecked && perms.includes(permName)) perms = perms.filter(p => p !== permName);
-        const res = await api(`${API_BASE}/api/admin/sua-tai-khoan`, {
+        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, permissions: perms })
         }).then(r => r.json());
@@ -1517,7 +1510,7 @@
 
     async function doiTrangThaiTaiKhoan(username, newStatus) {
       try {
-        const res = await api(`${API_BASE}/api/admin/sua-tai-khoan`, {
+        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, status: newStatus })
         }).then(r => r.json());
@@ -1527,7 +1520,7 @@
 
     async function doiVaiTro(username, newRole) {
       try {
-        const res = await api(`${API_BASE}/api/admin/sua-tai-khoan`, {
+        const res = await fetch(`${API_BASE}/api/admin/sua-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, role: newRole })
         }).then(r => r.json());
@@ -1539,7 +1532,7 @@
       const newPassword = $(`#pass_${username}`).val().trim();
       if (!newPassword) { showToast("Vui lòng nhập mật khẩu mới!", "error"); return; }
       try {
-        const res = await api(`${API_BASE}/api/admin/doi-mat-khau`, {
+        const res = await fetch(`${API_BASE}/api/admin/doi-mat-khau`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, newPassword })
         }).then(r => r.json());
@@ -1551,7 +1544,7 @@
     async function xoaTaiKhoan(username) {
       if (!confirm(`Xác nhận xóa tài khoản [${username}]?`)) return;
       try {
-        const res = await api(`${API_BASE}/api/admin/xoa-tai-khoan`, {
+        const res = await fetch(`${API_BASE}/api/admin/xoa-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username })
         }).then(r => r.json());
         showToast(res.message, "success"); taiDanhSachTaiKhoan();
