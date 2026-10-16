@@ -507,17 +507,56 @@
           </div>
         </div>
 
-        <!-- SECTION: QUẢN LÝ THÔNG BÁO CHẠY -->
+        <!-- SECTION: QUẢN LÝ THÔNG BÁO CHẠY & LÊN LỊCH -->
         <div id="sec-thongbao" class="content-section">
           <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-bullhorn"></i> Quản lý Nội dung Thông báo chạy (Marquee)</span></div>
+            <div class="panel-heading"><span><i class="fa fa-bullhorn"></i> Quản lý & Lên lịch Thông báo chạy (Marquee)</span></div>
             <div class="panel-body">
-              <div class="form-grid">
-                <label>Nội dung thông báo:</label>
-                <div class="input-combo"><textarea id="txtNoiDungThongBao" class="form-control" style="height: 100px; font-family: inherit;" placeholder="Nhập nội dung thông báo hiển thị phía trên trang tra cứu..."></textarea></div>
+              
+              <!-- 1. Thông báo mặc định -->
+              <div class="form-grid" style="margin-bottom: 25px; border-bottom: 1px solid #D0D7DE; padding-bottom: 20px;">
+                <label style="font-weight: bold; color: #2C3E50;">Thông báo mặc định:</label>
+                <div class="input-combo"><textarea id="txtNoiDungThongBao" class="form-control" style="height: 80px; font-family: inherit;" placeholder="Hiển thị khi không có lịch đặc biệt nào..."></textarea></div>
                 <div></div>
-                <div><button class="btn btn-success" onclick="luuThongBaoChay()"><i class="fa fa-save"></i> Cập nhật thông báo</button></div>
+                <div><button class="btn btn-success" onclick="luuThongBaoMacDinh()"><i class="fa fa-save"></i> Lưu thông báo mặc định</button></div>
               </div>
+
+              <!-- 2. Lên lịch thông báo theo khoảng thời gian -->
+              <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 12px;"><i class="fa fa-calendar-plus-o" style="color:#3B86C4;"></i> Lên lịch thông báo theo khoảng thời gian cụ thể:</h4>
+              <div style="background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px; margin-bottom: 15px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                  <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #555;">Từ ngày:</label>
+                    <input type="date" id="txtTuNgay" class="form-control">
+                  </div>
+                  <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #555;">Đến ngày:</label>
+                    <input type="date" id="txtDenNgay" class="form-control">
+                  </div>
+                </div>
+                <div style="margin-bottom: 10px;">
+                  <label style="font-size: 11px; font-weight: bold; color: #555;">Nội dung thông báo trong khoảng thời gian này:</label>
+                  <textarea id="txtNoiDungLich" class="form-control" style="height: 60px;" placeholder="Nhập nội dung chạy chữ..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="themvaoLichThongBao()"><i class="fa fa-plus"></i> Thêm lịch thông báo</button>
+              </div>
+
+              <!-- Bảng danh sách các lịch đã tạo -->
+              <div style="overflow-x: auto;">
+                <table class="table-custom">
+                  <thead>
+                    <tr>
+                      <th style="width: 50px; text-align: center;">STT</th>
+                      <th style="width: 140px;">Từ ngày</th>
+                      <th style="width: 140px;">Đến ngày</th>
+                      <th>Nội dung thông báo</th>
+                      <th style="width: 90px; text-align: center;">Xóa</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblDanhSachLichTB"></tbody>
+                </table>
+              </div>
+
             </div>
           </div>
         </div>
@@ -660,12 +699,15 @@
 
     async function taiTaiThongBaoAdmin() {
       try {
-        const res = await fetch(`${API_BASE}/api/thong-bao`).then(r => r.json());
-        if (res.success) { $('#txtNoiDungThongBao').val(res.text || ''); }
+        const res = await fetch(`${API_BASE}/api/thong-bao-chi-tiet`).then(r => r.json());
+        if (res.success) {
+          $('#txtNoiDungThongBao').val(res.defaultText || '');
+          veBangLichThongBao(res.scheduleList || []);
+        }
       } catch (err) {}
     }
 
-    async function luuThongBaoChay() {
+    async function luuThongBaoMacDinh() {
       const text = $('#txtNoiDungThongBao').val().trim();
       try {
         const res = await fetch(`${API_BASE}/api/admin/luu-thong-bao`, {
@@ -674,6 +716,63 @@
         }).then(r => r.json());
         showToast(res.message, res.success ? 'success' : 'error');
       } catch (err) { showToast('Lỗi kết nối máy chủ!', 'error'); }
+    }
+
+    async function themvaoLichThongBao() {
+      const tuNgay = $('#txtTuNgay').val();
+      const denNgay = $('#txtDenNgay').val();
+      const noiDung = $('#txtNoiDungLich').val().trim();
+
+      if (!tuNgay || !denNgay || !noiDung) {
+        showToast("Vui lòng chọn đầy đủ Từ ngày, Đến ngày và Nội dung!", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/them-lich-thong-bao`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tuNgay, denNgay, noiDung })
+        }).then(r => r.json());
+        showToast(res.message, res.success ? 'success' : 'error');
+        if (res.success) {
+          $('#txtTuNgay').val(''); $('#txtDenNgay').val(''); $('#txtNoiDungLich').val('');
+          taiTaiThongBaoAdmin();
+        }
+      } catch (err) { showToast('Lỗi kết nối!', 'error'); }
+    }
+
+    async function xoaLichThongBao(id) {
+      if (!confirm("Xác nhận xóa mốc lịch thông báo này?")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/xoa-lich-thong-bao`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        }).then(r => r.json());
+        showToast(res.message, "success");
+        if (res.success) { taiTaiThongBaoAdmin(); }
+      } catch (err) { showToast('Lỗi kết nối!', 'error'); }
+    }
+
+    function veBangLichThongBao(list) {
+      let html = '';
+      if (!list || list.length === 0) {
+        html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:12px;">Chưa có lịch thông báo theo ngày nào!</td></tr>';
+      } else {
+        list.forEach((item, idx) => {
+          html += `
+            <tr>
+              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td>${item.tuNgay}</td>
+              <td>${item.denNgay}</td>
+              <td>${item.noiDung}</td>
+              <td style="text-align:center;">
+                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="xoaLichThongBao('${item.id || idx}')"><i class="fa fa-trash"></i> Xóa</button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      $('#tblDanhSachLichTB').html(html);
     }
 
     function resetFormTuyen() {
