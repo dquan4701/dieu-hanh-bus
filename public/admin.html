@@ -237,7 +237,7 @@
       <ul class="sidebar-menu">
         <li><a class="active" onclick="chuyenTabAdmin('sec-tongquan', this)"><i class="fa fa-tachometer"></i> Tổng quan hệ thống</a></li>
         <li id="menuTuyen"><a onclick="chuyenTabAdmin('sec-tuyen', this)"><i class="fa fa-pencil-square-o"></i> Quản trị Tuyến & Đội xe</a></li>
-        <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Xe mẫu</a></li>
+        <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Mác xe</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
         <li id="menuLedSim"><a onclick="chuyenTabAdmin('sec-ledsim', this)"><i class="fa fa-television"></i> Giả lập LED tuyến</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
@@ -314,7 +314,6 @@
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
-                  <input type="text" id="txtXnMoi" class="form-control extra-input" placeholder="Nhập tên Xí nghiệp mới..." style="flex: 1; display:none;">
                 </div>
                 <label>Đầu A:</label>
                 <div class="input-combo">
@@ -330,7 +329,7 @@
                 <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
                 <div>
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn mác xe có sẵn từ Danh mục Xe mẫu, sức chứa tự động điền):</span>
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn Mác xe có sẵn từ Danh mục, sức chứa tự động điền):</span>
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
                   </div>
                   
@@ -340,7 +339,7 @@
                         <tr>
                           <th style="width: 40px; text-align: center;">STT</th>
                           <th style="width: 150px;">Biển kiểm soát</th>
-                          <th>Chủng loại xe (Chọn từ Danh mục mẫu)</th>
+                          <th>Mác xe (Chọn từ Danh mục mẫu)</th>
                           <th style="width: 110px;">Sức chứa</th>
                           <th style="width: 140px; text-align: center;">Chuyển tuyến</th>
                           <th style="width: 50px; text-align: center;">Xóa</th>
@@ -365,22 +364,23 @@
           </div>
         </div>
 
-        <!-- SECTION: QUẢN TRỊ DANH MỤC XE MẪU -->
+        <!-- SECTION: QUẢN TRỊ DANH MỤC MÁC XE -->
         <div id="sec-xemau" class="content-section">
           <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-car"></i> Quản trị Danh mục Mác xe & Sức chứa chuẩn</span></div>
+            <div class="panel-heading"><span><i class="fa fa-car"></i> Quản trị Danh mục Mác xe chuẩn (Nhãn hiệu + Chủng loại)</span></div>
             <div class="panel-body">
               <div style="margin-bottom: 15px; background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px;">
                 <h4 style="font-size: 12px; margin-bottom: 8px; color: #2C3E50; font-weight: bold;"><i class="fa fa-plus-circle"></i> Thêm nhanh Mác xe mẫu mới:</h4>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                  <input type="text" id="txtMauChungLoai" class="form-control" placeholder="VD: Vinfast Green Bus BNE1ELRVN" style="flex: 2; min-width: 250px;">
-                  <input type="text" id="txtMauSucChua" class="form-control" placeholder="VD: 68 chỗ" style="flex: 1; min-width: 120px;">
+                  <input type="text" id="txtMauNhieuHieu" class="form-control" placeholder="Nhãn hiệu (VD: Vinfast)" style="flex: 1; min-width: 160px;">
+                  <input type="text" id="txtMauChungLoai" class="form-control" placeholder="Chủng loại xe (VD: Green Bus BNE1ELRVN)" style="flex: 2; min-width: 250px;">
+                  <input type="text" id="txtMauSucChua" class="form-control" placeholder="Sức chứa (VD: 68 chỗ)" style="flex: 1; min-width: 120px;">
                   <button class="btn btn-primary" onclick="themXeMauMoi()"><i class="fa fa-save"></i> Thêm vào danh mục</button>
                 </div>
               </div>
 
               <div style="margin-bottom: 15px;">
-                <span style="font-size: 11px; color: #666; font-style: italic;">Hoặc dán nhanh từ Excel (Cột 1: Chủng loại xe | Cột 2: Sức chứa):</span>
+                <span style="font-size: 11px; color: #666; font-style: italic;">Hoặc dán nhanh từ Excel (Cột 1: Nhãn hiệu | Cột 2: Chủng loại | Cột 3: Sức chứa):</span>
                 <div style="display: flex; gap: 10px; margin-top: 4px;">
                   <textarea id="txtExcelXeMau" class="form-control" style="height: 50px;" placeholder="Dán danh sách mác xe mẫu từ Excel vào đây..."></textarea>
                   <button class="btn btn-success" style="height: 50px;" onclick="importXeMauExcel()">Import</button>
@@ -392,7 +392,8 @@
                   <thead>
                     <tr>
                       <th style="width: 50px; text-align: center;">STT</th>
-                      <th>Chủng loại xe (Nhãn hiệu + Model)</th>
+                      <th>Nhãn hiệu</th>
+                      <th>Chủng loại xe</th>
                       <th style="width: 130px;">Sức chứa chuẩn</th>
                       <th style="width: 100px; text-align: center;">Hành động</th>
                     </tr>
@@ -627,7 +628,7 @@
     let mapTuyenChiTiet = new Map();
     let tatCaXeHeThong = [];
     let dsBieuDoLuu = [];
-    let danhMucXeMau = []; // Danh sách mác xe mẫu
+    let danhMucXeMau = [];
     let dangLamMoi = false;
 
     function chuanHoaMaTuyen(str) {
@@ -685,16 +686,17 @@
       dangLamMoi = false;
     }
 
-    function chuanHoaTenXe(xe) {
-      let nhanHieu = (xe.nhanHieu || "").trim();
-      let chungLoai = (xe.chungLoai || "").trim();
-      if (nhanHieu && chungLoai) {
-        if (!chungLoai.toLowerCase().includes(nhanHieu.toLowerCase())) {
-          return `${nhanHieu} ${chungLoai}`;
+    // Gộp nhãn hiệu và chủng loại thành Mác xe chung
+    function gopMacXe(nhanHieu, chungLoai) {
+      let nh = (nhanHieu || "").trim();
+      let cl = (chungLoai || "").trim();
+      if (nh && cl) {
+        if (!cl.toLowerCase().includes(nh.toLowerCase())) {
+          return `${nh} ${cl}`;
         }
-        return chungLoai;
+        return cl;
       }
-      return chungLoai || nhanHieu || "";
+      return cl || nh || "";
     }
 
     function onChonTuyenDeSuaChange() {
@@ -717,7 +719,7 @@
 
         const formattedXe = xeCuaTuyen.map(x => ({
           bks: x.bks,
-          chungLoai: chuanHoaTenXe(x),
+          macXe: gopMacXe(x.nhanHieu, x.chungLoai),
           sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
         }));
         
@@ -727,10 +729,8 @@
 
     function tuDongGoiYTenTuyen() {
       const ma = $('#txtMaTuyen').val().trim();
-      const selA = $('#selDauA').val();
-      const dauA = selA || "";
-      const selB = $('#selDauB').val();
-      const dauB = selB || "";
+      const dauA = $('#selDauA').val() || "";
+      const dauB = $('#selDauB').val() || "";
 
       if (ma && dauA && dauB) {
         $('#txtTenTuyen').val(`${ma}. ${dauA} - ${dauB}`);
@@ -775,9 +775,7 @@
         doVaoSelect2("selDauA", dsDauBen, "đầu bến A");
         doVaoSelect2("selDauB", dsDauBen, "đầu bến B");
 
-        const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => {
-          return sapXepThongMinh(a.maTuyen, b.maTuyen);
-        });
+        const sortedRoutes = Array.from(mapTuyenChiTiet.values()).sort((a, b) => sapXepThongMinh(a.maTuyen, b.maTuyen));
 
         const $selSua = $('#selChonTuyenDeSua');
         $selSua.empty().append('<option value="">[+ Tạo mới một tuyến hoàn toàn]</option>');
@@ -815,7 +813,7 @@
 
           const formattedXe = xeCuaTuyen.map(x => ({
             bks: x.bks,
-            chungLoai: chuanHoaTenXe(x),
+            macXe: gopMacXe(x.nhanHieu, x.chungLoai),
             sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : ''
           }));
           renderBangXeForm(formattedXe);
@@ -825,17 +823,18 @@
       }
     }
 
-    // --- RENDER BẢNG QUẢN LÝ XE MẪU ---
+    // --- RENDER BẢNG QUẢN LÝ MÁC XE MẪU ---
     function veBangXeMauAdmin() {
       let html = '';
       if (!danhMucXeMau || danhMucXeMau.length === 0) {
-        html = '<tr><td colspan="4" style="text-align:center; color:#999; padding:15px;">Chưa có mác xe mẫu nào! Hãy thêm mới.</td></tr>';
+        html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:15px;">Chưa có mác xe mẫu nào! Hãy thêm mới.</td></tr>';
       } else {
         danhMucXeMau.sort((a, b) => sapXepThongMinh(a.chungLoai, b.chungLoai));
         danhMucXeMau.forEach((m, idx) => {
           html += `
             <tr>
               <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
+              <td>${m.nhanHieu || '-'}</td>
               <td><strong>${m.chungLoai}</strong></td>
               <td>${m.sucChua}</td>
               <td style="text-align:center;">
@@ -849,18 +848,19 @@
     }
 
     async function themXeMauMoi() {
+      const nhanHieu = $('#txtMauNhieuHieu').val().trim();
       const chungLoai = $('#txtMauChungLoai').val().trim();
       const sucChua = $('#txtMauSucChua').val().trim();
-      if (!chungLoai) { showToast("Vui lòng nhập tên chủng loại xe!", "error"); return; }
+      if (!chungLoai) { showToast("Vui lòng nhập chủng loại xe!", "error"); return; }
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/luu-xe-mau`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chungLoai, sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : '') })
+          body: JSON.stringify({ nhanHieu, chungLoai, sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : '') })
         }).then(r => r.json());
         showToast(res.message, res.success ? "success" : "error");
         if (res.success) {
-          $('#txtMauChungLoai').val(''); $('#txtMauSucChua').val('');
+          $('#txtMauNhieuHieu').val(''); $('#txtMauChungLoai').val(''); $('#txtMauSucChua').val('');
           const resMau = await fetch(`${API_BASE}/api/admin/danh-sach-xe-mau`).then(r => r.json());
           if (resMau.success) danhMucXeMau = resMau.data || [];
           veBangXeMauAdmin();
@@ -901,11 +901,11 @@
       } catch (e) { showToast("Lỗi kết nối", "error"); }
     }
 
-    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (DÙNG SELECT CHỌN MÁC XE CÓ SẴN) ---
+    // --- RENDER BẢNG LƯỚI XE TRONG FORM QUẢN TRỊ TUYẾN (CHỌN MÁC XE) ---
     function renderBangXeForm(danhSachXe = []) {
       let html = '';
       if (danhSachXe.length === 0) {
-        danhSachXe = [{ bks: '', chungLoai: '', sucChua: '' }];
+        danhSachXe = [{ bks: '', macXe: '', sucChua: '' }];
       }
 
       danhSachXe.forEach((xe, idx) => {
@@ -916,11 +916,11 @@
           }
         });
 
-        // Tạo dropdown chủng loại xe từ danh mục mẫu có sẵn
-        let mauOptions = '<option value="">-- Chọn mác xe mẫu --</option>';
+        let mauOptions = '<option value="">-- Chọn mác xe --</option>';
         danhMucXeMau.forEach(m => {
-          const isSelected = (m.chungLoai === xe.chungLoai) ? 'selected' : '';
-          mauOptions += `<option value="${m.chungLoai}" data-succhua="${m.sucChua}" ${isSelected}>${m.chungLoai} (${m.sucChua})</option>`;
+          let macFull = gopMacXe(m.nhanHieu, m.chungLoai);
+          const isSelected = (macFull === xe.macXe || m.chungLoai === xe.macXe) ? 'selected' : '';
+          mauOptions += `<option value="${macFull}" data-nhanhieu="${m.nhanHieu || ''}" data-chungloai="${m.chungLoai || ''}" data-succhua="${m.sucChua || ''}" ${isSelected}>${macFull} (${m.sucChua})</option>`;
         });
 
         html += `
@@ -928,7 +928,7 @@
             <td style="text-align: center; font-weight: bold; color: #555;">${idx + 1}</td>
             <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29F-019.79" style="height: 28px;"></td>
             <td>
-              <select class="form-control form-chungloai select2-search" style="height: 28px; font-size: 11px;" onchange="chonMauXe(this)">
+              <select class="form-control form-macxe select2-search" style="height: 28px; font-size: 11px;" onchange="chonMacXe(this)">
                 ${mauOptions}
               </select>
             </td>
@@ -948,7 +948,7 @@
       $('.select2-search').select2({ language: { noResults: () => "Không tìm thấy kết quả phù hợp" } });
     }
 
-    function chonMauXe(selectElem) {
+    function chonMacXe(selectElem) {
       const $opt = $(selectElem).find(':selected');
       const sucChua = $opt.attr('data-succhua') || "";
       const $row = $(selectElem).closest('tr');
@@ -960,11 +960,11 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $(this).find('.form-chungloai').val(),
+          macXe: $(this).find('.form-macxe').val(),
           sucChua: $(this).find('.form-succhua').val().trim()
         });
       });
-      danhSachHienTai.push({ bks: '', chungLoai: '', sucChua: '' });
+      danhSachHienTai.push({ bks: '', macXe: '', sucChua: '' });
       renderBangXeForm(danhSachHienTai);
     }
 
@@ -1010,30 +1010,33 @@
     async function xacLapTuyenVaDoiXe() {
       const maTuyen = $('#txtMaTuyen').val().trim();
       const selXnVal = $('#selXn').val();
-      const xn = selXnVal === "__NEW__" ? $('#txtXnMoi').val().trim() : selXnVal;
+      const xn = selXnVal || "Xí nghiệp xe buýt Hà Nội";
       const dauA = $('#selDauA').val() || "";
       const dauB = $('#selDauB').val() || "";
       const tenTuyen = $('#txtTenTuyen').val().trim();
       const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
 
-      if (!maTuyen || !tenTuyen || !xn) {
-        showToast("Vui lòng điền đủ Mã tuyến, Đơn vị và Tên tuyến!", "error");
+      if (!maTuyen || !tenTuyen) {
+        showToast("Vui lòng điền đủ Mã tuyến và Tên tuyến!", "error");
         return;
       }
 
       const danhSachXe = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
-        const chungLoai = $(this).find('.form-chungloai').val().trim();
+        const $opt = $(this).find('.form-macxe').find(':selected');
+        const nhanHieu = $opt.attr('data-nhanhieu') || "";
+        const chungLoai = $opt.attr('data-chungloai') || $(this).find('.form-macxe').val() || "";
         const sucChua = $(this).find('.form-succhua').val().trim();
+
         if (bks) {
-          danhSachXe.push({ bks, chungLoai, sucChua, maTuyen, xn, tenTuyen });
+          danhSachXe.push({ bks, nhanHieu, chungLoai, sucChua, maTuyen, xn, tenTuyen });
         }
       });
 
       const soXeKh = danhSachXe.length;
       const setLoai = new Set();
-      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
+      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(gopMacXe(x.nhanHieu, x.chungLoai)); });
       const loaiXe = Array.from(setLoai).join(' & ');
 
       try {
@@ -1188,7 +1191,7 @@
       if (xeTuyen.length === 0) return "";
       const setLoai = new Set();
       xeTuyen.forEach(x => {
-        let ten = chuanHoaTenXe(x);
+        let ten = gopMacXe(x.nhanHieu, x.chungLoai);
         if (ten) setLoai.add(ten);
       });
       return Array.from(setLoai).join(' & ');
