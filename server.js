@@ -454,6 +454,7 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
           maTuyen: normMa,
           nhanHieu: x.nhanHieu || '',
           chungLoai: x.chungLoai || '',
+          namSx: x.namSx || '',
           sucChua: x.sucChua || ''
         });
       }
