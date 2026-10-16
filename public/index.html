@@ -641,19 +641,33 @@
       }
     }
 
-    function timTabPhuHop(xn, tuyen, ngayChonStr, thuTrongTuần) {
+    function timTabPhuHop(xn, tuyen, ngayChonStr, thuDaChon) {
       if (!tuyen) return null;
+      
+      // Lọc chuẩn theo Xí nghiệp và Tuyến (hỗ trợ cả khớp tên đầy đủ lẫn mã tuyến ngắn)
       const maTuyenNgan = tuyen.split('.')[0].trim().toUpperCase();
       
-      // Lọc các biểu đồ thuộc tuyến này
       let dsTabCuaTuyen = danhMucData.filter(item => {
+        let matchXn = !xn || item.xn === xn;
         let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
-        return tStr.includes(maTuyenNgan) || tStr === tuyen.toUpperCase();
+        let matchTuyen = tStr.includes(tuyen.toUpperCase()) || tStr.includes(maTuyenNgan);
+        return matchXn && matchTuyen;
       });
+
+      // Nếu lọc ngặt nghèo theo XN không thấy, nới lỏng chỉ lọc theo tên/mã tuyến
+      if (dsTabCuaTuyen.length === 0) {
+        dsTabCuaTuyen = danhMucData.filter(item => {
+          let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
+          return tStr.includes(tuyen.toUpperCase()) || tStr.includes(maTuyenNgan);
+        });
+      }
 
       if (dsTabCuaTuyen.length === 0) return null;
 
-      // 1. Ưu tiên tìm tab khớp đúng ngày VÀ khớp thứ
+      // Chuẩn hóa thứ đang chọn (VD: "T2" -> "2", "CN" -> "CN")
+      let thuChuan = thuDaChon === "CN" ? "CN" : thuDaChon.replace("T", "");
+
+      // 1. Ưu tiên tìm tab khớp đúng ngày VÀ khớp thứ trong tuần
       let found = dsTabCuaTuyen.find(item => {
         let tenTab = String(item.tenTab || "");
         let info = parseTabInfo(tenTab);
@@ -662,16 +676,14 @@
         
         if (tenTab.includes('(')) {
           let ngoacContent = tenTab.substring(tenTab.indexOf('(') + 1, tenTab.lastIndexOf(')'));
-          if (ngoacContent.includes('CN') || ngoacContent.includes('-') || /\d/.test(ngoacContent)) {
-            matchDay = kiemTraThuChinhXac(thuTrongTuần, ngoacContent);
-          }
+          matchDay = kiemTraThuChinhXac(thuChuan, ngoacContent);
         }
         return matchDate && matchDay;
       });
 
       if (found) return found.tenTab;
 
-      // 2. Fallback: Lấy tab khớp đúng ngày gần nhất bất kể thứ
+      // 2. Fallback: Lấy tab khớp đúng ngày hiệu lực gần nhất bất kể thứ
       found = dsTabCuaTuyen.find(item => {
         let info = parseTabInfo(item.tenTab);
         return info.dateStr === ngayChonStr;
@@ -679,10 +691,28 @@
 
       if (found) return found.tenTab;
 
-      // 3. Fallback cuối: Lấy luôn tab đầu tiên của tuyến đó để không bị lỗi trống
+      // 3. Fallback cuối cùng: Lấy luôn tab đầu tiên tìm thấy của tuyến đó
       return dsTabCuaTuyen[0].tenTab || null;
     }
 
+    function kiemTraThuChinhXac(thuHienTai, content) {
+      content = content.trim();
+      if (content === "" || content.includes('Cả tuần') || (content.includes('2-7') && thuHienTai !== 'CN')) return true;
+      if (content === 'CN' && thuHienTai === 'CN') return true;
+      
+      if (content.includes('-')) {
+        let parts = content.split('-');
+        let start = parseInt(parts[0].replace(/\D/g, ''), 10);
+        let endStr = parts[1].replace(/\D/g, '');
+        let end = endStr ? parseInt(endStr, 10) : start;
+        let currentNum = (thuHienTai === 'CN') ? 8 : parseInt(thuHienTai, 10);
+        return currentNum >= start && currentNum <= end;
+      }
+      
+      let items = content.split(/[\,\s]+/).map(i => i.trim());
+      return items.includes(thuHienTai);
+    }
+    
     async function xemBieuDo() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
