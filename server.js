@@ -188,24 +188,37 @@ async function saveRawData(data) {
   );
 }
 
-// 1. API lấy thông báo thông minh theo ngày hiện tại cho index.html
+// 1. API lấy thông báo thông minh theo ngày & giờ hiện tại
 app.get('/api/thong-bao', async (req, res) => {
   try {
     const raw = await getRawData();
     const defaultText = raw.thongBaoChay || "";
     const scheduleList = raw.thongBaoScheduleList || [];
     
-    // Lấy ngày hiện tại theo chuẩn YYYY-MM-DD
-    const today = new Date().toISOString().split('T')[0];
+    // Lấy thời gian hiện tại theo định dạng chuỗi so sánh chuẩn (YYYY-MM-DD HH:mm)
+    const now = new Date();
+    const todayDate = now.toISOString().split('T')[0];
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
     
     let textHienThi = defaultText;
 
-    // Kiểm tra xem hôm nay có nằm trong khoảng thời gian lịch nào không
     if (Array.isArray(scheduleList)) {
       for (let item of scheduleList) {
-        if (today >= item.tuNgay && today <= item.denNgay) {
+        const tuNgay = item.tuNgay;
+        const denNgay = item.denNgay;
+        const tuGio = item.tuGio || "00:00";
+        const denGio = item.denGio || "23:59";
+
+        // Ghép thành chuỗi mốc thời gian đầy đủ để so sánh chính xác từng phút
+        const startStr = `${tuNgay} ${tuGio}`;
+        const endStr = `${denNgay} ${denGio}`;
+        const currentStr = `${todayDate} ${currentTime}`;
+
+        if (currentStr >= startStr && currentStr <= endStr) {
           textHienThi = item.noiDung;
-          break; // Khớp lịch nào thì ưu tiên lấy nội dung đó hiển thị luôn
+          break; // Khớp mốc thời gian nào thì hiển thị ngay nội dung đó
         }
       }
     }
@@ -216,37 +229,10 @@ app.get('/api/thong-bao', async (req, res) => {
   }
 });
 
-// 2. API chi tiết phục vụ trang Admin quản lý lịch
-app.get('/api/thong-bao-chi-tiet', async (req, res) => {
-  try {
-    const raw = await getRawData();
-    res.json({ 
-      success: true, 
-      defaultText: raw.thongBaoChay || "", 
-      scheduleList: raw.thongBaoScheduleList || [] 
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, defaultText: "", scheduleList: [] });
-  }
-});
-
-// 3. API lưu thông báo mặc định
-app.post('/api/admin/luu-thong-bao', async (req, res) => {
-  try {
-    const { text } = req.body;
-    const raw = await getRawData();
-    raw.thongBaoChay = text !== undefined ? text : "";
-    await saveRawDataFast(raw);
-    res.json({ success: true, message: 'Cập nhật thông báo mặc định thành công!' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 4. API thêm mới một mốc lịch thông báo theo khoảng ngày
+// 4. API thêm mới mốc lịch (có kèm giờ)
 app.post('/api/admin/them-lich-thong-bao', async (req, res) => {
   try {
-    const { tuNgay, denNgay, noiDung } = req.body;
+    const { tuNgay, tuGio, denNgay, denGio, noiDung } = req.body;
     if (!tuNgay || !denNgay || !noiDung) {
       return res.json({ success: false, message: "Thiếu thông tin ngày hoặc nội dung!" });
     }
@@ -254,21 +240,21 @@ app.post('/api/admin/them-lich-thong-bao', async (req, res) => {
     const raw = await getRawData();
     if (!raw.thongBaoScheduleList) raw.thongBaoScheduleList = [];
 
-    // Thêm mốc lịch mới vào mảng
     raw.thongBaoScheduleList.push({
       id: Date.now().toString(),
       tuNgay,
+      tuGio: tuGio || "00:00",
       denNgay,
+      denGio: denGio || "23:59",
       noiDung
     });
 
     await saveRawDataFast(raw);
-    res.json({ success: true, message: "Đã thêm lịch thông báo thành công!" });
+    res.json({ success: true, message: "Đã thêm lịch thông báo theo giờ thành công!" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
 // 5. API xóa một mốc lịch thông báo theo ID
 app.post('/api/admin/xoa-lich-thong-bao', async (req, res) => {
   try {
