@@ -41,12 +41,10 @@ async function cleanOldLogs() {
   }
 }
 
-// Hàm trích xuất ngày tháng hiệu lực từ tên tab (VD: "02 (1.5.24)" hoặc "02 (1.5.24 - 1.7.24)")
 function parseTabDate(tabName) {
   if (!tabName) return { sortKey: "00000000", dateObj: new Date(0) };
   const matches = [...String(tabName).matchAll(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/g)];
   if (matches.length > 0) {
-    // Lấy mốc ngày cuối cùng hoặc ngày đầu tiên làm chuẩn so sánh
     let m = matches[matches.length - 1];
     let d = parseInt(m[1], 10);
     let mo = parseInt(m[2], 10);
@@ -59,11 +57,11 @@ function parseTabDate(tabName) {
   return { sortKey: "00000000", dateObj: new Date(0) };
 }
 
-// HÀM ĐỒNG BỘ: CHỈ LẤY SỐ NỐT TỪ BIỂU ĐỒ MỚI NHẤT, BIỂU ĐỒ CŨ CHỈ ĐỂ THAM KHẢO/TRA CỨU
 async function cleanAndSyncData(data) {
   if (!data) return data;
   if (!Array.isArray(data.xeList)) data.xeList = [];
   if (!data.tuyenList) data.tuyenList = {};
+  if (!Array.isArray(data.danhMucXeMau)) data.danhMucXeMau = [];
 
   const uniqueXeMap = new Map();
   data.xeList.forEach(x => {
@@ -101,12 +99,11 @@ async function cleanAndSyncData(data) {
     });
   }
 
-  // Với mỗi tuyến, chỉ chọn biểu đồ có ngày hiệu lực MỚI NHẤT để tính toán số nốt vận doanh
   const maxNotMap = {};
   for (let ma in tuyenChartsMap) {
     const charts = tuyenChartsMap[ma];
     charts.sort((a, b) => a.dateInfo.dateObj - b.dateInfo.dateObj);
-    const latestChart = charts[charts.length - 1]; // Biểu đồ mới nhất
+    const latestChart = charts[charts.length - 1];
 
     if (latestChart && Array.isArray(latestChart.rawData)) {
       let maxNot = 0;
@@ -129,7 +126,6 @@ async function cleanAndSyncData(data) {
     tObj.soXe = realKh;
 
     let foundVd = maxNotMap[maT];
-    // Gán số xe vận doanh theo số nốt của biểu đồ MỚI NHẤT, bỏ qua các biểu đồ cũ
     if (foundVd && foundVd > 0) {
       tObj.soXeVd = foundVd;
     } else {
@@ -149,9 +145,6 @@ mongoose.connect(MONGO_URI)
         doc.data.taiKhoanList = [
           { username: 'quan', password: '123', role: 'master', permissions: ['tuyen', 'xe', 'bieudo'], status: 'active' }
         ];
-      }
-      if (doc.data.thongBaoChay === "Chào mừng bạn đến với Hệ thống Điều hành Buýt Transerco!") {
-        doc.data.thongBaoChay = "";
       }
       const cleanedData = await cleanAndSyncData(doc.data);
       await BusModel.findOneAndUpdate({ key: 'main_data' }, { key: 'main_data', data: cleanedData }, { upsert: true });
@@ -175,7 +168,7 @@ async function getRawData() {
     const fileData = JSON.parse(fs.readFileSync(localPath, 'utf8'));
     return await cleanAndSyncData(fileData);
   }
-  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [], thongBaoChay: "" };
+  return { tuyenList: {}, bieuDoList: [], xeList: [], taiKhoanList: [], danhMucXeMau: [], thongBaoChay: "" };
 }
 
 async function saveRawDataFast(data) {
@@ -366,6 +359,117 @@ app.post('/api/admin/xoa-tai-khoan', async (req, res) => {
     raw.taiKhoanList = raw.taiKhoanList.filter(u => u.username !== username);
     await saveRawDataFast(raw);
     res.json({ success: true, message: 'Đã xóa tài khoản thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// --- QUẢN LÝ DANH MỤC MÁC XE MẪU (KÈM NĂM SẢN XUẤT) ---
+app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
+  try {
+    const raw = await getRawData();
+    res.json({ success: true, data: raw.danhMucXeMau || [] });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/luu-xe-mau', async (req, res) => {
+  try {
+    const { chungLoai, sucChua, namSx } = req.body;
+    if (!chungLoai) return res.status(400).json({ success: false, message: 'Thiếu chủng loại xe mẫu!' });
+    const raw = await getRawData();
+    if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
+    
+    const idx = raw.danhMucXeMau.findIndex(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
+    if (idx >= 0) {
+      raw.danhMucXeMau[idx] = { chungLoai, sucChua, namSx: namSx || '' };
+    } else {
+      raw.danhMucXeMau.push({ chungLoai, sucChua, namSx: namSx || '' });
+    }
+    await saveRawDataFast(raw);
+    res.json({ success: true, message: 'Lưu mác xe mẫu thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/xoa-xe-mau', async (req, res) => {
+  try {
+    const { chungLoai } = req.body;
+    const raw = await getRawData();
+    if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
+    raw.danhMucXeMau = raw.danhMucXeMau.filter(m => m.chungLoai !== chungLoai);
+    await saveRawDataFast(raw);
+    res.json({ success: true, message: 'Đã xóa mác xe mẫu thành công!' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/import-xe-mau', async (req, res) => {
+  try {
+    const { rawText } = req.body;
+    if (!rawText) return res.status(400).json({ success: false, message: 'Thiếu dữ liệu!' });
+    const raw = await getRawData();
+    if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
+
+    const lines = rawText.split('\n');
+    let count = 0;
+    lines.forEach(line => {
+      const parts = line.split(/[\t]+/).length > 1 ? line.split(/[\t]+/).map(p => p.trim()) : line.split(/\s{2,}/).map(p => p.trim());
+      const chungLoai = parts[0];
+      const sucChua = parts[1] || '';
+      const namSx = parts[2] || '';
+      if (chungLoai) {
+        const existing = raw.danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
+        if (!existing) {
+          raw.danhMucXeMau.push({ 
+            chungLoai, 
+            sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : ''),
+            namSx 
+          });
+          count++;
+        }
+      }
+    });
+
+    await saveRawDataFast(raw);
+    res.json({ success: true, message: `Import thành công ${count} mác xe mẫu mới!` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// --- QUẢN LÝ ĐỘI XE THEO TUYẾN ---
+app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
+  try {
+    const { maTuyen, danhSachXe } = req.body;
+    if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
+    const raw = await getRawData();
+    if (!Array.isArray(raw.xeList)) raw.xeList = [];
+
+    const normMaTuyen = String(maTuyen).trim().toUpperCase();
+    const otherCars = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() !== normMaTuyen);
+    
+    const newCarsForRoute = (danhSachXe || []).map(x => ({
+      bks: String(x.bks || '').trim().toUpperCase(),
+      maTuyen: normMaTuyen,
+      chungLoai: x.chungLoai || '',
+      sucChua: x.sucChua || '',
+      nhanHieu: x.nhanHieu || '',
+      namSx: x.namSx || ''
+    })).filter(x => x.bks);
+
+    raw.xeList = [...otherCars, ...newCarsForRoute];
+
+    if (raw.tuyenList && raw.tuyenList[normMaTuyen]) {
+      raw.tuyenList[normMaTuyen].soXeKh = newCarsForRoute.length;
+      raw.tuyenList[normMaTuyen].soXe = newCarsForRoute.length;
+    }
+
+    await saveRawData(raw);
+    res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe)!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
