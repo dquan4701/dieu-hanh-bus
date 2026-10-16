@@ -188,7 +188,7 @@ async function saveRawData(data) {
   );
 }
 
-// ==================== API QUẢN TRỊ XE MẪU ====================
+// ==================== API QUẢN TRỊ MÁC XE MẪU ====================
 app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
   try {
     const raw = await getRawData();
@@ -198,16 +198,17 @@ app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
 
 app.post('/api/admin/luu-xe-mau', async (req, res) => {
   try {
-    const { chungLoai, sucChua } = req.body;
+    const { nhanHieu, chungLoai, sucChua } = req.body;
     if (!chungLoai) return res.status(400).json({ success: false, message: 'Thiếu chủng loại xe mẫu!' });
     const raw = await getRawData();
     if (!Array.isArray(raw.xeMauList)) raw.xeMauList = [];
 
     const existing = raw.xeMauList.find(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
     if (existing) {
+      existing.nhanHieu = nhanHieu || existing.nhanHieu;
       existing.sucChua = sucChua || existing.sucChua;
     } else {
-      raw.xeMauList.push({ chungLoai: chungLoai.trim(), sucChua: sucChua || '' });
+      raw.xeMauList.push({ nhanHieu: nhanHieu ? nhanHieu.trim() : '', chungLoai: chungLoai.trim(), sucChua: sucChua || '' });
     }
 
     await saveRawDataFast(raw);
@@ -238,15 +239,17 @@ app.post('/api/admin/import-xe-mau', async (req, res) => {
     lines.forEach(l => {
       const parts = l.split(/[\t]+/).map(p => p.trim());
       if (parts.length >= 1 && parts[0]) {
-        let cl = parts[0];
-        let sc = parts[1] || '';
-        if (sc && !sc.toLowerCase().includes('chỗ')) sc += ' chỗ';
+        let nhanHieu = parts.length >= 2 ? parts[0] : '';
+        let chungLoai = parts.length >= 2 ? parts[1] : parts[0];
+        let sucChua = parts.length >= 3 ? parts[2] : (parts.length === 2 ? parts[1] : '');
+        if (sucChua && !sucChua.toLowerCase().includes('chỗ')) sucChua += ' chỗ';
         
-        const exist = raw.xeMauList.find(m => m.chungLoai.toLowerCase() === cl.toLowerCase());
+        const exist = raw.xeMauList.find(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
         if (exist) {
-          exist.sucChua = sc || exist.sucChua;
+          exist.nhanHieu = nhanHieu || exist.nhanHieu;
+          exist.sucChua = sucChua || exist.sucChua;
         } else {
-          raw.xeMauList.push({ chungLoai: cl, sucChua: sc });
+          raw.xeMauList.push({ nhanHieu, chungLoai, sucChua });
           count++;
         }
       }
@@ -449,7 +452,7 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
         raw.xeList.push({
           bks: x.bks.trim().toUpperCase(),
           maTuyen: normMa,
-          nhanHieu: x.chungLoai || '',
+          nhanHieu: x.nhanHieu || '',
           chungLoai: x.chungLoai || '',
           sucChua: x.sucChua || ''
         });
