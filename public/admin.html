@@ -94,12 +94,20 @@
     .stat-card.green { border-left: 4px solid #27AE60; } .stat-card.green .icon { color: #27AE60; }
     .stat-card.orange { border-left: 4px solid #E67E22; } .stat-card.orange .icon { color: #E67E22; }
 
-    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; }
+    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; }
     .panel-heading {
       background: #EBF2F8; color: #2C3E50; padding: 10px 15px; font-size: 13px;
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
     }
-    .panel-body { padding: 18px 20px; }
+    
+    /* LINH HOẠT HÓA PANEL-BODY VÀ BẢNG TRÊN MOBILE */
+    .panel-body { 
+      padding: 18px 20px; 
+      width: 100% !important;
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .form-grid { display: grid; grid-template-columns: 160px 1fr; row-gap: 14px; column-gap: 15px; align-items: center; }
     .input-combo { display: flex; gap: 10px; max-width: 800px; width: 100%; align-items: center; flex-wrap: wrap; min-width: 0; }
     .form-control {
@@ -120,8 +128,9 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; white-space: nowrap; }
-    .table-custom th, .table-custom td { border: 1px solid #D0D7DE; padding: 6px 10px; text-align: left; vertical-align: middle; }
+    /* LOẠI BỎ SỰ CỨNG NHẮC: CHO PHÉP XUỐNG DÒNG VÀ CO GIÃN LINH HOẠT */
+    .table-custom { width: 100% !important; max-width: 100% !important; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+    .table-custom th, .table-custom td { border: 1px solid #D0D7DE; padding: 6px 10px; text-align: left; vertical-align: middle; white-space: normal !important; word-break: break-word !important; }
     .table-custom th { background-color: #F1F4F9; font-weight: bold; color: #333; }
     .table-custom tr:hover { background-color: #F8FAFC; }
     
@@ -284,21 +293,19 @@
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-list"></i> Danh sách Tuyến & Trạng thái hoạt động</span></div>
             <div class="panel-body">
-              <div style="overflow-x: auto;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th style="width: 60px; text-align: center;">Mã</th>
-                      <th>Tên Tuyến</th>
-                      <th>Đơn vị chủ quản</th>
-                      <th>Phương tiện (VD / KH)</th>
-                      <th style="width: 140px; text-align: center;">Trạng thái</th>
-                      <th style="width: 220px; text-align: center;">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblDanhSachTuyen"></tbody>
-                </table>
-              </div>
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th style="width: 60px; text-align: center;">Mã</th>
+                    <th>Tên Tuyến</th>
+                    <th>Đơn vị chủ quản</th>
+                    <th>Phương tiện (VD / KH)</th>
+                    <th style="width: 140px; text-align: center;">Trạng thái</th>
+                    <th style="width: 220px; text-align: center;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDanhSachTuyen"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -349,7 +356,7 @@
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe thủ công</button>
                   </div>
                   
-                  <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF;">
+                  <div style="border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF; overflow-x: auto;">
                     <table class="table-custom" style="margin-top: 0;">
                       <thead>
                         <tr>
@@ -405,20 +412,18 @@
                 </div>
               </div>
 
-              <div style="overflow-x: auto; max-height: 400px;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th style="width: 50px; text-align: center;">STT</th>
-                      <th>Chủng loại xe (Nhãn hiệu + Model)</th>
-                      <th style="width: 120px;">Sức chứa chuẩn</th>
-                      <th style="width: 100px;">Năm SX</th>
-                      <th style="width: 90px; text-align: center;">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblDanhSachXeMau"></tbody>
-                </table>
-              </div>
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center;">STT</th>
+                    <th>Chủng loại xe (Nhãn hiệu + Model)</th>
+                    <th style="width: 120px;">Sức chứa chuẩn</th>
+                    <th style="width: 100px;">Năm SX</th>
+                    <th style="width: 90px; text-align: center;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDanhSachXeMau"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -473,20 +478,18 @@
 
               <div style="margin-top: 25px; border-top: 1px solid #D0D7DE; padding-top: 15px;">
                 <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 10px;"><i class="fa fa-exclamation-triangle" style="color:#e67e22;"></i> Kiểm tra trạng thái Biểu đồ các tuyến:</h4>
-                <div style="overflow-x: auto; max-height: 300px;">
-                  <table class="table-custom">
-                    <thead>
-                      <tr>
-                        <th style="width: 70px; text-align: center;">Mã tuyến</th>
-                        <th>Tên Tuyến</th>
-                        <th>Tên File / Tab Biểu Đồ</th>
-                        <th style="width: 140px; text-align: center;">Trạng thái</th>
-                        <th style="width: 130px; text-align: center;">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tblTrangThaiBieuDo"></tbody>
-                  </table>
-                </div>
+                <table class="table-custom">
+                  <thead>
+                    <tr>
+                      <th style="width: 70px; text-align: center;">Mã tuyến</th>
+                      <th>Tên Tuyến</th>
+                      <th>Tên File / Tab Biểu Đồ</th>
+                      <th style="width: 140px; text-align: center;">Trạng thái</th>
+                      <th style="width: 130px; text-align: center;">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tblTrangThaiBieuDo"></tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -567,20 +570,18 @@
               </div>
 
               <!-- Bảng danh sách các lịch đã tạo -->
-              <div style="overflow-x: auto;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th style="width: 40px; text-align: center;">STT</th>
-                      <th style="width: 160px;">Thời gian bắt đầu</th>
-                      <th style="width: 160px;">Thời gian kết thúc</th>
-                      <th>Nội dung thông báo</th>
-                      <th style="width: 80px; text-align: center;">Xóa</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblDanhSachLichTB"></tbody>
-                </table>
-              </div>
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th style="width: 40px; text-align: center;">STT</th>
+                    <th style="width: 160px;">Thời gian bắt đầu</th>
+                    <th style="width: 160px;">Thời gian kết thúc</th>
+                    <th>Nội dung thông báo</th>
+                    <th style="width: 80px; text-align: center;">Xóa</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDanhSachLichTB"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -604,20 +605,18 @@
                 </div>
                 <button class="btn btn-primary" onclick="taoTaiKhoanMoi()"><i class="fa fa-user-plus"></i> Thêm</button>
               </div>
-              <div style="overflow-x: auto;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th>Tài khoản</th>
-                      <th>Kiểu</th>
-                      <th>Quyền hạn chức năng</th>
-                      <th style="width: 110px; text-align: center;">Trạng thái</th>
-                      <th style="width: 340px; text-align: center;">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblDanhSachTaiKhoan"></tbody>
-                </table>
-              </div>
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th>Tài khoản</th>
+                    <th>Kiểu</th>
+                    <th>Quyền hạn chức năng</th>
+                    <th style="width: 110px; text-align: center;">Trạng thái</th>
+                    <th style="width: 340px; text-align: center;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDanhSachTaiKhoan"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -626,21 +625,19 @@
         <div id="sec-log" class="content-section">
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-history"></i> Lịch sử Khách & Người dùng truy cập Website</span></div>
-            <div class="panel-body">
-              <div style="overflow-x: auto; max-height: 500px;">
-                <table class="table-custom">
-                  <thead>
-                    <tr>
-                      <th style="width: 50px; text-align: center;">STT</th>
-                      <th>Đối tượng / Tài khoản</th>
-                      <th>Hành động</th>
-                      <th>Địa chỉ IP</th>
-                      <th style="width: 160px; text-align: center;">Thời gian truy cập</th>
-                    </tr>
-                  </thead>
-                  <tbody id="tblDanhSachLog"></tbody>
-                </table>
-              </div>
+            <div class="panel-body" style="max-height: 500px;">
+              <table class="table-custom">
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center;">STT</th>
+                    <th>Đối tượng / Tài khoản</th>
+                    <th>Hành động</th>
+                    <th>Địa chỉ IP</th>
+                    <th style="width: 160px; text-align: center;">Thời gian truy cập</th>
+                  </tr>
+                </thead>
+                <tbody id="tblDanhSachLog"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -963,7 +960,6 @@
       } else {
         danhMucXeMau.sort((a, b) => sapXepThongMinh(a.chungLoai, b.chungLoai));
         danhMucXeMau.forEach((m, idx) => {
-          let uniqueKey = `${m.chungLoai}___${m.namSx || ''}`;
           html += `
             <tr>
               <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
