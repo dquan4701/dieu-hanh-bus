@@ -795,28 +795,6 @@
       } catch (err) { showToast('Lỗi kết nối!', 'error'); }
     }
 
-    function veBangLichThongBao(list) {
-      let html = '';
-      if (!list || list.length === 0) {
-        html = '<tr><td colspan="5" style="text-align:center; color:#999; padding:12px;">Chưa có lịch thông báo theo ngày nào!</td></tr>';
-      } else {
-        list.forEach((item, idx) => {
-          html += `
-            <tr>
-              <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
-              <td>${item.tuNgay}</td>
-              <td>${item.denNgay}</td>
-              <td>${item.noiDung}</td>
-              <td style="text-align:center;">
-                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px;" onclick="xoaLichThongBao('${item.id || idx}')"><i class="fa fa-trash"></i> Xóa</button>
-              </td>
-            </tr>
-          `;
-        });
-      }
-      $('#tblDanhSachLichTB').html(html);
-    }
-
     function resetFormTuyen() {
       dangLamMoi = true;
       $('#selChonTuyenDeSua').val("").trigger('change.select2');
@@ -1351,18 +1329,18 @@
       const soTuyen = $('#inputLedSo').val().trim() || "BRT01";
       const loTrinh = $('#inputLedLoTrinh').val().trim() || "BX KIM MÃ -> BX YÊN NGHĨA";
       $('#ledDisplayNum').text(soTuyen);
-      const $track = $('#ledTrack');
-      const $text = $('#ledDisplayText');
-      const $copy = $('#ledDisplayTextCopy');
-      const $wrap = $track.parent();
+      const $track =$('#ledTrack');
+      const $text =$('#ledDisplayText');
+      const $copy =$('#ledDisplayTextCopy');
+      const $wrap =$track.parent();
       const khoangCach = "     ➔     ";
-      $text.text(loTrinh); $copy.text(loTrinh + khoangCach);
-      $track.removeClass('marquee'); $copy.hide();
+      $text.text(loTrinh);$copy.text(loTrinh + khoangCach);
+      $track.removeClass('marquee');$copy.hide();
       setTimeout(() => {
-        if ($text[0].scrollWidth > $wrap[0].clientWidth) {
-          $copy.show(); $track.addClass('marquee');
+        if ($text[0].scrollWidth >$wrap[0].clientWidth) {
+          $copy.show();$track.addClass('marquee');
         } else {
-          $track.removeClass('marquee'); $copy.hide();
+          $track.removeClass('marquee');$copy.hide();
         }
       }, 50);
     }
@@ -1407,7 +1385,6 @@
         if (ten) setLoai.add(ten);
       });
       
-      // Chuyển tập hợp các loại xe thành chuỗi nối nhau bằng dấu &
       return Array.from(setLoai).join(' & ');
     }
 
@@ -1427,10 +1404,8 @@
 
           let phuongTienStr = `<strong style="color:#0F86DB;">${vdCount}/${khCount} xe</strong>`;
           
-          // Lấy loại xe trực tiếp từ danh mục xe mẫu chuẩn xác nhất
           const setLoai = new Set();
           xeCuaTuyen.forEach(x => {
-            // Đối chiếu xem xe này thuộc mác nào trong danh mục xe mẫu hiện tại
             let mauChuan = danhMucXeMau.find(m => m.chungLoai === x.chungLoai || m.chungLoai === chuanHoaTenXe(x));
             let tenHienThi = mauChuan ? mauChuan.chungLoai : chuanHoaTenXe(x);
             if (tenHienThi) setLoai.add(tenHienThi);
@@ -1461,8 +1436,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);
-      $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -1477,11 +1451,10 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel = $('#' + elemId);
+      const $sel =$('#' + elemId);
       $sel.empty().append(`<option value="">Chọn ${label}</option>`);
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
-      sortedArray.forEach(val => $sel.append(new Option(val, val))); 
-      $sel.trigger('change.select2');
+      sortedArray.forEach(val => $sel.append(new Option(val, val)));$sel.trigger('change.select2');
     }
 
     function onSelectTuyenChange() {
@@ -1491,13 +1464,12 @@
     }
 
     function toggleCaTuan(elem) {
-      const isChecked = $(elem).prop('checked');
-      $('.chk-ngay-le').prop('checked', isChecked);
+      const isChecked = $(elem).prop('checked');$('.chk-ngay-le').prop('checked', isChecked);
       tuDongTaoTenTab();
     }
 
     function onCheckboxDayChange() {
-      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
+      const allChecked = $('.chk-ngay-le').length ===$('.chk-ngay-le:checked').length;
       $('#chkCaTuan').prop('checked', allChecked);
       tuDongTaoTenTab();
     }
@@ -1790,23 +1762,23 @@
     }
 
     async function xoaTatCaXeMau() {
-  if (!confirm("Cảnh báo: Thao tác này chỉ xóa danh mục mác xe mẫu, hoàn toàn KHÔNG ảnh hưởng đến xe của các tuyến. Bạn có chắc chắn muốn xóa không?")) return;
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/xoa-tat-ca-xe-mau`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }).then(r => r.json());
-    
-    if (res.success) {
-      showToast(res.message || "Đã dọn sạch danh mục xe mẫu!", "success");
-      location.reload();
-    } else {
-      showToast(res.message || "Lỗi khi xóa!", "error");
+      if (!confirm("Cảnh báo: Thao tác này chỉ xóa danh mục mác xe mẫu, hoàn toàn KHÔNG ảnh hưởng đến xe của các tuyến. Bạn có chắc chắn muốn xóa không?")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/xoa-tat-ca-xe-mau`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(r => r.json());
+        
+        if (res.success) {
+          showToast(res.message || "Đã dọn sạch danh mục xe mẫu!", "success");
+          location.reload();
+        } else {
+          showToast(res.message || "Lỗi khi xóa!", "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối máy chủ!", "error");
+      }
     }
-  } catch (err) {
-    showToast("Lỗi kết nối máy chủ!", "error");
-  }
-}
   </script>
 </body>
 </html>
