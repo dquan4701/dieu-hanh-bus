@@ -1703,8 +1703,13 @@
         const res = await fetch(`${API_BASE}/api/admin/xoa-tai-khoan`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username })
         }).then(r => r.json());
-        showToast(res.message, "success"); taiDanhSachTaiKhoan();
-      } catch (e) { showToast("Lỗi thao tác", "error"); }
+        showToast(res.message, "success"); 
+        taiDanhSachTaiKhoan();
+      } catch (e) { 
+        showToast("Lỗi thao tác", "error"); 
+      }
+    }
+
     async function xoaTatCaXe() {
       if (!confirm("Cảnh báo: Xóa sạch toàn bộ danh sách xe luôn nhé?")) return;
       try {
