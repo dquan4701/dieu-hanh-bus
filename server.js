@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Khuyến nghị: Đưa chuỗi kết nối vào biến môi trường trên Render, tránh lộ mật khẩu trong code
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dquan4701_db_user:Quanbus123456@cluster0.sur3koa.mongodb.net/dieuhanhbus?retryWrites=true&w=majority';
 
 app.use(cors());
@@ -38,6 +39,41 @@ async function cleanOldLogs() {
     await AccessLogModel.deleteMany({ createdAt: { $lt: thirtyDaysAgo } });
   } catch (e) {
     console.error("Lỗi dọn dẹp log cũ:", e);
+  }
+}
+
+// --- MIDDLEWARE BẢO MẬT & XÁC THỰC QUẢN TRỊ (Theo góp ý của bạn ông) ---
+async function verifyAdmin(req, res, next) {
+  try {
+    // Lấy thông tin người thực hiện từ header hoặc body do client gửi lên
+    const username = req.headers['x-admin-user'] || req.body.actorUsername;
+    if (!username) {
+      return res.status(401).json({ success: false, message: 'Chưa xác thực danh tính quản trị viên!' });
+    }
+    const raw = await getRawData();
+    const user = (raw.taiKhoanList || []).find(u => u.username === username && u.status === 'active');
+    if (!user) {
+      return res.status(403).json({ success: false, message: 'Tài khoản không hợp lệ hoặc đã bị tạm khóa!' });
+    }
+    req.adminUser = user; // Gắn thông tin user đã được server kiểm chứng vào request
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Lỗi xác thực hệ thống: ' + err.message });
+  }
+}
+
+// Hàm ghi log an toàn dựa trên thông tin đã xác thực từ Server
+async function recordLog(req, actionDesc) {
+  try {
+    const user = req.adminUser;
+    const username = user ? user.username : 'Hệ thống';
+    const role = user ? user.role : 'staff';
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    
+    await AccessLogModel.create({ username, role, action: actionDesc, ip });
+    await cleanOldLogs();
+  } catch (e) {
+    console.error("Lỗi ghi log:", e);
   }
 }
 
@@ -138,7 +174,7 @@ async function cleanAndSyncData(data) {
 
 mongoose.connect(MONGO_URI)
   .then(async () => {
-    console.log('>>> Ket noi thanh cong MongoDB Atlas!');
+    console.log('>>> Kết nối thành công MongoDB Atlas!');
     const doc = await BusModel.findOne({ key: 'main_data' });
     if (doc && doc.data) {
       if (!doc.data.taiKhoanList || doc.data.taiKhoanList.length === 0) {
@@ -151,7 +187,7 @@ mongoose.connect(MONGO_URI)
       console.log('>>> Đã tự động làm sạch và đồng bộ dữ liệu thành công!');
     }
   })
-  .catch(err => console.error('>>> Loi ket noi MongoDB:', err));
+  .catch(err => console.error('>>> Lỗi kết nối MongoDB:', err));
 
 async function getRawData() {
   try {
@@ -160,7 +196,7 @@ async function getRawData() {
       return await cleanAndSyncData(doc.data);
     }
   } catch (err) {
-    console.error('Loi doc db:', err);
+    console.error('Lỗi đọc db:', err);
   }
   
   const localPath = path.join(__dirname, 'bus_full_data.json');
@@ -188,14 +224,13 @@ async function saveRawData(data) {
   );
 }
 
-// 1. API lấy thông báo thông minh theo ngày & giờ hiện tại cho index.html
+// API Thông báo
 app.get('/api/thong-bao', async (req, res) => {
   try {
     const raw = await getRawData();
     const defaultText = raw.thongBaoChay || "";
     const scheduleList = raw.thongBaoScheduleList || [];
     
-    // Lấy thời gian hiện tại theo chuẩn YYYY-MM-DD và HH:mm
     const now = new Date();
     const todayDate = now.toISOString().split('T')[0];
     const hours = String(now.getHours()).padStart(2, '0');
@@ -204,7 +239,6 @@ app.get('/api/thong-bao', async (req, res) => {
     
     let textHienThi = defaultText;
 
-    // Kiểm tra danh sách lịch xem có mốc nào khớp khoảng thời gian hiện tại không
     if (Array.isArray(scheduleList)) {
       for (let item of scheduleList) {
         const tuNgay = item.tuNgay;
@@ -218,7 +252,7 @@ app.get('/api/thong-bao', async (req, res) => {
 
         if (currentStr >= startStr && currentStr <= endStr) {
           textHienThi = item.noiDung;
-          break; // Khớp mốc nào thì ưu tiên hiển thị nội dung đó
+          break;
         }
       }
     }
@@ -229,7 +263,6 @@ app.get('/api/thong-bao', async (req, res) => {
   }
 });
 
-// 2. API chi tiết phục vụ trang Admin quản lý lịch
 app.get('/api/thong-bao-chi-tiet', async (req, res) => {
   try {
     const raw = await getRawData();
@@ -243,21 +276,21 @@ app.get('/api/thong-bao-chi-tiet', async (req, res) => {
   }
 });
 
-// 3. API lưu thông báo mặc định
-app.post('/api/admin/luu-thong-bao', async (req, res) => {
+// Các API quản trị được bảo vệ bởi middleware verifyAdmin
+app.post('/api/admin/luu-thong-bao', verifyAdmin, async (req, res) => {
   try {
     const { text } = req.body;
     const raw = await getRawData();
     raw.thongBaoChay = text !== undefined ? text : "";
     await saveRawDataFast(raw);
+    await recordLog(req, 'Cập nhật thông báo mặc định');
     res.json({ success: true, message: 'Cập nhật thông báo mặc định thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// 4. API thêm mới một mốc lịch thông báo (có kèm giờ)
-app.post('/api/admin/them-lich-thong-bao', async (req, res) => {
+app.post('/api/admin/them-lich-thong-bao', verifyAdmin, async (req, res) => {
   try {
     const { tuNgay, tuGio, denNgay, denGio, noiDung } = req.body;
     if (!tuNgay || !denNgay || !noiDung) {
@@ -267,7 +300,6 @@ app.post('/api/admin/them-lich-thong-bao', async (req, res) => {
     const raw = await getRawData();
     if (!raw.thongBaoScheduleList) raw.thongBaoScheduleList = [];
 
-    // Thêm mốc lịch mới kèm theo giờ bắt đầu và kết thúc
     raw.thongBaoScheduleList.push({
       id: Date.now().toString(),
       tuNgay,
@@ -278,13 +310,14 @@ app.post('/api/admin/them-lich-thong-bao', async (req, res) => {
     });
 
     await saveRawDataFast(raw);
-    res.json({ success: true, message: "Đã thêm lịch thông báo theo giờ thành công!" });
+    await recordLog(req, 'Thêm lịch thông báo theo giờ');
+    res.json({ success: true, message: "Đã thêm lịch thông báo thành công!" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-// 5. API xóa một mốc lịch thông báo theo ID
-app.post('/api/admin/xoa-lich-thong-bao', async (req, res) => {
+
+app.post('/api/admin/xoa-lich-thong-bao', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.body;
     const raw = await getRawData();
@@ -293,7 +326,7 @@ app.post('/api/admin/xoa-lich-thong-bao', async (req, res) => {
       raw.thongBaoScheduleList = raw.thongBaoScheduleList.filter(item => item.id !== id);
       await saveRawDataFast(raw);
     }
-
+    await recordLog(req, 'Xóa lịch thông báo');
     res.json({ success: true, message: "Đã xóa mốc lịch thành công!" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -319,7 +352,7 @@ app.post('/api/log-access', async (req, res) => {
   }
 });
 
-app.get('/api/admin/danh-sach-log', async (req, res) => {
+app.get('/api/admin/danh-sach-log', verifyAdmin, async (req, res) => {
   try {
     const logs = await AccessLogModel.find().sort({ createdAt: -1 }).limit(200);
     res.json({ success: true, data: logs });
@@ -366,7 +399,7 @@ app.post('/api/admin/login', async (req, res) => {
   }
 });
 
-app.get('/api/admin/danh-sach-tai-khoan', async (req, res) => {
+app.get('/api/admin/danh-sach-tai-khoan', verifyAdmin, async (req, res) => {
   try {
     const raw = await getRawData();
     res.json({ success: true, data: raw.taiKhoanList || [] });
@@ -375,20 +408,20 @@ app.get('/api/admin/danh-sach-tai-khoan', async (req, res) => {
   }
 });
 
-app.post('/api/admin/dang-ky', async (req, res) => {
+app.post('/api/admin/dang-ky', verifyAdmin, async (req, res) => {
   try {
-    const { username, password, role, permissions } = req.body;
-    if (!username || !password) return res.status(400).json({ success: false, message: 'Thiếu thông tin tài khoản!' });
+    const { targetUsername, password, role, permissions } = req.body;
+    if (!targetUsername || !password) return res.status(400).json({ success: false, message: 'Thiếu thông tin tài khoản mới!' });
 
     const raw = await getRawData();
     if (!raw.taiKhoanList) raw.taiKhoanList = [];
 
-    if (raw.taiKhoanList.some(u => u.username === username)) {
+    if (raw.taiKhoanList.some(u => u.username === targetUsername)) {
       return res.status(400).json({ success: false, message: 'Tên tài khoản đã tồn tại!' });
     }
 
     raw.taiKhoanList.push({
-      username,
+      username: targetUsername,
       password,
       role: role || 'staff',
       permissions: permissions || [],
@@ -396,19 +429,20 @@ app.post('/api/admin/dang-ky', async (req, res) => {
     });
 
     await saveRawDataFast(raw);
+    await recordLog(req, `Tạo tài khoản quản trị mới [${targetUsername}]`);
     res.json({ success: true, message: 'Tạo tài khoản thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/sua-tai-khoan', async (req, res) => {
+app.post('/api/admin/sua-tai-khoan', verifyAdmin, async (req, res) => {
   try {
-    const { username, status, role, permissions } = req.body;
+    const { targetUsername, status, role, permissions } = req.body;
     const raw = await getRawData();
     if (!raw.taiKhoanList) raw.taiKhoanList = [];
 
-    const user = raw.taiKhoanList.find(u => u.username === username);
+    const user = raw.taiKhoanList.find(u => u.username === targetUsername);
     if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản!' });
 
     if (status) user.status = status;
@@ -416,46 +450,49 @@ app.post('/api/admin/sua-tai-khoan', async (req, res) => {
     if (permissions) user.permissions = permissions;
 
     await saveRawDataFast(raw);
+    await recordLog(req, `Cập nhật thông tin tài khoản [${targetUsername}]`);
     res.json({ success: true, message: 'Cập nhật tài khoản thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/doi-mat-khau', async (req, res) => {
+app.post('/api/admin/doi-mat-khau', verifyAdmin, async (req, res) => {
   try {
-    const { username, newPassword } = req.body;
-    if (!username || !newPassword) return res.status(400).json({ success: false, message: 'Thiếu thông tin mật khẩu mới!' });
+    const { targetUsername, newPassword } = req.body;
+    if (!targetUsername || !newPassword) return res.status(400).json({ success: false, message: 'Thiếu thông tin mật khẩu mới!' });
 
     const raw = await getRawData();
     if (!raw.taiKhoanList) raw.taiKhoanList = [];
 
-    const user = raw.taiKhoanList.find(u => u.username === username);
+    const user = raw.taiKhoanList.find(u => u.username === targetUsername);
     if (!user) return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản!' });
 
     user.password = newPassword;
     await saveRawDataFast(raw);
-    res.json({ success: true, message: `Đã đổi mật khẩu cho tài khoản [${username}] thành công!` });
+    await recordLog(req, `Đổi mật khẩu cho tài khoản [${targetUsername}]`);
+    res.json({ success: true, message: `Đã đổi mật khẩu cho tài khoản [${targetUsername}] thành công!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/xoa-tai-khoan', async (req, res) => {
+app.post('/api/admin/xoa-tai-khoan', verifyAdmin, async (req, res) => {
   try {
-    const { username } = req.body;
+    const { targetUsername } = req.body;
     const raw = await getRawData();
     if (!raw.taiKhoanList) raw.taiKhoanList = [];
 
-    raw.taiKhoanList = raw.taiKhoanList.filter(u => u.username !== username);
+    raw.taiKhoanList = raw.taiKhoanList.filter(u => u.username !== targetUsername);
     await saveRawDataFast(raw);
+    await recordLog(req, `Xóa tài khoản [${targetUsername}]`);
     res.json({ success: true, message: 'Đã xóa tài khoản thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-// --- QUẢN LÝ DANH MỤC MÁC XE MẪU (KÈM NĂM SẢN XUẤT) ---
+// --- QUẢN LÝ DANH MỤC MÁC XE MẪU (SỬA LỖI XÓA CHÍNH XÁC THEO CHỦNG LOẠI & NĂM SX) ---
 app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
   try {
     const raw = await getRawData();
@@ -465,14 +502,13 @@ app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
   }
 });
 
-app.post('/api/admin/luu-xe-mau', async (req, res) => {
+app.post('/api/admin/luu-xe-mau', verifyAdmin, async (req, res) => {
   try {
     const { chungLoai, sucChua, namSx } = req.body;
     if (!chungLoai) return res.status(400).json({ success: false, message: 'Thiếu chủng loại xe mẫu!' });
     const raw = await getRawData();
     if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
     
-    // Kiểm tra trùng khớp CẢ CHỦNG LOẠI VÀ NĂM SẢN XUẤT
     const cleanNamSx = String(namSx || '').trim();
     const idx = raw.danhMucXeMau.findIndex(m => 
       m.chungLoai.toLowerCase() === chungLoai.toLowerCase() && 
@@ -480,34 +516,37 @@ app.post('/api/admin/luu-xe-mau', async (req, res) => {
     );
 
     if (idx >= 0) {
-      // Nếu trùng cả tên lẫn năm thì cập nhật sức chứa mới
       raw.danhMucXeMau[idx] = { chungLoai, sucChua, namSx: cleanNamSx };
     } else {
-      // Nếu cùng tên nhưng KHÁC NĂM thì push thành dòng hoàn toàn mới độc lập
       raw.danhMucXeMau.push({ chungLoai, sucChua, namSx: cleanNamSx });
     }
     
     await saveRawDataFast(raw);
+    await recordLog(req, `Lưu mác xe mẫu [${chungLoai} - Năm ${cleanNamSx || 'N/A'}]`);
     res.json({ success: true, message: 'Lưu mác xe mẫu thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/xoa-xe-mau', async (req, res) => {
+app.post('/api/admin/xoa-xe-mau', verifyAdmin, async (req, res) => {
   try {
-    const { chungLoai } = req.body;
+    const { chungLoai, namSx } = req.body;
     const raw = await getRawData();
     if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
-    raw.danhMucXeMau = raw.danhMucXeMau.filter(m => m.chungLoai !== chungLoai);
+    const cleanNamSx = String(namSx || '').trim();
+    
+    raw.danhMucXeMau = raw.danhMucXeMau.filter(m => !(m.chungLoai === chungLoai && String(m.namSx || '').trim() === cleanNamSx));
+    
     await saveRawDataFast(raw);
+    await recordLog(req, `Xóa mác xe mẫu [${chungLoai} - Năm ${cleanNamSx || 'N/A'}]`);
     res.json({ success: true, message: 'Đã xóa mác xe mẫu thành công!' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
-app.post('/api/admin/import-xe-mau', async (req, res) => {
+app.post('/api/admin/import-xe-mau', verifyAdmin, async (req, res) => {
   try {
     const { rawText } = req.body;
     if (!rawText) return res.status(400).json({ success: false, message: 'Thiếu dữ liệu!' });
@@ -522,12 +561,13 @@ app.post('/api/admin/import-xe-mau', async (req, res) => {
       const sucChua = parts[1] || '';
       const namSx = parts[2] || '';
       if (chungLoai) {
-        const existing = raw.danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
+        const cleanNamSx = String(namSx || '').trim();
+        const existing = raw.danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase() && String(m.namSx || '').trim() === cleanNamSx);
         if (!existing) {
           raw.danhMucXeMau.push({ 
             chungLoai, 
             sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : ''),
-            namSx 
+            namSx: cleanNamSx 
           });
           count++;
         }
@@ -535,14 +575,27 @@ app.post('/api/admin/import-xe-mau', async (req, res) => {
     });
 
     await saveRawDataFast(raw);
+    await recordLog(req, `Import ${count} mác xe mẫu từ Excel`);
     res.json({ success: true, message: `Import thành công ${count} mác xe mẫu mới!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
 
+app.post('/api/admin/xoa-tat-ca-xe-mau', verifyAdmin, async (req, res) => {
+  try {
+    const raw = await getRawData();
+    raw.danhMucXeMau = [];
+    await saveRawDataFast(raw);
+    await recordLog(req, 'Xóa tất cả danh mục mác xe mẫu');
+    res.json({ success: true, message: "Đã dọn sạch danh mục mác xe mẫu thành công!" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // --- QUẢN LÝ ĐỘI XE THEO TUYẾN ---
-app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
+app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
   try {
     const { maTuyen, danhSachXe } = req.body;
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
@@ -558,7 +611,6 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
       let inputChungLoai = x.chungLoai || '';
       let inputNamSx = String(x.namSx || '').trim();
 
-      // Phải đối chiếu theo CẢ TÊN CHỦNG LOẠI LẪN NĂM SẢN XUẤT thì mới chuẩn xác
       let mauChuan = raw.danhMucXeMau.find(m => 
         m.chungLoai.toLowerCase() === inputChungLoai.toLowerCase() && 
         String(m.namSx || '').trim() === inputNamSx
@@ -570,7 +622,7 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
         chungLoai: mauChuan ? mauChuan.chungLoai : inputChungLoai,
         sucChua: mauChuan ? mauChuan.sucChua : (x.sucChua || ''),
         nhanHieu: x.nhanHieu || '',
-        namSx: mauChuan ? mauChuan.namSx : inputNamSx // Lấy đúng năm sản xuất người dùng chọn
+        namSx: mauChuan ? mauChuan.namSx : inputNamSx
       };
     }).filter(x => x.bks);
 
@@ -582,11 +634,13 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
     }
 
     await saveRawData(raw);
+    await recordLog(req, `Cập nhật đội xe tuyến [${normMaTuyen}] (${newCarsForRoute.length} xe)`);
     res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe), đã đồng bộ với danh mục mẫu!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
 app.get('/api/danh-muc', async (req, res) => {
   try {
     const isAdmin = req.query.admin === 'true';
@@ -658,11 +712,15 @@ app.get('/api/bus-data', async (req, res) => {
   try { const data = await getRawData(); res.json(data); } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-app.post(['/api/bus-data', '/api/save-data'], async (req, res) => {
-  try { await saveRawData(req.body); res.json({ success: true, message: 'Lưu thành công!' }); } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+app.post(['/api/bus-data', '/api/save-data'], verifyAdmin, async (req, res) => {
+  try { 
+    await saveRawData(req.body); 
+    await recordLog(req, 'Lưu dữ liệu tổng hệ thống');
+    res.json({ success: true, message: 'Lưu thành công!' }); 
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-app.post(['/api/save-tuyen', '/api/tuyen-moi'], async (req, res) => {
+app.post(['/api/save-tuyen', '/api/tuyen-moi'], verifyAdmin, async (req, res) => {
   try {
     const { maTuyen, tenTuyen, xn, dauA, dauB, soXeVd, soXeKh, loaiXe, sucChua, status } = req.body;
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
@@ -679,22 +737,24 @@ app.post(['/api/save-tuyen', '/api/tuyen-moi'], async (req, res) => {
     };
 
     await saveRawDataFast(raw);
+    await recordLog(req, `Lưu thông tin tuyến [${maTuyen}]`);
     res.json({ success: true, message: 'Lưu tuyến thành công!' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/toggle-status-tuyen', async (req, res) => {
+app.post('/api/toggle-status-tuyen', verifyAdmin, async (req, res) => {
   try {
     const { maTuyen, status } = req.body;
     const raw = await getRawData();
     if (!raw.tuyenList || !raw.tuyenList[maTuyen]) return res.status(404).json({ success: false, message: 'Không tìm thấy mã tuyến!' });
     raw.tuyenList[maTuyen].status = status;
     await saveRawDataFast(raw);
+    await recordLog(req, `Đổi trạng thái tuyến [${maTuyen}] sang [${status}]`);
     res.json({ success: true, message: 'Cập nhật trạng thái thành công!' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/luu-bieu-do', async (req, res) => {
+app.post('/api/luu-bieu-do', verifyAdmin, async (req, res) => {
   try {
     const { xn, tuyen, bieuDo, tenTab, rawData } = req.body;
     if (!tenTab || !rawData) return res.status(400).json({ success: false, message: 'Thiếu dữ liệu!' });
@@ -705,17 +765,19 @@ app.post('/api/luu-bieu-do', async (req, res) => {
     if (idx >= 0) raw.bieuDoList[idx] = newTabObj;
     else raw.bieuDoList.push(newTabObj);
     await saveRawDataFast(raw);
+    await recordLog(req, `Lưu biểu đồ chạy xe [${tenTab}]`);
     res.json({ success: true, message: 'Lưu biểu đồ thành công!' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/xoa-bieu-do', async (req, res) => {
+app.post('/api/xoa-bieu-do', verifyAdmin, async (req, res) => {
   try {
     const { tenTab } = req.body;
     const raw = await getRawData();
     if (!Array.isArray(raw.bieuDoList)) raw.bieuDoList = [];
     raw.bieuDoList = raw.bieuDoList.filter(b => String(b.tenTab || '').trim() !== String(tenTab).trim());
     await saveRawDataFast(raw);
+    await recordLog(req, `Xóa biểu đồ [${tenTab}]`);
     res.json({ success: true, message: 'Đã xóa biểu đồ!' });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
@@ -751,7 +813,7 @@ app.get('/api/tim-kiem-xe', async (req, res) => {
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) => {
+app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], verifyAdmin, async (req, res) => {
   try {
     const { rawText } = req.body;
     if (!rawText) return res.status(400).json({ success: false, message: 'Thiếu dữ liệu!' });
@@ -778,7 +840,7 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     if (!currentMaTuyen) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Không tìm thấy thông tin tuyến ở dòng tiêu đề! Vui lòng đặt dòng đầu có dạng: [MãTuyến]: [Tên Lộ Trình]' 
+        message: 'Không tìm thấy thông tin tuyến ở dòng tiêu đề!' 
       });
     }
 
@@ -831,11 +893,12 @@ app.post(['/api/import-xe-excel', '/api/import-danh-sach-xe'], async (req, res) 
     }
     
     await saveRawData(raw);
+    await recordLog(req, `Import ${importedCars.length} xe vào tuyến [${currentMaTuyen}] từ Excel`);
     res.json({ success: true, message: `Bóc tách và nạp thành công ${importedCars.length} xe vào tuyến ${currentMaTuyen}!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/xoa-xe', async (req, res) => {
+app.post('/api/xoa-xe', verifyAdmin, async (req, res) => {
   try {
     const { bks } = req.body;
     if (!bks) return res.status(400).json({ success: false, message: 'Thiếu biển kiểm soát xe cần xóa!' });
@@ -850,11 +913,12 @@ app.post('/api/xoa-xe', async (req, res) => {
     }
 
     await saveRawData(raw);
+    await recordLog(req, `Xóa xe [${bks}] khỏi hệ thống`);
     res.json({ success: true, message: `Đã xóa thành công xe [${bks}] khỏi hệ thống!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/dieu-chuyen-xe', async (req, res) => {
+app.post('/api/dieu-chuyen-xe', verifyAdmin, async (req, res) => {
   try {
     const { bks, tuyenMoi } = req.body;
     if (!bks || !tuyenMoi) return res.status(400).json({ success: false, message: 'Thiếu thông tin điều chuyển!' });
@@ -864,11 +928,12 @@ app.post('/api/dieu-chuyen-xe', async (req, res) => {
     if (!xe) return res.status(404).json({ success: false, message: 'Không tìm thấy biển kiểm soát xe!' });
     xe.maTuyen = String(tuyenMoi).trim().toUpperCase();
     await saveRawDataFast(raw);
+    await recordLog(req, `Điều chuyển xe [${bks}] sang tuyến [${tuyenMoi}]`);
     res.json({ success: true, message: `Đã điều chuyển xe [${bks}] sang tuyến [${tuyenMoi}] thành công!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
 
-app.post('/api/dieu-chuyen-xe-hang-loat', async (req, res) => {
+app.post('/api/dieu-chuyen-xe-hang-loat', verifyAdmin, async (req, res) => {
   try {
     const { bksList, tuyenMoi } = req.body;
     if (!bksList || !Array.isArray(bksList) || bksList.length === 0 || !tuyenMoi) {
@@ -887,18 +952,9 @@ app.post('/api/dieu-chuyen-xe-hang-loat', async (req, res) => {
     });
 
     await saveRawDataFast(raw);
+    await recordLog(req, `Điều chuyển hàng loạt ${count} xe sang tuyến [${tuyenMoi}]`);
     res.json({ success: true, message: `Đã điều chuyển thành công ${count} xe sang tuyến [${tuyenMoi}]!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-});
-app.post('/api/admin/xoa-tat-ca-xe-mau', async (req, res) => {
-  try {
-    const raw = await getRawData();
-    raw.danhMucXeMau = [];
-    await saveRawDataFast(raw);
-    res.json({ success: true, message: "Đã dọn sạch danh mục mác xe mẫu thành công!" });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
 });
 
 app.listen(PORT, () => {
