@@ -377,6 +377,7 @@
                   <input type="text" id="txtMauSucChua" class="form-control" placeholder="VD: 68 chỗ" style="flex: 1; min-width: 100px;">
                   <input type="text" id="txtMauNamSx" class="form-control" placeholder="VD: 2024" style="flex: 1; min-width: 90px;">
                   <button class="btn btn-primary" onclick="themXeMauMoi()"><i class="fa fa-save"></i> Thêm vào danh mục</button>
+                  <button class="btn btn-danger" onclick="xoaTatCaXe()"><i class="fa fa-trash"></i> Xóa tất cả</button>
                 </div>
               </div>
 
@@ -1704,6 +1705,23 @@
         }).then(r => r.json());
         showToast(res.message, "success"); taiDanhSachTaiKhoan();
       } catch (e) { showToast("Lỗi thao tác", "error"); }
+    async function xoaTatCaXe() {
+      if (!confirm("Cảnh báo: Xóa sạch toàn bộ danh sách xe luôn nhé?")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/xoa-tat-ca-xe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).then(r => r.json());
+        if (res.success) {
+          showToast(res.message || "Đã dọn sạch sẽ!", "success");
+          if (typeof taiLaiDanhSachXe === 'function') taiLaiDanhSachXe();
+          else location.reload();
+        } else {
+          showToast(res.message || "Lỗi khi xóa!", "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối máy chủ!", "error");
+      }
     }
   </script>
 </body>
