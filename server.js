@@ -472,12 +472,21 @@ app.post('/api/admin/luu-xe-mau', async (req, res) => {
     const raw = await getRawData();
     if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
     
-    const idx = raw.danhMucXeMau.findIndex(m => m.chungLoai.toLowerCase() === chungLoai.toLowerCase());
+    // Kiểm tra trùng khớp CẢ CHỦNG LOẠI VÀ NĂM SẢN XUẤT
+    const cleanNamSx = String(namSx || '').trim();
+    const idx = raw.danhMucXeMau.findIndex(m => 
+      m.chungLoai.toLowerCase() === chungLoai.toLowerCase() && 
+      String(m.namSx || '').trim() === cleanNamSx
+    );
+
     if (idx >= 0) {
-      raw.danhMucXeMau[idx] = { chungLoai, sucChua, namSx: namSx || '' };
+      // Nếu trùng cả tên lẫn năm thì cập nhật sức chứa mới
+      raw.danhMucXeMau[idx] = { chungLoai, sucChua, namSx: cleanNamSx };
     } else {
-      raw.danhMucXeMau.push({ chungLoai, sucChua, namSx: namSx || '' });
+      // Nếu cùng tên nhưng KHÁC NĂM thì push thành dòng hoàn toàn mới độc lập
+      raw.danhMucXeMau.push({ chungLoai, sucChua, namSx: cleanNamSx });
     }
+    
     await saveRawDataFast(raw);
     res.json({ success: true, message: 'Lưu mác xe mẫu thành công!' });
   } catch (err) {
