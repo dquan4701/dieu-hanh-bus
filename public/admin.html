@@ -1067,8 +1067,12 @@
 
         let mauOptions = '<option value="">-- Chọn mác xe mẫu --</option>';
         danhMucXeMau.forEach(m => {
-          const isSelected = (m.chungLoai === xe.chungLoai && (!xe.namSx || String(m.namSx) === String(xe.namSx))) ? 'selected' : '';
-          mauOptions += `<option value="${m.chungLoai}" data-succhua="${m.sucChua || ''}" data-namsx="${m.namSx || ''}" ${isSelected}>${m.chungLoai} (Năm ${m.namSx || 'N/A'}, ${m.sucChua || 'N/A'})</option>`;
+          // Tạo khóa duy nhất cho option gồm Tên + Năm để phân biệt rõ ràng
+          const optKey = `${m.chungLoai}___${m.namSx || ''}`;
+          const xeKey = `${xe.chungLoai}___${xe.namSx || ''}`;
+          const isSelected = (optKey === xeKey) ? 'selected' : '';
+          
+          mauOptions += `<option value="${optKey}" data-chungloai="${m.chungLoai.replace(/"/g, '&quot;')}" data-succhua="${m.sucChua || ''}" data-namsx="${m.namSx || ''}" ${isSelected}>${m.chungLoai} (Năm ${m.namSx || 'N/A'}, ${m.sucChua || 'N/A'})</option>`;
         });
 
         html += `
@@ -1098,20 +1102,24 @@
     }
 
     function chonMauXe(selectElem) {
-      const $opt = $(selectElem).find(':selected');
+      const $opt =$(selectElem).find(':selected');
+      const chungLoai = $opt.attr('data-chungloai') || "";
       const sucChua = $opt.attr('data-succhua') || "";
       const namSx = $opt.attr('data-namsx') || "";
-      const $row = $(selectElem).closest('tr');
-      $row.find('.form-succhua').val(sucChua);
-      $row.find('.form-namsx').val(namSx);
+      const $row =$(selectElem).closest('tr');
+      
+      // Lưu trữ trực tiếp tên chuẩn và năm vào row để lúc lưu không bị lệch
+      $row.attr('data-chungloai-chuan', chungLoai);
+      $row.find('.form-succhua').val(sucChua);$row.find('.form-namsx').val(namSx);
     }
 
     function themDongXeMoi() {
       let danhSachHienTai = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
+        const $opt =$(this).find('.form-chungloai').find(':selected');
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $(this).find('.form-chungloai').val(),
+          chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
           sucChua: $(this).find('.form-succhua').val().trim(),
           namSx: $(this).find('.form-namsx').val().trim()
         });
@@ -1139,9 +1147,10 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         if (bks) {
+          const $opt =$(this).find('.form-chungloai').find(':selected');
           xeHienTai.push({
             bks: bks,
-            chungLoai: $(this).find('.form-chungloai').val(),
+            chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
             sucChua: $(this).find('.form-succhua').val().trim(),
             namSx: $(this).find('.form-namsx').val().trim()
           });
@@ -1238,9 +1247,11 @@
       const danhSachXe = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
-        const chungLoai = $(this).find('.form-chungloai').val().trim();
+        const $opt =$(this).find('.form-chungloai').find(':selected');
+        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
         const sucChua = $(this).find('.form-succhua').val().trim();
         const namSx = $(this).find('.form-namsx').val().trim();
+        
         if (bks) {
           danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
         }
@@ -1268,7 +1279,6 @@
         showToast("Lỗi kết nối: " + err, "error");
       }
     }
-
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
