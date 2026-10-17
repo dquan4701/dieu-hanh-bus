@@ -963,14 +963,15 @@
       } else {
         danhMucXeMau.sort((a, b) => sapXepThongMinh(a.chungLoai, b.chungLoai));
         danhMucXeMau.forEach((m, idx) => {
+          let uniqueKey = `${m.chungLoai}___${m.namSx || ''}`;
           html += `
             <tr>
               <td style="text-align:center; font-weight:bold;">${idx + 1}</td>
               <td><strong>${m.chungLoai}</strong></td>
               <td>${m.sucChua || '-'}</td>
-              <td>${m.namSx || '-'}</td>
+              <td><strong>${m.namSx || '-'}</strong></td>
               <td style="text-align:center;">
-                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px; height:26px;" onclick="xoaXeMau('${m.chungLoai}')"><i class="fa fa-trash"></i> Xóa</button>
+                <button class="btn btn-danger" style="padding:2px 6px; font-size:10px; height:26px;" onclick="xoaXeMau('${m.chungLoai.replace(/'/g, "\\'")}', '${m.namSx || ''}')"><i class="fa fa-trash"></i> Xóa</button>
               </td>
             </tr>
           `;
@@ -990,8 +991,8 @@
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
             chungLoai, 
-            sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : ''),
-            namSx 
+            namSx, 
+            sucChua: sucChua.toLowerCase().includes('chỗ') ? sucChua : (sucChua ? `${sucChua} chỗ` : '')
           })
         }).then(r => r.json());
         showToast(res.message, res.success ? "success" : "error");
@@ -1004,16 +1005,16 @@
       } catch (e) { showToast("Lỗi kết nối", "error"); }
     }
 
-    async function xoaXeMau(chungLoai) {
-      if (!confirm(`Xác nhận xóa mác xe [${chungLoai}] khỏi danh mục mẫu?`)) return;
+    async function xoaXeMau(chungLoai, namSx) {
+      if (!confirm(`Xác nhận xóa mác xe [${chungLoai} - Năm ${namSx || 'N/A'}] khỏi danh mục mẫu?`)) return;
       try {
         const res = await fetch(`${API_BASE}/api/admin/xoa-xe-mau`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chungLoai })
+          body: JSON.stringify({ chungLoai, namSx })
         }).then(r => r.json());
         showToast(res.message, "success");
         if (res.success) {
-          danhMucXeMau = danhMucXeMau.filter(m => m.chungLoai !== chungLoai);
+          danhMucXeMau = danhMucXeMau.filter(m => !(m.chungLoai === chungLoai && String(m.namSx || '') === String(namSx || '')));
           veBangXeMauAdmin();
         }
       } catch (e) { showToast("Lỗi kết nối", "error"); }
@@ -1053,8 +1054,8 @@
 
         let mauOptions = '<option value="">-- Chọn mác xe mẫu --</option>';
         danhMucXeMau.forEach(m => {
-          const isSelected = (m.chungLoai === xe.chungLoai) ? 'selected' : '';
-          mauOptions += `<option value="${m.chungLoai}" data-succhua="${m.sucChua || ''}" data-namsx="${m.namSx || ''}" ${isSelected}>${m.chungLoai} (${m.sucChua || 'N/A'}, ${m.namSx || 'N/A'})</option>`;
+          const isSelected = (m.chungLoai === xe.chungLoai && (!xe.namSx || String(m.namSx) === String(xe.namSx))) ? 'selected' : '';
+          mauOptions += `<option value="${m.chungLoai}" data-succhua="${m.sucChua || ''}" data-namsx="${m.namSx || ''}" ${isSelected}>${m.chungLoai} (Năm ${m.namSx || 'N/A'}, ${m.sucChua || 'N/A'})</option>`;
         });
 
         html += `
@@ -1144,7 +1145,10 @@
         let namSxInput = cols[3] || "";
 
         if (bksInput) {
-          let mauChuan = danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoaiInput.toLowerCase());
+          let mauChuan = danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoaiInput.toLowerCase() && (!namSxInput || String(m.namSx) === String(namSxInput)));
+          if (!mauChuan) {
+            mauChuan = danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoaiInput.toLowerCase());
+          }
           
           let finalChungLoai = mauChuan ? mauChuan.chungLoai : chungLoaiInput;
           let finalSucChua = mauChuan ? mauChuan.sucChua : (sucChuaInput ? (sucChuaInput.toLowerCase().includes('chỗ') ? sucChuaInput : `${sucChuaInput} chỗ`) : '');
