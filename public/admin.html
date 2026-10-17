@@ -100,7 +100,6 @@
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
     }
     
-    /* --- CẤU HÌNH LINH HOẠT CHO PANEL-BODY VÀ BẢNG --- */
     .panel-body { 
       padding: 18px 20px; 
       width: 100% !important;
@@ -128,7 +127,6 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    /* --- BẢNG THÔNG MINH, KHÔNG BẺ DỌC CHỮ --- */
     .table-custom { 
       width: 100% !important; 
       border-collapse: collapse; 
@@ -165,7 +163,6 @@
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
-    /* --- TỐI ƯU GIAO DIỆN DI ĐỘNG --- */
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; row-gap: 6px; }
       .sidebar { position: fixed; height: 100vh; }
@@ -173,7 +170,6 @@
       .table-custom { font-size: 11px; }
       .table-custom th, .table-custom td { padding: 6px 8px; }
       
-      /* Tự động thu gọn các nút bấm thao tác trên điện thoại */
       .table-custom .btn {
         padding: 2px 6px !important;
         font-size: 10px !important;
@@ -1101,21 +1097,24 @@
     }
 
     function chonMauXe(selectElem) {
-      const $opt =$(selectElem).find(':selected');
+      const $opt = $(selectElem).find(':selected');
       const chungLoai = $opt.attr('data-chungloai') || "";
       const sucChua = $opt.attr('data-succhua') || "";
       const namSx = $opt.attr('data-namsx') || "";
-      const $row = $(selectElem).closest('tr');$row.attr('data-chungloai-chuan', chungLoai);
-      $row.find('.form-succhua').val(sucChua);$row.find('.form-namsx').val(namSx);
+      const $row = $(selectElem).closest('tr');
+      
+      $row.attr('data-chungloai-chuan', chungLoai);
+      $row.find('.form-succhua').val(sucChua);
+      $row.find('.form-namsx').val(namSx);
     }
 
     function themDongXeMoi() {
       let danhSachHienTai = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
-        const $opt =$(this).find('.form-chungloai').find(':selected');
+        const $opt = $(this).find('.form-chungloai').find(':selected');
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
+          chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
           sucChua: $(this).find('.form-succhua').val().trim(),
           namSx: $(this).find('.form-namsx').val().trim()
         });
@@ -1143,10 +1142,10 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         if (bks) {
-          const $opt =$(this).find('.form-chungloai').find(':selected');
+          const $opt = $(this).find('.form-chungloai').find(':selected');
           xeHienTai.push({
             bks: bks,
-            chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
+            chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
             sucChua: $(this).find('.form-succhua').val().trim(),
             namSx: $(this).find('.form-namsx').val().trim()
           });
@@ -1276,62 +1275,6 @@
       }
     }
 
-    async function taiToanBoXeAdminQuiet() {
-      try {
-        const res = await fetch(`${API_BASE}/api/tim-kiem-xe?q=`).then(r => r.json());
-        if (res.success) { tatCaXeHeThong = res.data || []; }
-      } catch (err) {}
-    }
-
-    async function xacLapTuyenVaDoiXe() {
-      const maTuyen = $('#txtMaTuyen').val().trim();
-      const selXnVal = $('#selXn').val();
-      const xn = selXnVal === "__NEW__" ? $('#txtXnMoi').val().trim() : selXnVal;
-      const dauA = $('#selDauA').val() || "";
-      const dauB = $('#selDauB').val() || "";
-      const tenTuyen = $('#txtTenTuyen').val().trim();
-      const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
-
-      if (!maTuyen || !tenTuyen || !xn) {
-        showToast("Vui lòng điền đủ Mã tuyến, Đơn vị và Tên tuyến!", "error");
-        return;
-      }
-
-      const danhSachXe = [];
-      $('#tblFormDanhSachXe .xe-row-item').each(function() {
-        const bks = $(this).find('.form-bks').val().trim();
-        const $opt =$(this).find('.form-chungloai').find(':selected');
-        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
-        const sucChua = $(this).find('.form-succhua').val().trim();
-        const namSx = $(this).find('.form-namsx').val().trim();
-        
-        if (bks) {
-          danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
-        }
-      });
-
-      const soXeKh = danhSachXe.length;
-      const setLoai = new Set();
-      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
-      const loaiXe = Array.from(setLoai).join(' & ');
-
-      try {
-        const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
-        }).then(r => r.json());
-
-        const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ maTuyen, danhSachXe })
-        }).then(r => r.json());
-
-        showToast("Đã lưu thành công Tuyến & Đội xe!", "success");
-        await napDuLieuTong(maTuyen);
-      } catch (err) {
-        showToast("Lỗi kết nối: " + err, "error");
-      }
-    }
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
