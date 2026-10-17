@@ -539,18 +539,28 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
     const raw = await getRawData();
     if (!Array.isArray(raw.xeList)) raw.xeList = [];
+    if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
 
     const normMaTuyen = String(maTuyen).trim().toUpperCase();
     const otherCars = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() !== normMaTuyen);
     
-    const newCarsForRoute = (danhSachXe || []).map(x => ({
-      bks: String(x.bks || '').trim().toUpperCase(),
-      maTuyen: normMaTuyen,
-      chungLoai: x.chungLoai || '',
-      sucChua: x.sucChua || '',
-      nhanHieu: x.nhanHieu || '',
-      namSx: x.namSx || ''
-    })).filter(x => x.bks);
+    const newCarsForRoute = (danhSachXe || []).map(x => {
+      let bksUpper = String(x.bks || '').trim().toUpperCase();
+      let inputChungLoai = x.chungLoai || '';
+
+      // Tự động đối chiếu với Danh mục xe mẫu để lấy thông tin chuẩn xác nhất
+      let mauChuan = raw.danhMucXeMau.find(m => m.chungLoai.toLowerCase() === inputChungLoai.toLowerCase());
+
+      return {
+        bks: bksUpper,
+        maTuyen: normMaTuyen,
+        // Nếu khớp danh mục mẫu, ưu tiên lấy chuẩn từ mẫu; nếu không lấy giá trị người dùng nhập
+        chungLoai: mauChuan ? mauChuan.chungLoai : inputChungLoai,
+        sucChua: mauChuan ? mauChuan.sucChua : (x.sucChua || ''),
+        nhanHieu: x.nhanHieu || '',
+        namSx: mauChuan ? mauChuan.namSx : (x.namSx || '')
+      };
+    }).filter(x => x.bks);
 
     raw.xeList = [...otherCars, ...newCarsForRoute];
 
@@ -560,12 +570,11 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
     }
 
     await saveRawData(raw);
-    res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe)!` });
+    res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe), đã đồng bộ với danh mục mẫu!` });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });
-
 app.get('/api/danh-muc', async (req, res) => {
   try {
     const isAdmin = req.query.admin === 'true';
