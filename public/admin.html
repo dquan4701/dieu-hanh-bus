@@ -1119,7 +1119,7 @@
         const $opt =$(this).find('.form-chungloai').find(':selected');
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
+          chungLoai: $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0],
           sucChua: $(this).find('.form-succhua').val().trim(),
           namSx: $(this).find('.form-namsx').val().trim()
         });
@@ -1150,7 +1150,7 @@
           const $opt =$(this).find('.form-chungloai').find(':selected');
           xeHienTai.push({
             bks: bks,
-            chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
+            chungLoai: $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0],
             sucChua: $(this).find('.form-succhua').val().trim(),
             namSx: $(this).find('.form-namsx').val().trim()
           });
