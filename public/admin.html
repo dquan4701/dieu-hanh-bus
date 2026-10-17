@@ -328,9 +328,19 @@
                 
                 <label style="color:#2980B9; font-weight:bold;">Đội xe Kế hoạch:</label>
                 <div>
+                  <!-- KHUNG IMPORT NHANH DANH SÁCH XE RIÊNG CHO TUYẾN NÀY -->
+                  <div style="margin-bottom: 12px; background: #F8FAFC; padding: 10px 12px; border: 1px solid #D0D7DE; border-radius: 6px;">
+                    <span style="font-size: 11px; color: #2C3E50; font-weight: bold;"><i class="fa fa-file-excel-o" style="color: #27AE60;"></i> Dán nhanh danh sách xe từ Excel cho tuyến này:</span>
+                    <div style="font-size: 10px; color: #666; margin-bottom: 4px; font-style: italic;">(Cấu trúc các cột: Biển số | Chủng loại xe | Sức chứa | Năm sản xuất — copy trực tiếp từ Excel dán vào đây)</div>
+                    <div style="display: flex; gap: 8px;">
+                      <textarea id="txtImportXeTuyenRieng" class="form-control" style="height: 48px; font-size: 11px;" placeholder="Ví dụ:&#10;29F-019.79	Vinfast Green Bus BNE1ELRVN	68 chỗ	2024&#10;29F-020.12	Thaco TB85S	40 chỗ	2023"></textarea>
+                      <button type="button" class="btn btn-success" style="height: 48px; font-size: 11px; white-space: nowrap;" onclick="importXeChoTuyenHienTai()"><i class="fa fa-upload"></i> Import vào tuyến</button>
+                    </div>
+                  </div>
+
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Thêm xe (chọn mác xe có sẵn từ Danh mục Xe mẫu, sức chứa và năm SX tự động điền):</span>
-                    <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe</button>
+                    <span style="font-size: 11px; color: #666; font-style: italic;">Danh sách phương tiện thuộc tuyến hiện tại:</span>
+                    <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe thủ công</button>
                   </div>
                   
                   <div style="overflow-x: auto; border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF;">
@@ -1117,6 +1127,68 @@
         $(this).find('td:first').text(i + 1);
       });
     }
+
+    function importXeChoTuyenHienTai() {
+      const rawText = $('#txtImportXeTuyenRieng').val().trim();
+      if (!rawText) {
+        showToast("Vui lòng dán danh sách xe từ Excel vào ô!", "error");
+        return;
+      }
+
+      const lines = rawText.split("\n");
+      let xeHienTai = [];
+
+      $('#tblFormDanhSachXe .xe-row-item').each(function() {
+        const bks = $(this).find('.form-bks').val().trim();
+        if (bks) {
+          xeHienTai.push({
+            bks: bks,
+            chungLoai: $(this).find('.form-chungloai').val(),
+            sucChua: $(this).find('.form-succhua').val().trim(),
+            namSx: $(this).find('.form-namsx').val().trim()
+          });
+        }
+      });
+
+      let countAdded = 0;
+      lines.forEach(line => {
+        if (!line.trim()) return;
+        const cols = line.split("\t").map(c => c.trim());
+        const bksInput = cols[0] || "";
+        const chungLoaiInput = cols[1] || "";
+        let sucChuaInput = cols[2] || "";
+        let namSxInput = cols[3] || "";
+
+        if (bksInput) {
+          let mauChuan = danhMucXeMau.find(m => m.chungLoai.toLowerCase() === chungLoaiInput.toLowerCase());
+          
+          let finalChungLoai = mauChuan ? mauChuan.chungLoai : chungLoaiInput;
+          let finalSucChua = mauChuan ? mauChuan.sucChua : (sucChuaInput ? (sucChuaInput.toLowerCase().includes('chỗ') ? sucChuaInput : `${sucChuaInput} chỗ`) : '');
+          let finalNamSx = mauChuan ? mauChuan.namSx : namSxInput;
+
+          if (!xeHienTai.some(x => x.bks.toUpperCase() === bksInput.toUpperCase())) {
+            xeHienTai.push({
+              bks: bksInput.toUpperCase(),
+              chungLoai: finalChungLoai,
+              sucChua: finalSucChua,
+              namSx: finalNamSx
+            });
+            countAdded++;
+          }
+        }
+      });
+
+      if (countAdded > 0) {
+        renderBangXeForm(xeHienTai);
+        $('#txtImportXeTuyenRieng').val('');
+        showToast(`Đã import thành công ${countAdded} xe vào tuyến này!`, "success");
+      } else {
+        showToast("Không tìm thấy biển số mới hợp lệ hoặc xe đã tồn tại trong tuyến!", "error");
+      }
+    }
+
+    async function thucHienChuyenTuyenNgay(selectElem, bks) {
+      // ... các hàm bên dưới giữ nguyên không đổi ...
 
     async function thucHienChuyenTuyenNgay(selectElem, bks) {
       const tuyenMoi = $(selectElem).val();
