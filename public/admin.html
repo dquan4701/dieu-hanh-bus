@@ -100,6 +100,7 @@
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
     }
     
+    /* --- CẤU HÌNH LINH HOẠT CHO PANEL-BODY VÀ BẢNG --- */
     .panel-body { 
       padding: 18px 20px; 
       width: 100% !important;
@@ -127,6 +128,7 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
+    /* --- BẢNG THÔNG MINH, KHÔNG BẺ DỌC CHỮ --- */
     .table-custom { 
       width: 100% !important; 
       border-collapse: collapse; 
@@ -163,6 +165,7 @@
     @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
+    /* --- TỐI ƯU GIAO DIỆN DI ĐỘNG --- */
     @media (max-width: 768px) {
       .form-grid { grid-template-columns: 1fr; row-gap: 6px; }
       .sidebar { position: fixed; height: 100vh; }
@@ -170,6 +173,7 @@
       .table-custom { font-size: 11px; }
       .table-custom th, .table-custom td { padding: 6px 8px; }
       
+      /* Tự động thu gọn các nút bấm thao tác trên điện thoại */
       .table-custom .btn {
         padding: 2px 6px !important;
         font-size: 10px !important;
@@ -1063,6 +1067,7 @@
 
         let mauOptions = '<option value="">-- Chọn mác xe mẫu --</option>';
         danhMucXeMau.forEach(m => {
+          // Tạo khóa duy nhất cho option gồm Tên + Năm để phân biệt rõ ràng
           const optKey = `${m.chungLoai}___${m.namSx || ''}`;
           const xeKey = `${xe.chungLoai}___${xe.namSx || ''}`;
           const isSelected = (optKey === xeKey) ? 'selected' : '';
@@ -1097,24 +1102,24 @@
     }
 
     function chonMauXe(selectElem) {
-      const $opt = $(selectElem).find(':selected');
+      const $opt =$(selectElem).find(':selected');
       const chungLoai = $opt.attr('data-chungloai') || "";
       const sucChua = $opt.attr('data-succhua') || "";
       const namSx = $opt.attr('data-namsx') || "";
-      const $row = $(selectElem).closest('tr');
+      const $row =$(selectElem).closest('tr');
       
+      // Lưu trữ trực tiếp tên chuẩn và năm vào row để lúc lưu không bị lệch
       $row.attr('data-chungloai-chuan', chungLoai);
-      $row.find('.form-succhua').val(sucChua);
-      $row.find('.form-namsx').val(namSx);
+      $row.find('.form-succhua').val(sucChua);$row.find('.form-namsx').val(namSx);
     }
 
     function themDongXeMoi() {
       let danhSachHienTai = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
-        const $opt = $(this).find('.form-chungloai').find(':selected');
+        const $opt =$(this).find('.form-chungloai').find(':selected');
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
+          chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
           sucChua: $(this).find('.form-succhua').val().trim(),
           namSx: $(this).find('.form-namsx').val().trim()
         });
@@ -1142,10 +1147,10 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         if (bks) {
-          const $opt = $(this).find('.form-chungloai').find(':selected');
+          const $opt =$(this).find('.form-chungloai').find(':selected');
           xeHienTai.push({
             bks: bks,
-            chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
+            chungLoai: $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0],
             sucChua: $(this).find('.form-succhua').val().trim(),
             namSx: $(this).find('.form-namsx').val().trim()
           });
