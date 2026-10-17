@@ -1357,7 +1357,17 @@
           const vdCount = t.soXeVd || "?";
 
           let phuongTienStr = `<strong style="color:#0F86DB;">${vdCount}/${khCount} xe</strong>`;
-          let loaiXeHienThi = t.loaiXe || tuDongLayLoaiXeCuaTuyen(t.maTuyen);
+          
+          // Lấy loại xe trực tiếp từ danh mục xe mẫu chuẩn xác nhất
+          const setLoai = new Set();
+          xeCuaTuyen.forEach(x => {
+            // Đối chiếu xem xe này thuộc mác nào trong danh mục xe mẫu hiện tại
+            let mauChuan = danhMucXeMau.find(m => m.chungLoai === x.chungLoai || m.chungLoai === chuanHoaTenXe(x));
+            let tenHienThi = mauChuan ? mauChuan.chungLoai : chuanHoaTenXe(x);
+            if (tenHienThi) setLoai.add(tenHienThi);
+          });
+          
+          let loaiXeHienThi = Array.from(setLoai).join(' & ');
           if (loaiXeHienThi) {
             phuongTienStr += `<div style="color: #444; font-weight: normal; margin-top: 2px; line-height: 1.2;">${loaiXeHienThi}</div>`;
           }
