@@ -703,7 +703,7 @@
     function sapXepThongMinh(a, b) {
       let strA = String(a || "").trim();
       let strB = String(b || "").trim();
-      return strA.localeCompare(strB, undefined, { numeric: true, sensitivity: 'base' });
+      return strA.localeCompare(strB, 'vi', { numeric: true, sensitivity: 'base' });
     }
 
     $(document).ready(function() {
