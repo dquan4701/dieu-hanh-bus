@@ -556,18 +556,21 @@ app.post('/api/admin/luu-doi-xe-tuyen', async (req, res) => {
     const newCarsForRoute = (danhSachXe || []).map(x => {
       let bksUpper = String(x.bks || '').trim().toUpperCase();
       let inputChungLoai = x.chungLoai || '';
+      let inputNamSx = String(x.namSx || '').trim();
 
-      // Tự động đối chiếu với Danh mục xe mẫu để lấy thông tin chuẩn xác nhất
-      let mauChuan = raw.danhMucXeMau.find(m => m.chungLoai.toLowerCase() === inputChungLoai.toLowerCase());
+      // Phải đối chiếu theo CẢ TÊN CHỦNG LOẠI LẪN NĂM SẢN XUẤT thì mới chuẩn xác
+      let mauChuan = raw.danhMucXeMau.find(m => 
+        m.chungLoai.toLowerCase() === inputChungLoai.toLowerCase() && 
+        String(m.namSx || '').trim() === inputNamSx
+      );
 
       return {
         bks: bksUpper,
         maTuyen: normMaTuyen,
-        // Nếu khớp danh mục mẫu, ưu tiên lấy chuẩn từ mẫu; nếu không lấy giá trị người dùng nhập
         chungLoai: mauChuan ? mauChuan.chungLoai : inputChungLoai,
         sucChua: mauChuan ? mauChuan.sucChua : (x.sucChua || ''),
         nhanHieu: x.nhanHieu || '',
-        namSx: mauChuan ? mauChuan.namSx : (x.namSx || '')
+        namSx: mauChuan ? mauChuan.namSx : inputNamSx // Lấy đúng năm sản xuất người dùng chọn
       };
     }).filter(x => x.bks);
 
