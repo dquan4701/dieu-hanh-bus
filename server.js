@@ -869,12 +869,12 @@ app.post('/api/dieu-chuyen-xe-hang-loat', async (req, res) => {
     res.json({ success: true, message: `Đã điều chuyển thành công ${count} xe sang tuyến [${tuyenMoi}]!` });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });
-app.post('/api/admin/xoa-tat-ca-xe', async (req, res) => {
+app.post('/api/admin/xoa-tat-ca-xe-mau', async (req, res) => {
   try {
     const raw = await getRawData();
-    raw.xeList = []; // Đặt mảng xe về rỗng
+    raw.danhMucXeMau = [];
     await saveRawDataFast(raw);
-    res.json({ success: true, message: "Đã dọn sạch dữ liệu xe thành công!" });
+    res.json({ success: true, message: "Đã dọn sạch danh mục mác xe mẫu thành công!" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
