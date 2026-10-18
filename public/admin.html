@@ -301,7 +301,6 @@
         <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Xe mẫu</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
-        <li id="menuLed"><a onclick="chuyenTabAdmin('sec-led', this)"><i class="fa fa-desktop"></i> Giả lập LED tuyến</a></li>
         <li id="menuQuanTriUser" style="display:none;"><a onclick="chuyenTabAdmin('sec-users', this)"><i class="fa fa-users"></i> Quản trị người dùng</a></li>
         <li id="menuLog" style="display:none;"><a onclick="chuyenTabAdmin('sec-log', this)"><i class="fa fa-history"></i> Nhật ký truy cập web</a></li>
         <li><a href="index.html"><i class="fa fa-arrow-left"></i> Về trang tra cứu</a></li>
@@ -599,36 +598,6 @@
                   </thead>
                   <tbody id="tblDanhSachLichTB"></tbody>
                 </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION: GIẢ LẬP LED TUYẾN -->
-        <div id="sec-led" class="content-section">
-          <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-desktop"></i> Giả lập Bảng LED Tuyến & Thiết bị hiển thị</span></div>
-            <div class="panel-body">
-              <div class="form-grid" style="margin-bottom: 15px;">
-                <label>Chọn tuyến xem LED:</label>
-                <div class="input-combo">
-                  <select id="selLedTuyen" class="form-control select2-search" style="width: 100%;" onchange="capNhatGiaoDienLed()"><option value="">Chọn tuyến</option></select>
-                </div>
-                <label>Kiểu hiển thị:</label>
-                <div class="input-combo">
-                  <select id="selLedKieu" class="form-control" onchange="capNhatGiaoDienLed()">
-                    <option value="front">Biển LED Trước (Mã tuyến + Đầu bến)</option>
-                    <option value="side">Biển LED Hông (Lộ trình chi tiết)</option>
-                    <option value="rear">Biển LED Sau (Số hiệu tuyến)</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div style="background: #111; padding: 25px; border-radius: 8px; border: 4px solid #333; text-align: center; margin-top: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
-                <div id="ledScreen" style="font-family: 'Share Tech Mono', monospace; font-size: 36px; color: #FF3300; text-shadow: 0 0 10px #FF3300, 0 0 20px rgba(255,51,0,0.5); letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 10px;">
-                  01 BẾN XE GIÁT - BẾN XE YÊN NGHĨA
-                </div>
-                <div style="color: #666; font-size: 11px; margin-top: 10px; font-family: sans-serif;">MÔ PHỎNG THỜI GIAN THỰC TRÊN THIẾT BỊ LED OMNIBUS</div>
               </div>
             </div>
           </div>
