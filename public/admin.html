@@ -737,7 +737,13 @@
     let danhMucXeMau = [];
     let dangLamMoi = false;
 
-    / Hàm làm sạch và chuẩn hóa sức chứa xe, triệt tiêu lỗi lặp từ "chỗ chỗ"
+    // Hàm chuẩn hóa mã tuyến
+    function chuanHoaMaTuyen(str) {
+      if (!str) return "";
+      return String(str).trim().toUpperCase().replace(/\s+/g, '');
+    }
+
+    // Hàm làm sạch và chuẩn hóa sức chứa xe, triệt tiêu lỗi lặp từ "chỗ chỗ"
     function chuanHoaSucChua(val) {
       if (!val) return '';
       let s = String(val).trim();
@@ -746,11 +752,6 @@
         return `${s} chỗ`;
       }
       return s;
-    }
-
-    function chuanHoaMaTuyen(str) {
-      if (!str) return "";
-      return String(str).trim().toUpperCase().replace(/\s+/g, '');
     }
 
     function sapXepThongMinh(a, b) {
@@ -1004,7 +1005,7 @@
           const formattedXe = xeCuaTuyen.map(x => ({
             bks: x.bks,
             chungLoai: chuanHoaTenXe(x),
-            sucChua: chuanHoaSucChua(x.sucChua),
+            sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : '',
             namSx: x.namSx || ''
           }));
           renderBangXeForm(formattedXe);
@@ -1327,7 +1328,7 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         const $opt =$(this).find('.form-chungloai').find(':selected');
-        const chungLoai = $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0] || '';
+        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
         const sucChua = chuanHoaSucChua($(this).find('.form-succhua').val().trim());
         const namSx = $(this).find('.form-namsx').val().trim();
         
@@ -1366,7 +1367,7 @@
       } catch (err) {
         showToast("Lỗi kết nối: " + err, "error");
       }
-    } // <--- ĐÃ VÁ THÊM DẤU ĐÓNG NÀY ĐỂ KHỚP HÀM xacLapTuyenVaDoiXe()
+    } // <--- Đã đóng ngoặc hàm xacLapTuyenVaDoiXe() chuẩn xác tại đây
 
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
