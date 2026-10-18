@@ -128,7 +128,6 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; }
 
-    /* CSS Bọc Bảng & Tối ưu hiển thị Responsive */
     .table-responsive-wrapper {
       width: 100%;
       background: #fff;
@@ -174,36 +173,28 @@
     @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
 
     @media (max-width: 768px) {
-  /* 1. Ép toàn bộ khung nhập liệu và select không bị tràn màn hình iOS */
-  input.form-control, select.form-control, textarea.form-control {
-    font-size: 16px !important; /* Chống iOS tự động zoom khi focus vào input */
-    max-width: 100% !important;
-  }
-
-  /* 2. Tối ưu bố cục khung lên lịch thông báo (Từ ngày - Giờ) trên di động */
-  #sec-thongbao .form-grid, #sec-thongbao div[style*="grid-template-columns"] {
-    grid-template-columns: 1fr !important; /* Chuyển thành 1 cột dọc trên mobile để không bị ép chữ */
-    gap: 8px !important;
-  }
-
-  /* 3. Cố định cứng độ rộng bảng danh sách tuyến & bảng xe để có thanh trượt ngang mượt mà */
-  .table-responsive-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid #D0D7DE;
-    border-radius: 6px;
-    margin-bottom: 10px;
-  }
-  
-  .table-custom {
-    min-width: 700px !important; /* Đảm bảo bảng đủ rộng để các cột không bị ép méo */
-  }
-
-  /* 4. Thu gọn lề trang trên màn hình nhỏ */
-  .content-body {
-    padding: 8px !important;
-  }
-}
+      input.form-control, select.form-control, textarea.form-control {
+        font-size: 16px !important;
+        max-width: 100% !important;
+      }
+      #sec-thongbao .form-grid, #sec-thongbao div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+      .table-responsive-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border: 1px solid #D0D7DE;
+        border-radius: 6px;
+        margin-bottom: 10px;
+      }
+      .table-custom {
+        min-width: 700px !important;
+      }
+      .content-body {
+        padding: 8px !important;
+      }
+    }
   </style>
 </head>
 <body class="locked">
@@ -375,19 +366,19 @@
             <div class="panel-body">
               <div class="form-grid" style="margin-bottom: 20px;">
                 <label style="color:#e67e22; font-weight:bold;">Trạng thái:</label>
-  <div class="radio-group" style="display: flex; gap: 15px; align-items: center;">
-    <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;">Đang hoạt động</strong></label>
-    <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;">Tạm dừng / Khóa tuyến</strong></label>
-  </div>
-  <div></div>
-  <div style="display: flex; gap: 10px; align-items: center;">
-    <button type="button" id="btnBatCheDoSua" class="btn btn-warning" onclick="toggleCheDoSuaTuyen()" style="display: none;">
-      <i class="fa fa-pencil"></i> Sửa thông tin tuyến
-    </button>
-    <button type="button" id="btnLuuThongTinTuyen" class="btn btn-success" style="padding: 10px 24px; height: 38px;" onclick="xacLapTuyenVaDoiXe()">
-      <i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe
-    </button>
-  </div>
+                <div class="radio-group" style="display: flex; gap: 15px; align-items: center;">
+                  <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;">Đang hoạt động</strong></label>
+                  <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;">Tạm dừng / Khóa tuyến</strong></label>
+                </div>
+                <div></div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                  <button type="button" id="btnBatCheDoSua" class="btn btn-warning" onclick="toggleCheDoSuaTuyen()" style="display: none;">
+                    <i class="fa fa-pencil"></i> Sửa thông tin tuyến
+                  </button>
+                  <button type="button" id="btnLuuThongTinTuyen" class="btn btn-success" style="padding: 10px 24px; height: 38px;" onclick="xacLapTuyenVaDoiXe()">
+                    <i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe
+                  </button>
+                </div>
                 <label>Mã tuyến:</label>
                 <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 01 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
                 <label>Đơn vị chủ quản:</label>
@@ -417,16 +408,16 @@
                     </div>
                   </div>
                   <!-- Khung hẹn giờ tự động đội xe & đẩy bến DP (Mục 4) -->
-      <div style="margin-bottom: 12px; background: #FFF8E1; padding: 10px 12px; border: 1px solid #FFE082; border-radius: 6px;">
-        <span style="font-size: 11px; color: #B78103; font-weight: bold;"><i class="fa fa-clock-o"></i> Hẹn giờ tự động áp dụng Đội xe & Điều chuyển bến DP:</span>
-        <div style="display: flex; gap: 10px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <label style="font-size: 11px; font-weight: bold; color: #555;">Hiệu lực từ ngày:</label>
-            <input type="text" id="txtNgayHieuLucDoiXe" class="form-control" placeholder="dd/mm/yyyy (Để trống = Áp dụng ngay)" style="width: 180px; height: 28px; font-size: 11px;">
-          </div>
-          <div style="font-size: 11px; color: #666; font-style: italic;">(Xe cũ không có trong danh sách mới sẽ tự động được hệ thống quy hoạch chuyển về bến Dự Phòng - DP khi đến hạn).</div>
-        </div>
-      </div>
+                  <div style="margin-bottom: 12px; background: #FFF8E1; padding: 10px 12px; border: 1px solid #FFE082; border-radius: 6px;">
+                    <span style="font-size: 11px; color: #B78103; font-weight: bold;"><i class="fa fa-clock-o"></i> Hẹn giờ tự động áp dụng Đội xe & Điều chuyển bến DP:</span>
+                    <div style="display: flex; gap: 10px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
+                      <div style="display: flex; align-items: center; gap: 6px;">
+                        <label style="font-size: 11px; font-weight: bold; color: #555;">Hiệu lực từ ngày:</label>
+                        <input type="text" id="txtNgayHieuLucDoiXe" class="form-control" placeholder="dd/mm/yyyy (Để trống = Áp dụng ngay)" style="width: 180px; height: 28px; font-size: 11px;">
+                      </div>
+                      <div style="font-size: 11px; color: #666; font-style: italic;">(Xe cũ không có trong danh sách mới sẽ tự động được hệ thống quy hoạch chuyển về bến Dự Phòng - DP khi đến hạn).</div>
+                    </div>
+                  </div>
 
                   <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
                     <span style="font-size: 11px; color: #666; font-style: italic;">Danh sách phương tiện thuộc tuyến hiện tại:</span>
@@ -747,15 +738,16 @@
     let dangLamMoi = false;
 
     // Hàm làm sạch và chuẩn hóa sức chứa xe, triệt tiêu lỗi lặp từ "chỗ chỗ"
-function chuanHoaSucChua(val) {
-  if (!val) return '';
-  let s = String(val).trim();
-  s = s.replace(/(chỗ)\s*\1+/gi, '$1');
-  if (/^\d+$/.test(s)) {
-    return `${s} chỗ`;
-  }
-  return s;
-}
+    function chuanHoaSucChua(val) {
+      if (!val) return '';
+      let s = String(val).trim();
+      s = s.replace(/(chỗ)\s*\1+/gi, '$1');
+      if (/^\d+$/.test(s)) {
+        return `${s} chỗ`;
+      }
+      return s;
+    }
+
     function sapXepThongMinh(a, b) {
       let strA = String(a || "").trim();
       let strB = String(b || "").trim();
@@ -885,45 +877,42 @@ function chuanHoaSucChua(val) {
     }
 
     function onChonTuyenDeSuaChange() {
-  if (dangLamMoi) return;
-  const ma = $('#selChonTuyenDeSua').val();
-  
-  // Nếu chưa chọn tuyến nào, reset lại form
-  if (!ma) {
-    resetFormTuyen();
-    return;
-  }
-  
-  const t = mapTuyenChiTiet.get(ma);
-  if (t) {
-    // Đổ dữ liệu lên form và khóa mã tuyến lại
-    $('#txtMaTuyen').val(t.maTuyen).prop('readonly', true);
-    $('#txtTenTuyen').val(t.tenTuyen);
-    $(`input[name="rdStatus"][value="${t.status || 'active'}"]`).prop('checked', true);
+      if (dangLamMoi) return;
+      const ma = $('#selChonTuyenDeSua').val();
+      
+      if (!ma) {
+        resetFormTuyen();
+        return;
+      }
+      
+      const t = mapTuyenChiTiet.get(ma);
+      if (t) {
+        $('#txtMaTuyen').val(t.maTuyen).prop('readonly', true);
+        $('#txtTenTuyen').val(t.tenTuyen);
+        $(`input[name="rdStatus"][value="${t.status || 'active'}"]`).prop('checked', true);
 
-    $('#selXn').val(t.xn).trigger('change.select2');
-    $('#selDauA').val(t.dauA).trigger('change.select2');
-    $('#selDauB').val(t.dauB).trigger('change.select2');
+        $('#selXn').val(t.xn).trigger('change.select2');
+        $('#selDauA').val(t.dauA).trigger('change.select2');
+        $('#selDauB').val(t.dauB).trigger('change.select2');
 
-    // Lọc và sắp xếp xe thuộc tuyến này
-    const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
-    xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
+        const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
+        xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
 
-    const formattedXe = xeCuaTuyen.map(x => ({
-  bks: x.bks,
-  chungLoai: chuanHoaTenXe(x),
-  sucChua: chuanHoaSucChua(x.sucChua), // 👉 Thêm hàm làm sạch ở đây
-  namSx: x.namSx || ''
-}));
-    
-    renderBangXeForm(formattedXe);
-    
-    // Tự động đưa form về trạng thái CHỈ XEM ngay sau khi nạp dữ liệu xong
-    if (typeof khoiTaoCheDoXem === 'function') {
-      khoiTaoCheDoXem();
+        const formattedXe = xeCuaTuyen.map(x => ({
+          bks: x.bks,
+          chungLoai: chuanHoaTenXe(x),
+          sucChua: chuanHoaSucChua(x.sucChua),
+          namSx: x.namSx || ''
+        }));
+        
+        renderBangXeForm(formattedXe);
+        
+        if (typeof khoiTaoCheDoXem === 'function') {
+          khoiTaoCheDoXem();
+        }
+      }
     }
-  }
-}
+
     function tuDongGoiYTenTuyen() {
       const ma = $('#txtMaTuyen').val().trim();
       const selA = $('#selDauA').val();
@@ -1010,7 +999,7 @@ function chuanHoaSucChua(val) {
           const formattedXe = xeCuaTuyen.map(x => ({
             bks: x.bks,
             chungLoai: chuanHoaTenXe(x),
-            sucChua: x.sucChua ? (String(x.sucChua).toLowerCase().includes('chỗ') ? x.sucChua : `${x.sucChua} chỗ`) : '',
+            sucChua: chuanHoaSucChua(x.sucChua),
             namSx: x.namSx || ''
           }));
           renderBangXeForm(formattedXe);
@@ -1330,50 +1319,50 @@ function chuanHoaSucChua(val) {
       }
 
       const danhSachXe = [];
-    $('#tblFormDanhSachXe .xe-row-item').each(function() {
-      const bks = $(this).find('.form-bks').val().trim();
-      const $opt =$(this).find('.form-chungloai').find(':selected');
-      const chungLoai = $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0] || '';
-      const sucChua = chuanHoaSucChua($(this).find('.form-succhua').val().trim()); // Dùng hàm làm sạch sức chứa
-      const namSx = $(this).find('.form-namsx').val().trim();
-      
-      if (bks) {
-        danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
+      $('#tblFormDanhSachXe .xe-row-item').each(function() {
+        const bks = $(this).find('.form-bks').val().trim();
+        const $opt =$(this).find('.form-chungloai').find(':selected');
+        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
+        const sucChua = chuanHoaSucChua($(this).find('.form-succhua').val().trim());
+        const namSx = $(this).find('.form-namsx').val().trim();
+        
+        if (bks) {
+          danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
+        }
+      });
+
+      const ngayApDung = $('#txtNgayHieuLucDoiXe').val().trim();
+
+      const soXeKh = danhSachXe.length;
+      const setLoai = new Set();
+      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
+      const loaiXe = Array.from(setLoai).join(' & ');
+
+      try {
+        const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json', 'x-admin-user': sessionStorage.getItem('admin_user') },
+          body: JSON.stringify({ ...getAdminInfo(), maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
+        }).then(r => r.json());
+
+        const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json', 'x-admin-user': sessionStorage.getItem('admin_user') },
+          body: JSON.stringify({ 
+            ...getAdminInfo(), 
+            maTuyen, 
+            danhSachXe,
+            ngayApDung: ngayApDung || null
+          })
+        }).then(r => r.json());
+
+        showToast("Đã lưu thành công Tuyến & Đội xe!", "success");
+        await napDuLieuTong(maTuyen);
+      } catch (err) {
+        showToast("Lỗi kết nối: " + err, "error");
       }
-    });
+    } // <--- ĐÃ VÁ THÊM DẤU ĐÓNG NÀY ĐỂ KHỚP HÀM xacLapTuyenVaDoiXe()
 
-    const ngayApDung = $('#txtNgayHieuLucDoiXe').val().trim(); // Lấy mốc hẹn giờ tự động từ ô input mới thêm
-
-    const soXeKh = danhSachXe.length;
-    const setLoai = new Set();
-    danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
-    const loaiXe = Array.from(setLoai).join(' & ');
-
-    try {
-      const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'x-admin-user': sessionStorage.getItem('admin_user') },
-        body: JSON.stringify({ ...getAdminInfo(), maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
-      }).then(r => r.json());
-
-      // Gửi danh sách xe kèm ngày hiệu lực hẹn giờ để server tự động phân bổ & đẩy xe cũ về bến DP
-      const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json', 'x-admin-user': sessionStorage.getItem('admin_user') },
-        body: JSON.stringify({ 
-          ...getAdminInfo(), 
-          maTuyen, 
-          danhSachXe,
-          ngayApDung: ngayApDung || null // Truyền ngày hẹn giờ nếu có
-        })
-      }).then(r => r.json());
-
-      showToast("Đã lưu thành công Tuyến & Đội xe!", "success");
-      await napDuLieuTong(maTuyen);
-    } catch (err) {
-      showToast("Lỗi kết nối: " + err, "error");
-    }
-      
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
@@ -1878,9 +1867,9 @@ function chuanHoaSucChua(val) {
           showToast(res.message || "Lỗi khi xóa!", "error");
         }
       } catch (err) {
-      showToast("Lỗi kết nối máy chủ!", "error");
+        showToast("Lỗi kết nối máy chủ!", "error");
+      }
     }
-  }
-</script>
+  </script>
 </body>
 </html>
