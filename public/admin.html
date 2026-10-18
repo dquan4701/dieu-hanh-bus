@@ -104,10 +104,7 @@
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
     }
     
-    .panel-body { 
-      padding: 15px; 
-      width: 100% !important;
-    }
+    .panel-body { padding: 15px; width: 100% !important; }
 
     .form-grid { display: grid; grid-template-columns: 160px 1fr; row-gap: 12px; column-gap: 15px; align-items: center; width: 100%; }
     .input-combo { display: flex; gap: 8px; max-width: 100%; width: 100%; align-items: center; flex-wrap: wrap; min-width: 0; }
@@ -131,10 +128,12 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; }
 
-    /* Cải tiến bảng linh hoạt và chống vỡ giao diện mobile */
+    /* CSS Bọc Bảng & Tối ưu hiển thị Responsive */
     .table-responsive-wrapper {
       width: 100%;
       background: #fff;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .table-custom { 
       width: 100% !important; 
@@ -182,19 +181,16 @@
       .dashboard-stats { grid-template-columns: 1fr; }
       
       .table-responsive-wrapper {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
         border: 1px solid #D0D7DE;
         border-radius: 6px;
       }
       .table-custom {
-        min-width: 550px;
+        min-width: 600px;
         font-size: 11px;
       }
       .table-custom th, .table-custom td { 
         padding: 6px 8px; 
         font-size: 11px; 
-        white-space: nowrap !important;
       }
       .btn { padding: 5px 10px; font-size: 11px; height: 30px; }
     }
@@ -273,7 +269,7 @@
       const role = sessionStorage.getItem('admin_role');
       const permissions = JSON.parse(sessionStorage.getItem('admin_permissions') || '[]');
 
-      $('#menuTuyen, #menuXeMau, #menuBieudo, #menuThongBao, #menuQuanTriUser, #menuLog').show();
+      $('#menuTuyen, #menuXeMau, #menuBieudo, #menuThongBao, #menuQuanTriUser, #menuLog, #menuLed').show();
 
       if (role === 'master' || sessionStorage.getItem('admin_user') === 'quan') {
         $('#menuQuanTriUser, #menuLog').show();
@@ -305,6 +301,7 @@
         <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Xe mẫu</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
+        <li id="menuLed"><a onclick="chuyenTabAdmin('sec-led', this)"><i class="fa fa-desktop"></i> Giả lập LED tuyến</a></li>
         <li id="menuQuanTriUser" style="display:none;"><a onclick="chuyenTabAdmin('sec-users', this)"><i class="fa fa-users"></i> Quản trị người dùng</a></li>
         <li id="menuLog" style="display:none;"><a onclick="chuyenTabAdmin('sec-log', this)"><i class="fa fa-history"></i> Nhật ký truy cập web</a></li>
         <li><a href="index.html"><i class="fa fa-arrow-left"></i> Về trang tra cứu</a></li>
@@ -407,7 +404,7 @@
                     <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe thủ công</button>
                   </div>
                   
-                  <div class="table-responsive-wrapper" style="border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF; overflow-y: auto;">
+                  <div class="table-responsive-wrapper" style="border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF;">
                     <table class="table-custom" style="margin-top: 0;">
                       <thead>
                         <tr>
@@ -607,6 +604,36 @@
           </div>
         </div>
 
+        <!-- SECTION: GIẢ LẬP LED TUYẾN -->
+        <div id="sec-led" class="content-section">
+          <div class="panel-custom">
+            <div class="panel-heading"><span><i class="fa fa-desktop"></i> Giả lập Bảng LED Tuyến & Thiết bị hiển thị</span></div>
+            <div class="panel-body">
+              <div class="form-grid" style="margin-bottom: 15px;">
+                <label>Chọn tuyến xem LED:</label>
+                <div class="input-combo">
+                  <select id="selLedTuyen" class="form-control select2-search" style="width: 100%;" onchange="capNhatGiaoDienLed()"><option value="">Chọn tuyến</option></select>
+                </div>
+                <label>Kiểu hiển thị:</label>
+                <div class="input-combo">
+                  <select id="selLedKieu" class="form-control" onchange="capNhatGiaoDienLed()">
+                    <option value="front">Biển LED Trước (Mã tuyến + Đầu bến)</option>
+                    <option value="side">Biển LED Hông (Lộ trình chi tiết)</option>
+                    <option value="rear">Biển LED Sau (Số hiệu tuyến)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div style="background: #111; padding: 25px; border-radius: 8px; border: 4px solid #333; text-align: center; margin-top: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">
+                <div id="ledScreen" style="font-family: 'Share Tech Mono', monospace; font-size: 36px; color: #FF3300; text-shadow: 0 0 10px #FF3300, 0 0 20px rgba(255,51,0,0.5); letter-spacing: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 10px;">
+                  01 BẾN XE GIÁT - BẾN XE YÊN NGHĨA
+                </div>
+                <div style="color: #666; font-size: 11px; margin-top: 10px; font-family: sans-serif;">MÔ PHỎNG THỜI GIAN THỰC TRÊN THIẾT BỊ LED OMNIBUS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- SECTION: QUẢN TRỊ NGƯỜI DÙNG -->
         <div id="sec-users" class="content-section">
           <div class="panel-custom">
@@ -704,6 +731,7 @@
       if (sectionId === 'sec-users') { taiDanhSachTaiKhoan(); }
       else if (sectionId === 'sec-log') { taiDanhSachLog(); }
       else if (sectionId === 'sec-thongbao') { taiTaiThongBaoAdmin(); }
+      else if (sectionId === 'sec-led') { khoiTaoTrangLed(); }
     }
 
     function toggleSidebar() { $('#sidebarMenu').toggleClass('collapsed'); }
@@ -972,6 +1000,37 @@
         }
       } catch (err) {
         console.error("Lỗi nạp dữ liệu:", err);
+      }
+    }
+
+    function khoiTaoTrangLed() {
+      const $sel = $('#selLedTuyen');
+      $sel.empty().append('<option value="">Chọn tuyến</option>');
+      mapTuyenChiTiet.forEach(t => {
+        $sel.append(new Option(`Tuyến ${t.maTuyen}: ${t.tenTuyen}`, t.maTuyen));
+      });
+      $sel.trigger('change.select2');
+    }
+
+    function capNhatGiaoDienLed() {
+      const ma = $('#selLedTuyen').val();
+      const kieu = $('#selLedKieu').val();
+      const $screen = $('#ledScreen');
+
+      if (!ma) {
+        $screen.text("VUI LÒNG CHỌN TUYẾN XEM LED");
+        return;
+      }
+
+      const t = mapTuyenChiTiet.get(ma);
+      if (!t) return;
+
+      if (kieu === 'front') {
+        $screen.text(`${t.maTuyen} ${t.tenTuyen.toUpperCase()}`);
+      } else if (kieu === 'side') {
+        $screen.text(`TUYẾN ${t.maTuyen} | ${t.dauA || 'ĐẦU A'} <=> ${t.dauB || 'ĐẦU B'}`);
+      } else {
+        $screen.text(`XE BUÝT HÀ NỘI - ${t.maTuyen}`);
       }
     }
 
