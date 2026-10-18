@@ -476,7 +476,7 @@
                 <hr style="border: none; border-top: 1px solid #E1E4E8; margin: 8px 0;">
                 <div style="font-size: 12px; color: #333; line-height: 1.5;">
                   <div><strong>Chủng loại:</strong> ${xe.nhanHieu || ''} ${xe.chungLoai || ''}</div>
-                  <div><strong>Sức chứa:</strong> ${chuanHoaSucChua(xe.sucChua)}</div>
+                  <div><strong>Sức chứa:</strong> ${xe.sucChua ? xe.sucChua + ' chỗ' : '-'}</div>
                   <div><strong>Năm sản xuất:</strong> ${xe.namSx || '-'}</div>
                   <div><strong>Đơn vị:</strong> ${xe.xn || 'Transerco'}</div>
                   <div style="color: #0F86DB; font-weight: bold; margin-top: 4px;">
