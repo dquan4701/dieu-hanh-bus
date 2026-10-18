@@ -98,17 +98,16 @@
     .stat-card.green { border-left: 4px solid #27AE60; } .stat-card.green .icon { color: #27AE60; }
     .stat-card.orange { border-left: 4px solid #E67E22; } .stat-card.orange .icon { color: #E67E22; }
 
-    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; width: 100%; }
+    .panel-custom { background: #FFFFFF; border: 1px solid #C4D5E5; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 20px; width: 100%; }
     .panel-heading {
       background: #EBF2F8; color: #2C3E50; padding: 10px 15px; font-size: 12px;
       font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #D0D7DE; display: flex; justify-content: space-between; align-items: center;
     }
     
+    /* FIX QUAN TRỌNG: Loại bỏ overflow-x ép buộc làm dài bảng, để bảng tự co giãn khớp 100% giao diện */
     .panel-body { 
       padding: 15px; 
       width: 100% !important;
-      overflow-x: auto !important;
-      -webkit-overflow-scrolling: touch;
     }
 
     .form-grid { display: grid; grid-template-columns: 160px 1fr; row-gap: 12px; column-gap: 15px; align-items: center; width: 100%; }
@@ -133,11 +132,12 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; }
 
+    /* FIX BẢNG: Ép bảng ôm trọn 100% khung, chữ dài tự xuống dòng mượt mà, không bị thanh cuộn thừa */
     .table-custom { 
       width: 100% !important; 
       border-collapse: collapse; 
       font-size: 12px; 
-      white-space: nowrap;
+      table-layout: auto;
     }
     .table-custom th, .table-custom td { 
       border: 1px solid #D0D7DE; 
@@ -145,6 +145,7 @@
       text-align: left; 
       vertical-align: middle; 
       font-size: 12px;
+      word-break: break-word;
     }
     .table-custom th { background-color: #F1F4F9; font-weight: bold; color: #333; }
     .table-custom tr:hover { background-color: #F8FAFC; }
