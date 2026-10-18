@@ -195,6 +195,19 @@
         padding: 8px !important;
       }
     }
+    #modalTaoTuyenMoi {
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.5); z-index: 99999; justify-content: center; align-items: center;
+    }
+    .modal-content-box {
+      background: #FFF; width: 650px; max-width: 90%; border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2); overflow: hidden; animation: iosFadeInUp 0.3s ease;
+    }
+    .modal-header-custom {
+      background: #3B86C4; color: #FFF; padding: 12px 18px; font-weight: bold; font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-body-custom { padding: 20px; max-height: 80vh; overflow-y: auto; }
   </style>
 </head>
 <body class="locked">
@@ -686,6 +699,40 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Tạo Tuyến Mới -->
+  <div id="modalTaoTuyenMoi">
+    <div class="modal-content-box">
+      <div class="modal-header-custom">
+        <span><i class="fa fa-plus-circle"></i> KHỞI TẠO TUYẾN XE MỚI</span>
+        <i class="fa fa-times" style="cursor: pointer; font-size: 16px;" onclick="dongModalTaoTuyen()"></i>
+      </div>
+      <div class="modal-body-custom">
+        <div class="form-grid" style="grid-template-columns: 140px 1fr;">
+          <label>Mã tuyến mới:</label>
+          <div class="input-combo"><input type="text" id="txtModalMaTuyen" class="form-control" placeholder="VD: 99 hoặc BRT02" oninput="tuDongGoiYTenTuyenModal()"></div>
+
+          <label>Đơn vị chủ quản:</label>
+          <div class="input-combo"><select id="selModalXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
+
+          <label>Đầu A:</label>
+          <div class="input-combo"><select id="selModalDauA" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến A</option></select></div>
+
+          <label>Đầu B:</label>
+          <div class="input-combo"><select id="selModalDauB" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến B</option></select></div>
+
+          <label>Tên tuyến đầy đủ:</label>
+          <div class="input-combo"><input type="text" id="txtModalTenTuyen" class="form-control" placeholder="Tự động ghép..."></div>
+
+          <div></div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+            <button type="button" class="btn btn-default" onclick="dongModalTaoTuyen()">Hủy bỏ</button>
+            <button type="button" class="btn btn-success" onclick="xacNhanTaoTuyenMoi()"><i class="fa fa-save"></i> Lưu & Tạo tuyến mới</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
