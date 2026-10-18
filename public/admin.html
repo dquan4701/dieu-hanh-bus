@@ -289,7 +289,6 @@
         <li id="menuTuyen"><a onclick="chuyenTabAdmin('sec-tuyen', this)"><i class="fa fa-pencil-square-o"></i> Quản trị Tuyến & Đội xe</a></li>
         <li id="menuXeMau"><a onclick="chuyenTabAdmin('sec-xemau', this)"><i class="fa fa-car"></i> Quản trị Danh mục Xe mẫu</a></li>
         <li id="menuBieudo"><a onclick="chuyenTabAdmin('sec-bieudo', this)"><i class="fa fa-calendar-plus-o"></i> Quản trị Biểu đồ chạy xe</a></li>
-        <li id="menuLedSim"><a onclick="chuyenTabAdmin('sec-ledsim', this)"><i class="fa fa-television"></i> Giả lập LED tuyến</a></li>
         <li id="menuThongBao"><a onclick="chuyenTabAdmin('sec-thongbao', this)"><i class="fa fa-bullhorn"></i> Quản lý Thông báo chạy</a></li>
         <li id="menuQuanTriUser" style="display:none;"><a onclick="chuyenTabAdmin('sec-users', this)"><i class="fa fa-users"></i> Quản trị người dùng</a></li>
         <li id="menuLog" style="display:none;"><a onclick="chuyenTabAdmin('sec-log', this)"><i class="fa fa-history"></i> Nhật ký truy cập web</a></li>
@@ -525,38 +524,6 @@
                   </thead>
                   <tbody id="tblTrangThaiBieuDo"></tbody>
                 </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SECTION: GIẢ LẬP LED THÔNG MINH -->
-        <div id="sec-ledsim" class="content-section">
-          <div class="panel-custom">
-            <div class="panel-heading"><span><i class="fa fa-television"></i> Mô phỏng bảng LED ma trận xe buýt</span></div>
-            <div class="panel-body">
-              <div class="form-grid" style="margin-bottom: 20px;">
-                <label>Chọn tuyến mẫu:</label>
-                <div class="input-combo"><select id="selLedTuyenMau" class="form-control select2-search" style="width: 100%;" onchange="napMauLed()"><option value="">-- Chọn tuyến để mô phỏng --</option></select></div>
-                <label>Số tuyến (LED đỏ):</label>
-                <div class="input-combo"><input type="text" id="inputLedSo" class="form-control" value="BRT01" style="font-weight:bold; color:#ff1c00;" oninput="capNhatMoPhinhLed()"></div>
-                <label>Lộ trình (LED xanh):</label>
-                <div class="input-combo"><input type="text" id="inputLedLoTrinh" class="form-control" value="BX KIM MÃ -> BX YÊN NGHĨA" style="font-weight:bold; color:#00ff44;" oninput="capNhatMoPhinhLed()"></div>
-                <div></div>
-                <div><span style="font-size: 11px; color: #666; font-style: italic;"><i class="fa fa-info-circle"></i> Số tuyến luôn nằm góc trái, tự động co bóp gọn trong khung.</span></div>
-              </div>
-
-              <div class="led-simulator-box">
-                <div style="color: #888; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;"><i class="fa fa-circle" style="color: #ff1c00; font-size: 8px;"></i> Màn hình LED trước xe (Mô phỏng thực tế)</div>
-                <div class="led-display-screen" style="background: #050505; border: 3px solid #222; border-radius: 6px; padding: 10px; display: flex; align-items: center; overflow: hidden; height: 60px;">
-                  <div class="led-route-number-box" style="padding-right: 15px; border-right: 2px dashed #333; margin-right: 15px;"><div class="led-route-number" id="ledDisplayNum" style="font-family: 'Share Tech Mono', monospace; font-size: 28px; font-weight: bold; color: #ff1c00; text-shadow: 0 0 8px rgba(255,28,0,0.6);">BRT01</div></div>
-                  <div class="led-route-text-wrap" style="flex-grow: 1; overflow: hidden; position: relative;">
-                    <div class="led-route-text-container" id="ledTrack" style="display: flex; white-space: nowrap;">
-                      <div class="led-route-text" id="ledDisplayText" style="font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: bold; color: #00ff44; text-shadow: 0 0 8px rgba(0,255,68,0.6);">BX KIM MÃ -> BX YÊN NGHĨA</div>
-                      <div class="led-route-text" id="ledDisplayTextCopy" style="display:none; padding-left: 50px; font-family: 'Share Tech Mono', monospace; font-size: 22px; font-weight: bold; color: #00ff44; text-shadow: 0 0 8px rgba(0,255,68,0.6);"></div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
