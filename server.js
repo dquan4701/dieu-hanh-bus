@@ -594,18 +594,38 @@ app.post('/api/admin/xoa-tat-ca-xe-mau', verifyAdmin, async (req, res) => {
   }
 });
 
-// --- QUẢN LÝ ĐỘI XE THEO TUYẾN ---
+// --- QUẢN LÝ ĐỘI XE THEO TUYẾN & HẸN GIỜ ĐIỀU CHUYỂN BẾN DP ---
 app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
   try {
-    const { maTuyen, danhSachXe } = req.body;
+    const { maTuyen, danhSachXe, ngayApDung } = req.body;
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
     const raw = await getRawData();
     if (!Array.isArray(raw.xeList)) raw.xeList = [];
     if (!Array.isArray(raw.danhMucXeMau)) raw.danhMucXeMau = [];
 
     const normMaTuyen = String(maTuyen).trim().toUpperCase();
-    const otherCars = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() !== normMaTuyen);
-    
+
+    // 1. Chuẩn hóa ngày áp dụng (hỗ trợ định dạng dd/mm/yyyy từ frontend gửi lên)
+    const today = new Date().toISOString().split('T')[0];
+    function parseDateToISO(dateStr) {
+      if (!dateStr) return today;
+      let s = String(dateStr).trim();
+      if (s.includes('/')) {
+        const parts = s.split('/');
+        if (parts.length === 3) {
+          let d = parts[0].padStart(2, '0');
+          let m = parts[1].padStart(2, '0');
+          let y = parts[2];
+          if (y.length === 2) y = '20' + y;
+          return `${y}-${m}-${d}`;
+        }
+      }
+      return s;
+    }
+
+    const ngayHieuLuc = ngayApDung ? parseDateToISO(ngayApDung) : today;
+
+    // 2. Xử lý danh sách xe mới được gửi lên
     const newCarsForRoute = (danhSachXe || []).map(x => {
       let bksUpper = String(x.bks || '').trim().toUpperCase();
       let inputChungLoai = x.chungLoai || '';
@@ -626,7 +646,49 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
       };
     }).filter(x => x.bks);
 
-    raw.xeList = [...otherCars, ...newCarsForRoute];
+    const bksXeMoiSet = new Set(newCarsForRoute.map(x => x.bks));
+
+    // 3. Phân nhánh: Nếu có hẹn giờ trong tương lai -> Lưu vào bảng chờ lịch trình
+    if (ngayHieuLuc > today) {
+      if (!Array.isArray(raw.scheduledFleetUpdates)) {
+        raw.scheduledFleetUpdates = [];
+      }
+      raw.scheduledFleetUpdates.push({
+        id: Date.now().toString(),
+        maTuyen: normMaTuyen,
+        danhSachXe: newCarsForRoute,
+        ngayApDung: ngayHieuLuc,
+        status: 'pending',
+        createdAt: new Date()
+      });
+
+      await saveRawData(raw);
+      await recordLog(req, `Lên lịch hẹn đội xe tuyến [${normMaTuyen}] từ ngày ${ngayApDung}`);
+      return res.json({ 
+        success: true, 
+        message: `Đã lên lịch thành công! Đội xe sẽ tự động áp dụng và đẩy xe cũ về bến DP vào ngày ${ngayApDung}.` 
+      });
+    }
+
+    // 4. Nếu áp dụng ngay lập tức:
+    const otherCars = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() !== normMaTuyen);
+    const xeCuCuaTuyen = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() === normMaTuyen);
+
+    const finalXeList = [...otherCars];
+    finalXeList.push(...newCarsForRoute);
+
+    // Tự động đẩy các xe cũ không còn có mặt trong danh sách mới về bến 'DP' (Dự phòng)
+    xeCuCuaTuyen.forEach(xeCu => {
+      if (!bksXeMoiSet.has(xeCu.bks)) {
+        finalXeList.push({
+          ...xeCu,
+          maTuyen: 'DP', // 👉 Đẩy về bến Dự Phòng
+          updatedAt: new Date()
+        });
+      }
+    });
+
+    raw.xeList = finalXeList;
 
     if (raw.tuyenList && raw.tuyenList[normMaTuyen]) {
       raw.tuyenList[normMaTuyen].soXeKh = newCarsForRoute.length;
@@ -634,10 +696,11 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
     }
 
     await saveRawData(raw);
-    await recordLog(req, `Cập nhật đội xe tuyến [${normMaTuyen}] (${newCarsForRoute.length} xe)`);
-    res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe), đã đồng bộ với danh mục mẫu!` });
+    await recordLog(req, `Cập nhật đội xe tuyến [${normMaTuyen}] (${newCarsForRoute.length} xe), tự động đẩy xe thừa về DP`);
+    res.json({ success: true, message: `Lưu đội xe tuyến ${normMaTuyen} thành công (${newCarsForRoute.length} xe), xe cũ đã được tự động điều chuyển về bến DP!` });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error('Lỗi lưu đội xe:', err);
+    res.status(500).json({ success: false, message: 'Lỗi server: ' + err.message });
   }
 });
 
