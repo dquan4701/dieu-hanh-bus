@@ -737,7 +737,7 @@
     let danhMucXeMau = [];
     let dangLamMoi = false;
 
-    // Hàm làm sạch và chuẩn hóa sức chứa xe, triệt tiêu lỗi lặp từ "chỗ chỗ"
+    / Hàm làm sạch và chuẩn hóa sức chứa xe, triệt tiêu lỗi lặp từ "chỗ chỗ"
     function chuanHoaSucChua(val) {
       if (!val) return '';
       let s = String(val).trim();
@@ -746,6 +746,11 @@
         return `${s} chỗ`;
       }
       return s;
+    }
+
+    function chuanHoaMaTuyen(str) {
+      if (!str) return "";
+      return String(str).trim().toUpperCase().replace(/\s+/g, '');
     }
 
     function sapXepThongMinh(a, b) {
