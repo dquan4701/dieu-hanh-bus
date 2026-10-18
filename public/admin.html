@@ -377,36 +377,42 @@
           <div class="panel-custom">
             <div class="panel-heading"><span><i class="fa fa-pencil-square-o"></i> Quản trị Thông tin Tuyến & Đội xe tập trung</span></div>
             <div class="panel-body">
+              <!-- Thêm lại ô chọn tuyến để sửa/tạo mới -->
+              <div style="margin-bottom: 15px; background: #F8FAFC; padding: 12px; border: 1px solid #D0D7DE; border-radius: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <label style="font-weight: bold; color: #2C3E50; min-width: 110px;"><i class="fa fa-search"></i> Chọn tuyến sửa:</label>
+                <div style="flex: 1; min-width: 280px;">
+                  <select id="selChonTuyenDeSua" class="form-control select2-search" style="width: 100%;" onchange="onChonTuyenDeSuaChange()">
+                    <option value="">[+ Tạo mới một tuyến hoàn toàn]</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="form-grid" style="margin-bottom: 20px;">
                 <label style="color:#e67e22; font-weight:bold;">Trạng thái:</label>
                 <div class="radio-group" style="display: flex; gap: 15px; align-items: center;">
                   <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;">Đang hoạt động</strong></label>
                   <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;">Tạm dừng / Khóa tuyến</strong></label>
                 </div>
-                <div></div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                  <button type="button" id="btnBatCheDoSua" class="btn btn-warning" onclick="toggleCheDoSuaTuyen()" style="display: none;">
-                    <i class="fa fa-pencil"></i> Sửa thông tin tuyến
-                  </button>
-                  <button type="button" id="btnLuuThongTinTuyen" class="btn btn-success" style="padding: 10px 24px; height: 38px;" onclick="xacLapTuyenVaDoiXe()">
-                    <i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe
-                  </button>
-                </div>
+
                 <label>Mã tuyến:</label>
                 <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 01 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
+                
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selXn" class="form-control select2-search" style="width: 100%;"><option value="">Chọn xí nghiệp</option></select></div>
                   <input type="text" id="txtXnMoi" class="form-control extra-input" placeholder="Nhập tên Xí nghiệp mới..." style="flex: 1; display:none;">
                 </div>
+
                 <label>Đầu A:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selDauA" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến A</option></select></div>
                 </div>
+
                 <label>Đầu B:</label>
                 <div class="input-combo">
                   <div style="flex: 1; min-width: 280px;"><select id="selDauB" class="form-control select2-search" style="width: 100%;"><option value="">Chọn đầu bến B</option></select></div>
                 </div>
+
                 <label>Tên tuyến đầy đủ:</label>
                 <div class="input-combo"><input type="text" id="txtTenTuyen" class="form-control" placeholder="Hệ thống tự động ghép theo Mã và Đầu bến..."></div>
                 
@@ -420,7 +426,8 @@
                       <button type="button" class="btn btn-success" style="height: 48px; font-size: 11px;" onclick="importXeChoTuyenHienTai()"><i class="fa fa-upload"></i> Import vào tuyến</button>
                     </div>
                   </div>
-                  <!-- Khung hẹn giờ tự động đội xe & đẩy bến DP (Mục 4) -->
+
+                  <!-- Khung hẹn giờ tự động đội xe & đẩy bến DP -->
                   <div style="margin-bottom: 12px; background: #FFF8E1; padding: 10px 12px; border: 1px solid #FFE082; border-radius: 6px;">
                     <span style="font-size: 11px; color: #B78103; font-weight: bold;"><i class="fa fa-clock-o"></i> Hẹn giờ tự động áp dụng Đội xe & Điều chuyển bến DP:</span>
                     <div style="display: flex; gap: 10px; margin-top: 6px; align-items: center; flex-wrap: wrap;">
@@ -455,14 +462,14 @@
                   </div>
                 </div>
 
-                <label style="color:#e67e22; font-weight:bold;">Trạng thái:</label>
-                <div class="radio-group" style="display: flex; gap: 15px; align-items: center;">
-                  <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="active" checked> <strong style="color:#137333;">Đang hoạt động</strong></label>
-                  <label class="radio-item" style="cursor: pointer;"><input type="radio" name="rdStatus" value="locked"> <strong style="color:#c5221f;">Tạm dừng / Khóa tuyến</strong></label>
-                </div>
                 <div></div>
-                <div>
-                  <button class="btn btn-success" style="padding: 10px 24px; height: 38px;" onclick="xacLapTuyenVaDoiXe()"><i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe</button>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                  <button type="button" id="btnBatCheDoSua" class="btn btn-warning" onclick="toggleCheDoSuaTuyen()" style="display: none;">
+                    <i class="fa fa-pencil"></i> Sửa thông tin tuyến
+                  </button>
+                  <button type="button" id="btnLuuThongTinTuyen" class="btn btn-success" style="padding: 10px 24px; height: 38px;" onclick="xacLapTuyenVaDoiXe()">
+                    <i class="fa fa-save"></i> Lưu thông tin Tuyến & Đội xe
+                  </button>
                 </div>
               </div>
             </div>
