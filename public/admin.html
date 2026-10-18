@@ -185,14 +185,16 @@
         border-radius: 6px;
       }
       .table-custom {
-        min-width: 600px;
+        min-width: 650px;
         font-size: 11px;
       }
       .table-custom th, .table-custom td { 
         padding: 6px 8px; 
         font-size: 11px; 
       }
-      .btn { padding: 5px 10px; font-size: 11px; height: 30px; }
+      .table-custom th:nth-child(5), .table-custom td:nth-child(5) { width: 110px; text-align: center; }
+      .table-custom th:nth-child(6), .table-custom td:nth-child(6) { width: 150px; text-align: center; }
+      .btn { padding: 4px 8px; font-size: 11px; height: 28px; }
     }
   </style>
 </head>
@@ -560,22 +562,24 @@
 
               <h4 style="font-size: 13px; color: #2C3E50; margin-bottom: 12px;"><i class="fa fa-calendar-plus-o" style="color:#3B86C4;"></i> Lên lịch thông báo theo ngày & giờ cụ thể:</h4>
               <div style="background: #F8FAFC; padding: 14px; border: 1px solid #D0D7DE; border-radius: 6px; margin-bottom: 15px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-bottom: 10px;">
                   <div>
-                    <label style="font-size: 11px; font-weight: bold; color: #555;">Từ ngày:</label>
-                    <input type="date" id="txtTuNgay" class="form-control">
+                    <label style="font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 3px;">Từ ngày:</label>
+                    <input type="date" id="txtTuNgay" class="form-control" style="width: 100%;">
                   </div>
                   <div>
-                    <label style="font-size: 11px; font-weight: bold; color: #555;">Từ giờ:</label>
-                    <input type="time" id="txtTuGio" class="form-control" value="00:00">
+                    <label style="font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 3px;">Từ giờ:</label>
+                    <input type="time" id="txtTuGio" class="form-control" value="00:00" style="width: 100%;">
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-bottom: 10px;">
+                  <div>
+                    <label style="font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 3px;">Đến ngày:</label>
+                    <input type="date" id="txtDenNgay" class="form-control" style="width: 100%;">
                   </div>
                   <div>
-                    <label style="font-size: 11px; font-weight: bold; color: #555;">Đến ngày:</label>
-                    <input type="date" id="txtDenNgay" class="form-control">
-                  </div>
-                  <div>
-                    <label style="font-size: 11px; font-weight: bold; color: #555;">Đến giờ:</label>
-                    <input type="time" id="txtDenGio" class="form-control" value="23:59">
+                    <label style="font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 3px;">Đến giờ:</label>
+                    <input type="time" id="txtDenGio" class="form-control" value="23:59" style="width: 100%;">
                   </div>
                 </div>
                 <div style="margin-bottom: 10px;">
