@@ -347,13 +347,69 @@
           </div>
         </div>
 
+        <!-- KHUNG SƠ ĐỒ TUYẾN SVG (Nét liền, chéo góc, chữ nghiêng dấu sắc) -->
+        <div id="routeSchemaWrapper" style="display: none; background: #FFF; border: 1px solid #C4D5E5; border-radius: 8px; padding: 16px; margin-top: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+          <div style="font-weight: bold; color: #1A5276; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa fa-map-o" style="color: #3B86C4;"></i> Sơ đồ định hướng tuyến: <span id="schemaTitle" style="color: #E74C3C;"></span>
+          </div>
+          <div id="schemaSvgContainer" style="width: 100%; overflow-x: auto;">
+            <svg viewBox="0 0 800 180" style="width: 100%; height: auto; min-width: 700px;">
+              <style>
+                .station-text {
+                  font-size: 11px;
+                  fill: #333;
+                  font-weight: 500;
+                  transform: skewX(-25deg);
+                  transform-origin: left bottom;
+                }
+                .line-di { stroke: #27AE60; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+                .line-ve { stroke: #3498DB; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+                .node-dot { fill: #FFF; stroke-width: 3; r: 5; }
+              </style>
+
+              <!-- CHIỀU ĐI (Dòng trên) -->
+              <path d="M 60 50 L 700 50 L 740 130" class="line-di" />
+              
+              <circle cx="160" cy="50" class="node-dot" stroke="#27AE60" />
+              <text x="155" y="35" class="station-text">Trạm A1</text>
+
+              <circle cx="310" cy="50" class="node-dot" stroke="#27AE60" />
+              <text x="305" y="35" class="station-text">Trạm A2</text>
+
+              <circle cx="480" cy="50" class="node-dot" stroke="#27AE60" />
+              <text x="475" y="35" class="station-text">Trạm A3</text>
+
+              <circle cx="620" cy="50" class="node-dot" stroke="#27AE60" />
+              <text x="615" y="35" class="station-text">Trạm A4</text>
+
+              <!-- CHIỀU VỀ (Dòng dưới) -->
+              <path d="M 740 130 L 100 130 L 60 50" class="line-ve" />
+
+              <circle cx="640" cy="130" class="node-dot" stroke="#3498DB" />
+              <text x="635" y="155" class="station-text">Trạm B1</text>
+
+              <circle cx="470" cy="130" class="node-dot" stroke="#3498DB" />
+              <text x="465" y="155" class="station-text">Trạm B2</text>
+
+              <circle cx="280" cy="130" class="node-dot" stroke="#3498DB" />
+              <text x="275" y="155" class="station-text">Trạm B3</text>
+
+              <!-- ĐẦU MÚT A VÀ B -->
+              <circle cx="60" cy="50" r="12" fill="#27AE60" />
+              <text x="30" y="80" font-weight="bold" font-size="12" fill="#27AE60">Đầu A</text>
+
+              <circle cx="740" cy="130" r="12" fill="#3498DB" />
+              <text x="715" y="115" font-weight="bold" font-size="12" fill="#3498DB">Đầu B</text>
+            </svg>
+          </div>
+        </div>
+
         <div id="viewerWrapper" class="viewer-wrapper">
           <div class="table-scroll">
             <table id="mainScheduleTable" class="table-schedule"></table>
           </div>
         </div>
       </div>
-
       <!-- TAB 2: TRA CỨU XE -->
       <div id="tab-xe" class="tab-content">
         <div class="form-label" style="margin-bottom: 6px;">Nhập biển kiểm soát cần tra cứu:</div>
