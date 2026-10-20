@@ -757,63 +757,82 @@
       }
     }
 
-    // Hàm tự động rải trạm lên SVG
+    // HÀM VẼ SƠ ĐỒ TUYẾN SVG CHUẨN XÁC VÀ ĐẸP MẮT
     function veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr) {
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
       let svgHtml = `
-        <svg viewBox="0 0 800 180" style="width: 100%; height: auto; min-width: 700px;">
+        <svg viewBox="0 0 900 180" style="width: 100%; height: auto; min-width: 750px; overflow: visible;">
           <style>
             .station-text {
               font-size: 10px;
-              fill: #333;
+              fill: #444;
               font-weight: 500;
-              transform: skewX(-25deg);
-              transform-origin: left bottom;
+              text-anchor: end;
+              transform: rotate(-35deg);
+              transform-origin: center;
             }
-            .line-di { stroke: #27AE60; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-            .line-ve { stroke: #3498DB; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-            .node-dot { fill: #FFF; stroke-width: 3; r: 4.5; }
+            .line-route {
+              stroke-width: 4;
+              fill: none;
+              stroke-linecap: round;
+              stroke-linejoin: round;
+            }
+            .node-dot {
+              fill: #FFF;
+              stroke-width: 3;
+              r: 5;
+            }
           </style>
-          <!-- CHIỀU ĐI (Dòng trên) -->
-          <path d="M 60 50 L 700 50 L 740 130" class="line-di" />
+
+          <!-- CHIỀU ĐI (A -> B): Nằm ở phía trên (Màu xanh lá) -->
+          <line x1="80" y1="50" x2="820" y2="50" stroke="#27AE60" class="line-route" />
       `;
 
+      // Rải các trạm chiều đi từ trái qua phải
       if (listDi.length > 0) {
-        let step = 640 / (listDi.length + 1);
+        let span = 740; // Khoảng cách từ 80 đến 820
+        let step = span / (listDi.length + 1);
         listDi.forEach((tram, idx) => {
-          let cx = 60 + step * (idx + 1);
+          let cx = 80 + step * (idx + 1);
           svgHtml += `
             <circle cx="${cx}" cy="50" class="node-dot" stroke="#27AE60" />
-            <text x="${cx - 5}" y="35" class="station-text">${tram}</text>
+            <g transform="translate(${cx}, 38)">
+              <text class="station-text">${tram}</text>
+            </g>
           `;
         });
       }
 
       svgHtml += `
-          <!-- CHIỀU VỀ (Dòng dưới) -->
-          <path d="M 740 130 L 100 130 L 60 50" class="line-ve" />
+          <!-- CHIỀU VỀ (B -> A): Nằm ở phía dưới (Màu xanh dương) -->
+          <line x1="820" y1="130" x2="80" y2="130" stroke="#3498DB" class="line-route" />
       `;
 
+      // Rải các trạm chiều về từ phải qua trái
       if (listVe.length > 0) {
-        let step = 640 / (listVe.length + 1);
+        let span = 740;
+        let step = span / (listVe.length + 1);
         listVe.forEach((tram, idx) => {
-          let cx = 740 - step * (idx + 1);
+          let cx = 820 - step * (idx + 1);
           svgHtml += `
             <circle cx="${cx}" cy="130" class="node-dot" stroke="#3498DB" />
-            <text x="${cx - 5}" y="155" class="station-text">${tram}</text>
+            <g transform="translate(${cx}, 152)">
+              <text class="station-text">${tram}</text>
+            </g>
           `;
         });
       }
 
       svgHtml += `
-          <!-- ĐẦU MÚT A VÀ B -->
-          <circle cx="60" cy="50" r="11" fill="#27AE60" />
-          <text x="32" y="80" font-weight="bold" font-size="11" fill="#27AE60">${dauA}</text>
+          <!-- ĐẦU MÚT A (Bên trái) -->
+          <circle cx="80" cy="50" r="10" fill="#27AE60" />
+          <text x="80" y="22" font-weight="bold" font-size="11" fill="#27AE60" text-anchor="middle">${dauA}</text>
 
-          <circle cx="740" cy="130" r="11" fill="#3498DB" />
-          <text x="715" y="115" font-weight="bold" font-size="11" fill="#3498DB">${dauB}</text>
+          <!-- ĐẦU MÚT B (Bên phải) -->
+          <circle cx="820" cy="130" r="10" fill="#3498DB" />
+          <text x="820" y="165" font-weight="bold" font-size="11" fill="#3498DB" text-anchor="middle">${dauB}</text>
         </svg>
       `;
 
