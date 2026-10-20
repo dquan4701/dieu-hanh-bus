@@ -1310,7 +1310,7 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         const $opt =$(this).find('.form-chungloai').find(':selected');
-        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
+        const chungLoai = $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0] || '';
         const sucChua = $(this).find('.form-succhua').val().trim();
         const namSx = $(this).find('.form-namsx').val().trim();
         
