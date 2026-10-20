@@ -387,20 +387,23 @@
                 <div class="input-combo"><input type="text" id="txtMaTuyen" class="form-control" placeholder="Ví dụ: 01 hoặc BRT01" oninput="tuDongGoiYTenTuyen()" style="max-width: 250px;"></div>
                 <label>Đơn vị chủ quản:</label>
                 <div class="input-combo">
-                  <div style="flex: 1; min-width: 250px;"><select id="selXn" class="form-control select2-search" style="width: 100%;" onchange="onXnChange(this)"><option value="">Chọn xí nghiệp</option><option value="__NEW__" style="color:#337ab7; font-weight:bold;">[+ Thêm Xí nghiệp mới...]</option></select></div>
-                  <input type="text" id="txtXnMoi" class="form-control extra-input" placeholder="Nhập tên Xí nghiệp mới..." style="flex: 1; display:none;">
+                  <select id="selXn" class="form-control select2-search" style="width: 100%;">
+                    <option value="">Chọn hoặc nhập Đơn vị chủ quản mới...</option>
+                  </select>
                 </div>
 
                 <label>Đầu A:</label>
                 <div class="input-combo">
-                  <div style="flex: 1; min-width: 250px;"><select id="selDauA" class="form-control select2-search" style="width: 100%;" onchange="onDauAChange(this)"><option value="">Chọn đầu bến A (Tùy chọn cho tuyến DP)</option><option value="__NEW__" style="color:#337ab7; font-weight:bold;">[+ Thêm bến A mới...]</option></select></div>
-                  <input type="text" id="txtDauAMoi" class="form-control extra-input" placeholder="Nhập tên bến A mới..." style="flex: 1; display:none;">
+                  <select id="selDauA" class="form-control select2-search" style="width: 100%;">
+                    <option value="">Chọn hoặc nhập Đầu A mới...</option>
+                  </select>
                 </div>
 
                 <label>Đầu B:</label>
                 <div class="input-combo">
-                  <div style="flex: 1; min-width: 250px;"><select id="selDauB" class="form-control select2-search" style="width: 100%;" onchange="onDauBChange(this)"><option value="">Chọn đầu bến B (Tùy chọn cho tuyến DP)</option><option value="__NEW__" style="color:#337ab7; font-weight:bold;">[+ Thêm bến B mới...]</option></select></div>
-                  <input type="text" id="txtDauBMoi" class="form-control extra-input" placeholder="Nhập tên bến B mới..." style="flex: 1; display:none;">
+                  <select id="selDauB" class="form-control select2-search" style="width: 100%;">
+                    <option value="">Chọn hoặc nhập Đầu B mới...</option>
+                  </select>
                 </div>
                 <label>Tên tuyến đầy đủ:</label>
                 <div class="input-combo"><input type="text" id="txtTenTuyen" class="form-control" placeholder="Hệ thống tự động ghép theo Mã và Đầu bến..."></div>
@@ -747,7 +750,16 @@
 
     $(document).ready(function() {
       $('.select2-search').select2({
-        language: { noResults: () => "Không tìm thấy kết quả phù hợp" }
+        language: { noResults: () => "Không tìm thấy kết quả phù hợp (Nhấn Enter để thêm mới)" },
+        tags: true, // Cho phép gõ thêm giá trị mới trực tiếp
+        createTag: function (params) {
+          var term = $.trim(params.term);
+          if (term === '') { return null; }
+          return {
+            id: term,
+            text: term
+          };
+        }
       });
 
       $('#chkCaTuan').prop('checked', true);
