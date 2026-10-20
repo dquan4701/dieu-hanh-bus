@@ -800,14 +800,22 @@
         return;
       }
 
-      const $btn = $('.btn-view'); 
-      $btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
+      const $btn = $('.btn-view');$btn.html('<i class="fa fa-spinner fa-spin"></i> Đang tải...').prop('disabled', true);
       $('#viewerWrapper').show();
 
       try {
         const res = await fetch(`${API_BASE}/api/table-data?tab=${encodeURIComponent(tabName)}&tuyen=${encodeURIComponent(tuyen)}`).then(r => r.json());
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
+        
+        // 1. Hiển thị bảng biểu đồ giờ như bình thường
         hienThiBangHTML(res);
+
+        // 2. CẬP NHẬT TÊN VÀ HIỆN SƠ ĐỒ TUYẾN LÊN:
+        // Lấy tên tuyến đang chọn gán vào tiêu đề sơ đồ
+        $('#schemaTitle').text(tuyen);
+        // Bật hiển thị khung sơ đồ lên
+        $('#routeSchemaWrapper').show();
+
       } catch (err) {
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
         alert("Lỗi kết nối máy chủ: " + err);
