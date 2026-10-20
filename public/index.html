@@ -347,69 +347,24 @@
           </div>
         </div>
 
-        <!-- KHUNG SƠ ĐỒ TUYẾN SVG (Nét liền, chéo góc, chữ nghiêng dấu sắc) -->
+        <!-- 1. KHUNG SƠ ĐỒ TUYẾN SVG (ĐÃ ĐƯA LÊN TRÊN) -->
         <div id="routeSchemaWrapper" style="display: none; background: #FFF; border: 1px solid #C4D5E5; border-radius: 8px; padding: 16px; margin-top: 15px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
           <div style="font-weight: bold; color: #1A5276; margin-bottom: 10px; font-size: 13px; display: flex; align-items: center; gap: 8px;">
             <i class="fa fa-map-o" style="color: #3B86C4;"></i> Sơ đồ định hướng tuyến: <span id="schemaTitle" style="color: #E74C3C;"></span>
           </div>
           <div id="schemaSvgContainer" style="width: 100%; overflow-x: auto;">
-            <svg viewBox="0 0 800 180" style="width: 100%; height: auto; min-width: 700px;">
-              <style>
-                .station-text {
-                  font-size: 11px;
-                  fill: #333;
-                  font-weight: 500;
-                  transform: skewX(-25deg);
-                  transform-origin: left bottom;
-                }
-                .line-di { stroke: #27AE60; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-                .line-ve { stroke: #3498DB; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-                .node-dot { fill: #FFF; stroke-width: 3; r: 5; }
-              </style>
-
-              <!-- CHIỀU ĐI (Dòng trên) -->
-              <path d="M 60 50 L 700 50 L 740 130" class="line-di" />
-              
-              <circle cx="160" cy="50" class="node-dot" stroke="#27AE60" />
-              <text x="155" y="35" class="station-text">Trạm A1</text>
-
-              <circle cx="310" cy="50" class="node-dot" stroke="#27AE60" />
-              <text x="305" y="35" class="station-text">Trạm A2</text>
-
-              <circle cx="480" cy="50" class="node-dot" stroke="#27AE60" />
-              <text x="475" y="35" class="station-text">Trạm A3</text>
-
-              <circle cx="620" cy="50" class="node-dot" stroke="#27AE60" />
-              <text x="615" y="35" class="station-text">Trạm A4</text>
-
-              <!-- CHIỀU VỀ (Dòng dưới) -->
-              <path d="M 740 130 L 100 130 L 60 50" class="line-ve" />
-
-              <circle cx="640" cy="130" class="node-dot" stroke="#3498DB" />
-              <text x="635" y="155" class="station-text">Trạm B1</text>
-
-              <circle cx="470" cy="130" class="node-dot" stroke="#3498DB" />
-              <text x="465" y="155" class="station-text">Trạm B2</text>
-
-              <circle cx="280" cy="130" class="node-dot" stroke="#3498DB" />
-              <text x="275" y="155" class="station-text">Trạm B3</text>
-
-              <!-- ĐẦU MÚT A VÀ B -->
-              <circle cx="60" cy="50" r="12" fill="#27AE60" />
-              <text x="30" y="80" font-weight="bold" font-size="12" fill="#27AE60">Đầu A</text>
-
-              <circle cx="740" cy="130" r="12" fill="#3498DB" />
-              <text x="715" y="115" font-weight="bold" font-size="12" fill="#3498DB">Đầu B</text>
-            </svg>
+            <!-- Sơ đồ sẽ được vẽ tự động động ở đây -->
           </div>
         </div>
 
+        <!-- 2. KHUNG BẢNG GIỜ BIỂU ĐỒ (ĐÃ ĐƯA XUỐNG DƯỚI) -->
         <div id="viewerWrapper" class="viewer-wrapper">
           <div class="table-scroll">
             <table id="mainScheduleTable" class="table-schedule"></table>
           </div>
         </div>
       </div>
+
       <!-- TAB 2: TRA CỨU XE -->
       <div id="tab-xe" class="tab-content">
         <div class="form-label" style="margin-bottom: 6px;">Nhập biển kiểm soát cần tra cứu:</div>
@@ -451,8 +406,7 @@
 
     function chuyenTab(tabId) {
       $('.tab-content').removeClass('active');
-      $('.nav-btn').removeClass('active');
-      $('#' + tabId).addClass('active');
+      $('.nav-btn').removeClass('active');$('#' + tabId).addClass('active');
 
       if (tabId === 'tab-bieudo') $('#btnNavBieuDo').addClass('active');
       else if (tabId === 'tab-xe') $('#btnNavXe').addClass('active');
@@ -498,7 +452,7 @@
     function timKiemXeLive() {
       clearTimeout(timeoutSearch);
       const q = $('#txtSearchBks').val().trim();
-      const $box = $('#ketQuaTraCuuXe');
+      const $box =$('#ketQuaTraCuuXe');
 
       if (!q) { $box.html(''); return; }
 
@@ -568,7 +522,7 @@
         allRoutes.forEach(r => { if (r.xn) xnSet.add(r.xn); });
         danhMucData.forEach(item => { if (item.xn) xnSet.add(item.xn); });
 
-        const $selXn = $('#selXn');
+        const $selXn =$('#selXn');
         $selXn.empty().append('<option value="">Chọn xí nghiệp</option>');
         
         Array.from(xnSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(xn => {
@@ -582,13 +536,13 @@
 
     function onXnChange() {
       const xn = $('#selXn').val();
-      const $selTuyen = $('#selTuyen');
-      const $selNgay = $('#selNgayApDung');
+      const $selTuyen =$('#selTuyen');
+      const $selNgay =$('#selNgayApDung');
 
       $selTuyen.empty().append('<option value="">Chọn tuyến</option>');
       $selNgay.empty().append('<option value="">Chọn tuyến trước</option>');
 
-      if (!xn) { $selTuyen.trigger('change'); $selNgay.trigger('change'); return; }
+      if (!xn) { $selTuyen.trigger('change');$selNgay.trigger('change'); return; }
 
       const tuyenSet = new Set();
       allRoutes.forEach(r => { if (r.xn === xn && r.tenTuyen) tuyenSet.add(r.tenTuyen); });
@@ -597,13 +551,12 @@
       Array.from(tuyenSet).sort((a, b) => sapXepThongMinh(a, b)).forEach(tuyen => {
         $selTuyen.append(new Option(tuyen, tuyen));
       });
-      $selTuyen.trigger('change'); $selNgay.trigger('change');
+      $selTuyen.trigger('change');$selNgay.trigger('change');
     }
 
     function parseTabInfo(tabName) {
       if (!tabName) return { dayRange: "Cả tuần", dateStr: "Hiện hành", dateObj: new Date(0), sortKey: "00000000" };
       
-      // Hỗ trợ bắt cả năm 4 số (2026) lẫn năm 2 số (18, 24) ở dạng d.m.yy hoặc d/m/yyyy
       let match = String(tabName).match(/(\d{1,2})[\/\.](\d{1,2})[\/\.](\d{2,4})/);
       let dateObj = new Date(0);
       let dateStr = "Hiện hành";
@@ -613,7 +566,7 @@
         let d = parseInt(match[1], 10);
         let mo = parseInt(match[2], 10);
         let y = parseInt(match[3], 10);
-        if (y < 100) y += 2000; // Quy đổi năm 2 số (18 -> 2018)
+        if (y < 100) y += 2000;
         
         dateObj = new Date(y, mo - 1, d);
         
@@ -635,31 +588,10 @@
       return { dayRange, dateStr, dateObj, sortKey };
     }
 
-    function kiemTraNgayThuKhop(dayRange, thuDaChon) {
-      if (!dayRange || dayRange === "Cả tuần") return true;
-      
-      let targetNum = thuDaChon === "CN" ? "CN" : thuDaChon.replace("T", "");
-      if (dayRange === "CN") return targetNum === "CN";
-      
-      if (dayRange.includes("-")) {
-        let parts = dayRange.split("-");
-        let start = parts[0].trim();
-        let end = parts[1].trim();
-        
-        if (!isNaN(start) && !isNaN(targetNum)) {
-          return parseInt(targetNum, 10) >= parseInt(start, 10) && parseInt(targetNum, 10) <= parseInt(end, 10);
-        }
-        if (targetNum === "CN" && (end === "CN" || start === "CN")) return true;
-      } else {
-        return dayRange === targetNum;
-      }
-      return true;
-    }
-
     function onTuyenChange() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
-      const $selNgay = $('#selNgayApDung');
+      const $selNgay =$('#selNgayApDung');
 
       $selNgay.empty().append('<option value="">Chọn ngày áp dụng</option>');
       if (!xn || !tuyen) { $selNgay.trigger('change'); return; }
@@ -702,7 +634,6 @@
       if (!tuyen) return null;
       const maTuyenNgan = tuyen.split('.')[0].trim().toUpperCase();
       
-      // 1. Lọc tất cả các tab biểu đồ của tuyến đó
       let dsTabCuaTuyen = danhMucData.filter(item => {
         let matchXn = !xn || item.xn === xn;
         let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
@@ -719,7 +650,6 @@
 
       if (dsTabCuaTuyen.length === 0) return null;
 
-      // 2. Lọc các tab khớp đúng ngày hiệu lực trước
       let dsCungNgay = dsTabCuaTuyen.filter(item => {
         let info = parseTabInfo(item.tenTab);
         return info.dateStr === ngayChonStr;
@@ -729,32 +659,26 @@
         return dsTabCuaTuyen[0].tenTab || null;
       }
 
-      // 3. Tìm tab trong ngày khớp CHÍNH XÁC với thứ đang chọn dựa trên dải ngày đã gán trong tên tab
       let matchedTab = dsCungNgay.find(item => {
         return kiemTraNgayThuKhop(item.tenTab, thuDaChon);
       });
 
       if (matchedTab) return matchedTab.tenTab;
 
-      // 4. Fallback: Nếu không tìm thấy dải thứ khớp chính xác, trả về tab đầu tiên của ngày đó
       return dsCungNgay[0].tenTab || dsTabCuaTuyen[0].tenTab || null;
     }
 
-    // Hàm tự động phân tích dải ngày/thứ nằm trong tên tab (vd: 2-6, 7-CN, 2-5, v.v.)
     function kiemTraNgayThuKhop(tabName, thuDaChon) {
       let targetDay = (thuDaChon === "CN") ? "CN" : thuDaChon.replace("T", "");
       
       let parenMatch = String(tabName).match(/\(([^)]+)\)/);
-      if (!parenMatch) return true; // Không có ngoặc thì mặc định áp dụng mọi ngày
+      if (!parenMatch) return true;
       
-      let innerText = parenMatch[1]; // Lấy nội dung trong ngoặc, ví dụ: "1.4.18, 2-6"
-      
-      // Nếu trong ngoặc không chứa ký hiệu ngày/thứ (chỉ có mỗi ngày tháng) -> hiểu là cả tuần
+      let innerText = parenMatch[1];
       let hasDays = /2|3|4|5|6|7|CN/i.test(innerText);
       if (!hasDays) return true; 
       
       let parts = innerText.split(',').map(s => s.trim());
-      // Lọc ra phần dải thứ (bỏ qua đoạn chứa định dạng ngày tháng d.m.yy)
       let dayParts = parts.filter(p => !p.match(/^\d{1,2}[\/\.]\d{1,2}[\/\.]\d{2,4}$/));
       if (dayParts.length === 0) return true;
       
@@ -783,6 +707,7 @@
       return false;
     }
     
+    // HÀM XEM BIỂU ĐỒ ĐÃ ĐƯỢC TÍCH HỢP TẢI DỮ LIỆU TRẠM THỰC TẾ
     async function xemBieuDo() {
       const xn = $('#selXn').val();
       const tuyen = $('#selTuyen').val();
@@ -804,22 +729,95 @@
       $('#viewerWrapper').show();
 
       try {
-        const res = await fetch(`${API_BASE}/api/table-data?tab=${encodeURIComponent(tabName)}&tuyen=${encodeURIComponent(tuyen)}`).then(r => r.json());
+        // Gọi song song API lấy biểu đồ giờ và thông tin chi tiết tuyến từ server
+        const [resTable, resTuyen] = await Promise.all([
+          fetch(`${API_BASE}/api/table-data?tab=${encodeURIComponent(tabName)}&tuyen=${encodeURIComponent(tuyen)}`).then(r => r.json()),
+          fetch(`${API_BASE}/api/chi-tiet-tuyen?tuyen=${encodeURIComponent(tuyen)}`).then(r => r.json()).catch(() => ({ success: false }))
+        ]);
+
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
         
-        // 1. Hiển thị bảng biểu đồ giờ như bình thường
-        hienThiBangHTML(res);
+        // 1. Hiển thị bảng biểu đồ giờ ở phía dưới
+        hienThiBangHTML(resTable);
 
-        // 2. CẬP NHẬT TÊN VÀ HIỆN SƠ ĐỒ TUYẾN LÊN:
-        // Lấy tên tuyến đang chọn gán vào tiêu đề sơ đồ
+        // 2. Vẽ sơ đồ tuyến động lên phía trên dựa trên dữ liệu trạm đã lưu từ Admin
         $('#schemaTitle').text(tuyen);
-        // Bật hiển thị khung sơ đồ lên
+        
+        let tramDiStr = (resTuyen && resTuyen.success) ? (resTuyen.tramDi || "") : "";
+        let tramVeStr = (resTuyen && resTuyen.success) ? (resTuyen.tramVe || "") : "";
+        let dauA = (resTuyen && resTuyen.success) ? (resTuyen.dauA || "Đầu A") : "Đầu A";
+        let dauB = (resTuyen && resTuyen.success) ? (resTuyen.dauB || "Đầu B") : "Đầu B";
+
+        veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr);
         $('#routeSchemaWrapper').show();
 
       } catch (err) {
         $btn.html('<i class="fa fa-eye"></i> Xem Biểu Đồ').prop('disabled', false);
         alert("Lỗi kết nối máy chủ: " + err);
       }
+    }
+
+    // Hàm tự động rải trạm lên SVG
+    function veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr) {
+      const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+      const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+      let svgHtml = `
+        <svg viewBox="0 0 800 180" style="width: 100%; height: auto; min-width: 700px;">
+          <style>
+            .station-text {
+              font-size: 10px;
+              fill: #333;
+              font-weight: 500;
+              transform: skewX(-25deg);
+              transform-origin: left bottom;
+            }
+            .line-di { stroke: #27AE60; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+            .line-ve { stroke: #3498DB; stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+            .node-dot { fill: #FFF; stroke-width: 3; r: 4.5; }
+          </style>
+          <!-- CHIỀU ĐI (Dòng trên) -->
+          <path d="M 60 50 L 700 50 L 740 130" class="line-di" />
+      `;
+
+      if (listDi.length > 0) {
+        let step = 640 / (listDi.length + 1);
+        listDi.forEach((tram, idx) => {
+          let cx = 60 + step * (idx + 1);
+          svgHtml += `
+            <circle cx="${cx}" cy="50" class="node-dot" stroke="#27AE60" />
+            <text x="${cx - 5}" y="35" class="station-text">${tram}</text>
+          `;
+        });
+      }
+
+      svgHtml += `
+          <!-- CHIỀU VỀ (Dòng dưới) -->
+          <path d="M 740 130 L 100 130 L 60 50" class="line-ve" />
+      `;
+
+      if (listVe.length > 0) {
+        let step = 640 / (listVe.length + 1);
+        listVe.forEach((tram, idx) => {
+          let cx = 740 - step * (idx + 1);
+          svgHtml += `
+            <circle cx="${cx}" cy="130" class="node-dot" stroke="#3498DB" />
+            <text x="${cx - 5}" y="155" class="station-text">${tram}</text>
+          `;
+        });
+      }
+
+      svgHtml += `
+          <!-- ĐẦU MÚT A VÀ B -->
+          <circle cx="60" cy="50" r="11" fill="#27AE60" />
+          <text x="32" y="80" font-weight="bold" font-size="11" fill="#27AE60">${dauA}</text>
+
+          <circle cx="740" cy="130" r="11" fill="#3498DB" />
+          <text x="715" y="115" font-weight="bold" font-size="11" fill="#3498DB">${dauB}</text>
+        </svg>
+      `;
+
+      $('#schemaSvgContainer').html(svgHtml);
     }
 
     function chuanHoaGio(str) {
@@ -977,7 +975,7 @@
 
       $('#mainScheduleTable').html(html);
       $('#viewerWrapper').show();
-      $('html, body').animate({ scrollTop:$('#viewerWrapper').offset().top - 20 }, 300);
+      $('html, body').animate({ scrollTop:$('#routeSchemaWrapper').offset().top - 20 }, 300);
     }
 
     function chuyenNhanhSangBieuDo(xn, tenTuyen) {
