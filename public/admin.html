@@ -219,15 +219,15 @@
 
   <script>
     function onXnSelectChange(sel) {
-      if ($(sel).val() === '__NEW__') { $('#txtXnMoi').show().focus(); }
+      if ($(sel).val() === '__NEW__') {$('#txtXnMoi').show().focus(); }
       else { $('#txtXnMoi').hide().val(''); }
     }
     function onDauASelectChange(sel) {
-      if ($(sel).val() === '__NEW__') { $('#txtDauAMoi').show().focus(); tuDongGoiYTenTuyen(); }
+      if ($(sel).val() === '__NEW__') {$('#txtDauAMoi').show().focus(); tuDongGoiYTenTuyen(); }
       else { $('#txtDauAMoi').hide().val(''); tuDongGoiYTenTuyen(); }
     }
     function onDauBSelectChange(sel) {
-      if ($(sel).val() === '__NEW__') { $('#txtDauBMoi').show().focus(); tuDongGoiYTenTuyen(); }
+      if ($(sel).val() === '__NEW__') {$('#txtDauBMoi').show().focus(); tuDongGoiYTenTuyen(); }
       else { $('#txtDauBMoi').hide().val(''); tuDongGoiYTenTuyen(); }
     }
     const API_BASE = "https://dieu-hanh-bus.onrender.com";
@@ -252,7 +252,7 @@
     async function xuLyDangNhapAdmin() {
       const username = $('#txtAdminId').val().trim();
       const password = $('#txtAdminPass').val().trim();
-      const $errorBox = $('#authErrorMsg');
+      const $errorBox =$('#authErrorMsg');
 
       try {
         const res = await fetch(`${API_BASE}/api/admin/login`, {
@@ -747,7 +747,6 @@
       if (sectionId === 'sec-users') { taiDanhSachTaiKhoan(); }
       else if (sectionId === 'sec-log') { taiDanhSachLog(); }
       else if (sectionId === 'sec-thongbao') { taiTaiThongBaoAdmin(); }
-      else if (sectionId === 'sec-led') { khoiTaoTrangLed(); }
     }
 
     function toggleSidebar() { $('#sidebarMenu').toggleClass('collapsed'); }
@@ -775,14 +774,11 @@
     $(document).ready(function() {
       $('.select2-search').select2({
         language: { noResults: () => "Không tìm thấy kết quả phù hợp (Nhấn Enter để thêm mới)" },
-        tags: true, // Cho phép gõ thêm giá trị mới trực tiếp
+        tags: true,
         createTag: function (params) {
           var term = $.trim(params.term);
           if (term === '') { return null; }
-          return {
-            id: term,
-            text: term
-          };
+          return { id: term, text: term };
         }
       });
 
@@ -791,7 +787,6 @@
       tuDongTaoTenTab();
 
       napDuLieuTong();
-      
       $('#selChonTuyen').on('change', onSelectTuyenChange);
     });
 
@@ -886,11 +881,8 @@
       $('#selDauA').val("").trigger('change.select2');
       $('#selDauB').val("").trigger('change.select2');
       $('#txtTenTuyen').val("");
-      
-      // BỔ SUNG XÓA TRẮNG 2 Ô NÀY:
       $('#adminTramDi').val("");
       $('#adminTramVe').val("");
-
       $('input[name="rdStatus"][value="active"]').prop('checked', true);
       renderBangXeForm([]);
       dangLamMoi = false;
@@ -923,7 +915,6 @@
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
 
-        // ---> THÊM 2 DÒNG NÀY ĐỂ ĐỔ DỮ LIỆU TRẠM LÊN FORM KHI CHỌN TUYẾN:
         $('#adminTramDi').val(t.tramDi || '');
         $('#adminTramVe').val(t.tramVe || '');
 
@@ -1034,37 +1025,6 @@
         }
       } catch (err) {
         console.error("Lỗi nạp dữ liệu:", err);
-      }
-    }
-
-    function khoiTaoTrangLed() {
-      const $sel = $('#selLedTuyen');
-      $sel.empty().append('<option value="">Chọn tuyến</option>');
-      mapTuyenChiTiet.forEach(t => {
-        $sel.append(new Option(`Tuyến ${t.maTuyen}: ${t.tenTuyen}`, t.maTuyen));
-      });
-      $sel.trigger('change.select2');
-    }
-
-    function capNhatGiaoDienLed() {
-      const ma = $('#selLedTuyen').val();
-      const kieu = $('#selLedKieu').val();
-      const $screen = $('#ledScreen');
-
-      if (!ma) {
-        $screen.text("VUI LÒNG CHỌN TUYẾN XEM LED");
-        return;
-      }
-
-      const t = mapTuyenChiTiet.get(ma);
-      if (!t) return;
-
-      if (kieu === 'front') {
-        $screen.text(`${t.maTuyen} ${t.tenTuyen.toUpperCase()}`);
-      } else if (kieu === 'side') {
-        $screen.text(`TUYẾN ${t.maTuyen} | ${t.dauA || 'ĐẦU A'} <=> ${t.dauB || 'ĐẦU B'}`);
-      } else {
-        $screen.text(`XE BUÝT HÀ NỘI - ${t.maTuyen}`);
       }
     }
 
@@ -1216,10 +1176,17 @@
     function themDongXeMoi() {
       let danhSachHienTai = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
-        const $opt = $(this).find('.form-chungloai').find(':selected');
+        const $sel = $(this).find('.form-chungloai');
+        let chungLoaiVal = $sel.val() || "";
+        if (chungLoaiVal.includes('___')) chungLoaiVal = chungLoaiVal.split('___')[0];
+        else {
+          const $opt = $sel.find(':selected');
+          chungLoaiVal = $opt.attr('data-chungloai') || $opt.text() || chungLoaiVal;
+        }
+
         danhSachHienTai.push({
           bks: $(this).find('.form-bks').val().trim(),
-          chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
+          chungLoai: chungLoaiVal.trim(),
           sucChua: $(this).find('.form-succhua').val().trim(),
           namSx: $(this).find('.form-namsx').val().trim()
         });
@@ -1234,6 +1201,7 @@
       });
     }
 
+    // HÀM IMPORT XE TỪ EXCEL ĐÃ FIX HỖ TRỢ CẢ TAB LẪN KHOẢNG TRẮNG
     function importXeChoTuyenHienTai() {
       const rawText = $('#txtImportXeTuyenRieng').val().trim();
       if (!rawText) {
@@ -1247,10 +1215,17 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         if (bks) {
-          const $opt = $(this).find('.form-chungloai').find(':selected');
+          const $sel = $(this).find('.form-chungloai');
+          let chungLoaiVal = $sel.val() || "";
+          if (chungLoaiVal.includes('___')) chungLoaiVal = chungLoaiVal.split('___')[0];
+          else {
+            const $opt = $sel.find(':selected');
+            chungLoaiVal = $opt.attr('data-chungloai') || $opt.text() || chungLoaiVal;
+          }
+
           xeHienTai.push({
             bks: bks,
-            chungLoai: $opt.attr('data-chungloai') || $(this).find('.form-chungloai').val().split('___')[0],
+            chungLoai: chungLoaiVal.trim(),
             sucChua: $(this).find('.form-succhua').val().trim(),
             namSx: $(this).find('.form-namsx').val().trim()
           });
@@ -1260,7 +1235,11 @@
       let countAdded = 0;
       lines.forEach(line => {
         if (!line.trim()) return;
-        const cols = line.split("\t").map(c => c.trim());
+        
+        let cols = line.split("\t").map(c => c.trim());
+        if (cols.length < 2) cols = line.trim().split(/\s{2,}/).map(c => c.trim());
+        if (cols.length < 2) cols = line.trim().split(/\s+/).map(c => c.trim());
+
         const bksInput = cols[0] || "";
         const chungLoaiInput = cols[1] || "";
         let sucChuaInput = cols[2] || "";
@@ -1332,6 +1311,7 @@
       } catch (err) {}
     }
 
+    // HÀM LƯU TUYẾN VÀ ĐỘI XE ĐÃ FIX CHUẨN key chungLoai VÀ LƯU ĐỦ TRẠM
     async function xacLapTuyenVaDoiXe() {
       const maTuyen = $('#txtMaTuyen').val().trim();
       
@@ -1346,7 +1326,6 @@
 
       const tenTuyen = $('#txtTenTuyen').val().trim();
       
-      // LẤY GIÁ TRỊ TRẠM ĐI VÀ TRẠM VỀ TỪ FORM:
       const tramDi = $('#adminTramDi').val().trim();
       const tramVe = $('#adminTramVe').val().trim();
 
@@ -1360,20 +1339,28 @@
       const danhSachXe = [];
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
-        const $opt =$(this).find('.form-chungloai').find(':selected');
-        const chungLoai = $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0] || '';
+        const $sel = $(this).find('.form-chungloai');
+        let chungLoai = $sel.val() || "";
+        
+        if (chungLoai.includes('___')) {
+          chungLoai = chungLoai.split('___')[0];
+        } else {
+          const $opt = $sel.find(':selected');
+          chungLoai = $opt.attr('data-chungloai') || $opt.text() || chungLoai;
+        }
+        chungLoai = chungLoai.trim();
+
         const sucChua = $(this).find('.form-succhua').val().trim();
         const namSx = $(this).find('.form-namsx').val().trim();
         
         if (bks) {
-          // ĐÃ SỬA CHUẨN chungLogi THÀNH chungLoai:
           danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
         }
       });
 
       const soXeKh = danhSachXe.length;
       const setLoai = new Set();
-      danhSachXe.forEach(x => { if (x.chungLoai) setLoai.add(x.chungLoai); });
+      danhSachXe.forEach(x => { if (x.chungLoai && !x.chungLoai.includes('--')) setLoai.add(x.chungLoai); });
       const loaiXe = Array.from(setLoai).join(' & ');
 
       try {
@@ -1395,6 +1382,7 @@
         showToast("Lỗi kết nối: " + err, "error");
       }
     }
+
     function veBangTrangThaiBieuDo(sortedRoutes) {
       let html = '';
       if (!sortedRoutes || sortedRoutes.length === 0) {
@@ -1540,7 +1528,7 @@
     }
 
     function napTuyenLenSua(maTuyen) {
-      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]);$('#selChonTuyenDeSua').val(maTuyen).trigger('change');
+      chuyenTabAdmin('sec-tuyen', $('.sidebar-menu li a')[1]); $('#selChonTuyenDeSua').val(maTuyen).trigger('change');
     }
 
     async function doiTrangThai(maTuyen, statusMoi) {
@@ -1557,8 +1545,8 @@
     }
 
     function doVaoSelect2(elemId, dataSet, label) {
-      const $sel =$('#' + elemId);
-      const currentVal = $sel.val();$sel.empty().append(`<option value="">Chọn ${label}...</option>`);
+      const $sel = $('#' + elemId);
+      const currentVal = $sel.val(); $sel.empty().append(`<option value="">Chọn ${label}...</option>`);
       const sortedArray = Array.from(dataSet).sort((a, b) => sapXepThongMinh(a, b));
       sortedArray.forEach(val => $sel.append(new Option(val, val)));
       
@@ -1575,29 +1563,14 @@
     }
 
     function toggleCaTuan(elem) {
-      const isChecked = $(elem).prop('checked');$('.chk-ngay-le').prop('checked', isChecked);
+      const isChecked = $(elem).prop('checked'); $('.chk-ngay-le').prop('checked', isChecked);
       tuDongTaoTenTab();
     }
 
     function onCheckboxDayChange() {
-      const allChecked = $('.chk-ngay-le').length ===$('.chk-ngay-le:checked').length;
+      const allChecked = $('.chk-ngay-le').length === $('.chk-ngay-le:checked').length;
       $('#chkCaTuan').prop('checked', allChecked);
       tuDongTaoTenTab();
-    }
-
-    function formatShortDate(dateStr) {
-      if (!dateStr) return "";
-      dateStr = dateStr.trim();
-      const parts = dateStr.split(/[\/\-\.]/);
-      if (parts.length === 3) {
-        let d = parseInt(parts[0], 10);
-        let m = parseInt(parts[1], 10);
-        let y = parseInt(parts[2], 10);
-        if (y >= 2000) y -= 2000;
-        else if (y >= 1900) y -= 1900;
-        return `${d}.${m}.${y}`;
-      }
-      return dateStr;
     }
 
     function tuDongTaoTenTab() {
