@@ -266,10 +266,38 @@ app.get('/api/thong-bao', async (req, res) => {
 app.get('/api/thong-bao-chi-tiet', async (req, res) => {
   try {
     const raw = await getRawData();
+    const now = new Date();
+    
+    let activeTexts = [];
+    const scheduleList = raw.thongBaoScheduleList || [];
+
+    // 1. Duyệt qua danh sách lịch để gom các thông báo đang có hiệu lực
+    if (scheduleList.length > 0) {
+      for (let item of scheduleList) {
+        const start = new Date(`${item.tuNgay}T${item.tuGio || '00:00'}`);
+        const end = new Date(`${item.denNgay}T${item.denGio || '23:59'}`);
+        
+        if (now >= start && now <= end) {
+          if (item.noiDung && !activeTexts.includes(item.noiDung)) {
+            activeTexts.push(item.noiDung.trim());
+          }
+        }
+      }
+    }
+
+    // 2. Nối các thông báo đang hiệu lực bằng ký tự ' • ' hoặc dùng thông báo mặc định nếu không có lịch nào khớp
+    let finalActiveText = "";
+    if (activeTexts.length > 0) {
+      finalActiveText = activeTexts.join("   •   ");
+    } else {
+      finalActiveText = raw.thongBaoChay || "Hệ thống điều hành xe buýt Hà Nội";
+    }
+
     res.json({ 
       success: true, 
       defaultText: raw.thongBaoChay || "", 
-      scheduleList: raw.thongBaoScheduleList || [] 
+      currentActiveText: finalActiveText, // Gửi chuỗi gộp ra ngoài marquee
+      scheduleList: scheduleList 
     });
   } catch (err) {
     res.status(500).json({ success: false, defaultText: "", scheduleList: [] });
