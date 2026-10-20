@@ -751,8 +751,8 @@ app.get('/api/danh-muc', async (req, res) => {
 						xn: item.xn || "",
 						dauA: item.dauA || "",
 						dauB: item.dauB || "",
-						tramDi: item.tramDi || "", // 👈 Bổ sung trạm đi
-						tramVe: item.tramVe || "", // 👈 Bổ sung trạm về
+						tramDi: item.tramDi || "", // 👉 Đã bổ sung trạm đi
+						tramVe: item.tramVe || "", // 👉 Đã bổ sung trạm về
 						soXeVd: item.soXeVd || 0,
 						soXeKh: item.soXeKh || item.soXe || 0,
 						loaiXe: item.loaiXe || "",
@@ -818,14 +818,13 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 			tenTuyen: tuyenInfo.tenTuyen || maTuyen,
 			dauA: tuyenInfo.dauA || "Đầu A",
 			dauB: tuyenInfo.dauB || "Đầu B",
-			tramDi: tuyenInfo.tramDi || "",
-			tramVe: tuyenInfo.tramVe || ""
+			tramDi: tuyenInfo.tramDi || "", // 👉 Trả về danh sách trạm chiều đi
+			tramVe: tuyenInfo.tramVe || ""  // 👉 Trả về danh sách trạm chiều về
 		});
 	} catch (err) {
 		res.status(500).json({ success: false, message: err.message });
 	}
 });
-
 app.get('/api/table-data', async (req, res) => {
 	try {
 		const { tab, tuyen } = req.query;
