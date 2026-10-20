@@ -886,6 +886,11 @@
       $('#selDauA').val("").trigger('change.select2');
       $('#selDauB').val("").trigger('change.select2');
       $('#txtTenTuyen').val("");
+      
+      // BỔ SUNG XÓA TRẮNG 2 Ô NÀY:
+      $('#adminTramDi').val("");
+      $('#adminTramVe').val("");
+
       $('input[name="rdStatus"][value="active"]').prop('checked', true);
       renderBangXeForm([]);
       dangLamMoi = false;
@@ -917,6 +922,10 @@
         $('#selXn').val(t.xn).trigger('change.select2');
         $('#selDauA').val(t.dauA).trigger('change.select2');
         $('#selDauB').val(t.dauB).trigger('change.select2');
+
+        // BỔ SUNG 2 DÒNG NÀY ĐỂ HIỂN THỊ LẠI TRẠM ĐÃ LƯU KHI CHỌN TUYẾN:
+        $('#adminTramDi').val(t.tramDi || '');
+        $('#adminTramVe').val(t.tramVe || '');
 
         const xeCuaTuyen = tatCaXeHeThong.filter(x => chuanHoaMaTuyen(x.maTuyen) === chuanHoaMaTuyen(t.maTuyen));
         xeCuaTuyen.sort((a, b) => sapXepThongMinh(a.bks, b.bks));
@@ -1336,6 +1345,11 @@
       const dauB = selBVal === "__NEW__" ? $('#txtDauBMoi').val().trim() : (selBVal || "");
 
       const tenTuyen = $('#txtTenTuyen').val().trim();
+      
+      // LẤY GIÁ TRỊ TRẠM ĐI VÀ TRẠM VỀ TỪ FORM:
+      const tramDi = $('#adminTramDi').val().trim();
+      const tramVe = $('#adminTramVe').val().trim();
+
       const status = $('input[name="rdStatus"][value="active"]').prop('checked') ? 'active' : 'locked';
 
       if (!maTuyen || !tenTuyen || !xn) {
@@ -1347,12 +1361,12 @@
       $('#tblFormDanhSachXe .xe-row-item').each(function() {
         const bks = $(this).find('.form-bks').val().trim();
         const $opt =$(this).find('.form-chungloai').find(':selected');
-        const chungLoai = $opt.attr('data-chungloai') ||$(this).find('.form-chungloai').val().split('___')[0] || '';
+        const chungLoai = $opt.attr('data-chungloai') \vert{}\vert{}$(this).find('.form-chungloai').val().split('___')[0] || '';
         const sucChua = $(this).find('.form-succhua').val().trim();
         const namSx = $(this).find('.form-namsx').val().trim();
         
         if (bks) {
-          danhSachXe.push({ bks, chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
+          danhSachXe.push({ bks, chungLogi: chungLoai, sucChua, namSx, maTuyen, xn, tenTuyen });
         }
       });
 
@@ -1365,7 +1379,8 @@
         const resTuyen = await fetch(`${API_BASE}/api/tuyen-moi`, {
           method: 'POST', 
           headers: { 'Content-Type': 'application/json', 'x-admin-user': sessionStorage.getItem('admin_user') },
-          body: JSON.stringify({ ...getAdminInfo(), maTuyen, tenTuyen, xn, dauA, dauB, soXeKh, soXe: soXeKh, loaiXe, status })
+          // BỔ SUNG tramDi VÀ tramVe VÀO ĐÂY:
+          body: JSON.stringify({ ...getAdminInfo(), maTuyen, tenTuyen, xn, dauA, dauB, tramDi, tramVe, soXeKh, soXe: soXeKh, loaiXe, status })
         }).then(r => r.json());
 
         const resXe = await fetch(`${API_BASE}/api/admin/luu-doi-xe-tuyen`, {
