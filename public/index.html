@@ -404,11 +404,12 @@
     }
 
     $(document).ready(function() {
-      fetch(`${API_BASE}/api/thong-bao`)
+      fetch(`${API_BASE}/api/thong-bao-chi-tiet`)
         .then(r => r.json())
         .then(res => {
-          if (res.success && res.text && res.text.trim() !== "") {
-            $('#marqueeText').html(`<span>${res.currentActiveText || res.defaultText}</span>`);
+          const noiDungChay = res.currentActiveText || res.defaultText || "";
+          if (res.success && noiDungChay.trim() !== "") {
+            $('#marqueeText').html(`<span>${noiDungChay}</span>`);
             $('#marqueeWrapper').css('display', 'flex');
           } else {
             $('#marqueeWrapper').hide();
