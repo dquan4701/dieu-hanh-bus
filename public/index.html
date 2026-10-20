@@ -408,7 +408,7 @@
         .then(r => r.json())
         .then(res => {
           if (res.success && res.text && res.text.trim() !== "") {
-            $('#marqueeText').html(`<span>${res.text}</span>`);
+            $('#marqueeText').html(`<span>${res.currentActiveText || res.defaultText}</span>`);
             $('#marqueeWrapper').css('display', 'flex');
           } else {
             $('#marqueeWrapper').hide();
