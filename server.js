@@ -733,72 +733,119 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
 });
 
 app.get('/api/danh-muc', async (req, res) => {
-  try {
-    const isAdmin = req.query.admin === 'true';
-    const raw = await getRawData();
-    let danhMucList = [];
-    let allRoutesList = [];
-    const activeRouteNames = new Set();
+	try {
+		const isAdmin = req.query.admin === 'true';
+		const raw = await getRawData();
+		let danhMucList = [];
+		let allRoutesList = [];
+		const activeRouteNames = new Set();
 
-    if (raw.tuyenList && typeof raw.tuyenList === 'object') {
-      for (let k in raw.tuyenList) {
-        const item = raw.tuyenList[k];
-        if (isAdmin || item.status !== 'locked') {
-          activeRouteNames.add(item.tenTuyen || k);
-          allRoutesList.push({
-            maTuyen: item.maTuyen || k,
-            tenTuyen: item.tenTuyen || k,
-            xn: item.xn || "",
-            dauA: item.dauA || "",
-            dauB: item.dauB || "",
-            soXeVd: item.soXeVd || 0,
-            soXeKh: item.soXeKh || item.soXe || 0,
-            loaiXe: item.loaiXe || "",
-            sucChua: item.sucChua || "",
-            status: item.status || "active"
-          });
-        }
-      }
-    }
+		if (raw.tuyenList && typeof raw.tuyenList === 'object') {
+			for (let k in raw.tuyenList) {
+				const item = raw.tuyenList[k];
+				if (isAdmin || item.status !== 'locked') {
+					activeRouteNames.add(item.tenTuyen || k);
+					allRoutesList.push({
+						maTuyen: item.maTuyen || k,
+						tenTuyen: item.tenTuyen || k,
+						xn: item.xn || "",
+						dauA: item.dauA || "",
+						dauB: item.dauB || "",
+						tramDi: item.tramDi || "", // 👈 Bổ sung trạm đi
+						tramVe: item.tramVe || "", // 👈 Bổ sung trạm về
+						soXeVd: item.soXeVd || 0,
+						soXeKh: item.soXeKh || item.soXe || 0,
+						loaiXe: item.loaiXe || "",
+						sucChua: item.sucChua || "",
+						status: item.status || "active"
+					});
+				}
+			}
+		}
 
-    if (Array.isArray(raw.bieuDoList)) {
-      danhMucList = raw.bieuDoList
-        .filter(item => isAdmin || activeRouteNames.has(item.tuyen))
-        .map(item => ({
-          xn: item.xn || "",
-          tuyen: item.tuyen || "",
-          bieuDo: item.bieuDo || "",
-          tenTab: item.tenTab || ""
-        }));
-    }
+		if (Array.isArray(raw.bieuDoList)) {
+			danhMucList = raw.bieuDoList
+				.filter(item => isAdmin || activeRouteNames.has(item.tuyen))
+				.map(item => ({
+					xn: item.xn || "",
+					tuyen: item.tuyen || "",
+					bieuDo: item.bieuDo || "",
+					tenTab: item.tenTab || ""
+				}));
+		}
 
-    res.json({ success: true, data: danhMucList, allRoutes: allRoutesList, bieuDoList: raw.bieuDoList || [] });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+		res.json({ success: true, data: danhMucList, allRoutes: allRoutesList, bieuDoList: raw.bieuDoList || [] });
+	} catch (err) {
+		res.status(500).json({ success: false, message: err.message });
+	}
+});
+
+// Thêm API chi tiết tuyến phòng hờ
+app.get('/api/chi-tiet-tuyen', async (req, res) => {
+	try {
+		const maTuyen = req.query.maTuyen || req.query.tuyen;
+		if (!maTuyen) return res.json({ success: false, message: "Thiếu mã tuyến!" });
+
+		const raw = await getRawData();
+		let tuyenInfo = null;
+
+		if (raw.tuyenList) {
+			for (let k in raw.tuyenList) {
+				const t = raw.tuyenList[k];
+				if (String(t.maTuyen || k).toUpperCase() === String(maTuyen).toUpperCase() ||
+					String(t.tenTuyen || '').toUpperCase().includes(String(maTuyen).toUpperCase())) {
+					tuyenInfo = t;
+					break;
+				}
+			}
+		}
+
+		if (!tuyenInfo) {
+			return res.json({
+				success: true,
+				maTuyen: maTuyen,
+				tenTuyen: maTuyen,
+				dauA: "Đầu A",
+				dauB: "Đầu B",
+				tramDi: "",
+				tramVe: ""
+			});
+		}
+
+		res.json({
+			success: true,
+			maTuyen: tuyenInfo.maTuyen || maTuyen,
+			tenTuyen: tuyenInfo.tenTuyen || maTuyen,
+			dauA: tuyenInfo.dauA || "Đầu A",
+			dauB: tuyenInfo.dauB || "Đầu B",
+			tramDi: tuyenInfo.tramDi || "",
+			tramVe: tuyenInfo.tramVe || ""
+		});
+	} catch (err) {
+		res.status(500).json({ success: false, message: err.message });
+	}
 });
 
 app.get('/api/table-data', async (req, res) => {
-  try {
-    const { tab, tuyen } = req.query;
-    const raw = await getRawData();
-    const foundItem = (raw.bieuDoList || []).find(b => String(b.tenTab || '').trim() === String(tab || '').trim());
-    if (!foundItem) return res.status(404).json({ success: false, message: 'Không tìm thấy biểu đồ' });
+	try {
+		const { tab, tuyen } = req.query;
+		const raw = await getRawData();
+		const foundItem = (raw.bieuDoList || []).find(b => String(b.tenTab || '').trim() === String(tab || '').trim());
+		if (!foundItem) return res.status(404).json({ success: false, message: 'Không tìm thấy biểu đồ' });
 
-    let dauA = "", dauB = "";
-    for (let k in raw.tuyenList) {
-      if (raw.tuyenList[k].tenTuyen === foundItem.tuyen || raw.tuyenList[k].maTuyen === tuyen) {
-        dauA = raw.tuyenList[k].dauA || "";
-        dauB = raw.tuyenList[k].dauB || "";
-        break;
-      }
-    }
-    res.json({ success: true, rawData: foundItem.rawData || [], dauA, dauB });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
+		let dauA = "", dauB = "";
+		for (let k in raw.tuyenList) {
+			if (raw.tuyenList[k].tenTuyen === foundItem.tuyen || raw.tuyenList[k].maTuyen === tuyen) {
+				dauA = raw.tuyenList[k].dauA || "";
+				dauB = raw.tuyenList[k].dauB || "";
+				break;
+			}
+		}
+		res.json({ success: true, rawData: foundItem.rawData || [], dauA, dauB });
+	} catch (err) {
+		res.status(500).json({ success: false, message: err.message });
+	}
 });
-
 app.get('/api/bus-data', async (req, res) => {
   try { const data = await getRawData(); res.json(data); } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
