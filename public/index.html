@@ -764,21 +764,28 @@
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
+      // Tìm tên trạm dài nhất để tự động phình to chiều cao cho phù hợp
+      let maxLen = 0;
+      [...listDi, ...listVe].forEach(t => { if (t.length > maxLen) maxLen = t.length; });
+
+      // Khoảng đệm linh hoạt theo độ dài chữ
+      let paddingY = maxLen > 20 ? 75 : 55;
+
       const maxStations = Math.max(listDi.length, listVe.length, 1);
       const dynamicWidth = Math.max(1300, maxStations * 100 + 450);
 
-      // 👉 Tăng hẳn chiều cao tổng thể lên 240px
-      let totalHeight = 240;
-      let yTop = 105;      // Đẩy đường trên xuống để chữ có không gian vươn lên
-      let yBottom = 165;   // Đẩy đường dưới xuống tương xứng
-      let startX = 180;    // Tăng lề trái để chữ "BÁC CỔ" không bị sát mép
+      // 👉 Tự động co giãn toạ độ và tổng chiều cao cực kỳ linh hoạt
+      let yTop = 85 + paddingY;
+      let yBottom = yTop + 70;
+      let totalHeight = yBottom + paddingY + 30;
+      
+      let startX = 180;
       let endX = dynamicWidth - 180;
       let span = endX - startX;
 
       let svgHtml = `
         <svg viewBox="0 0 ${dynamicWidth} ${totalHeight}" style="width: 100%; height: auto; min-width: 950px; overflow: visible;">
           <style>
-            /* 👉 Ép toàn bộ SVG dùng font Helvetica chuẩn và chống lỗi văng nét tuyệt đối */
             text {
               font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
               text-rendering: geometricPrecision;
@@ -829,7 +836,7 @@
         <line x1="${startX}" y1="${yBottom}" x2="${endX}" y2="${yBottom}" class="line-bus" />
       `;
 
-      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU
+      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (Căn giữa linh hoạt theo khung)
       let yCenter = (yTop + yBottom) / 2;
       svgHtml += `
         <text x="${startX - 60}" y="${yCenter}" class="endpoint-text" transform="rotate(-90, ${startX - 60}, ${yCenter})">${dauAInHoa}</text>
