@@ -757,102 +757,118 @@
       }
     }
 
-    // HÀM VẼ SƠ ĐỒ TUYẾN GỌN GÀNG, THANH THOÁT ĐÚNG CHUẨN KỸ THUẬT
+    // HÀM VẼ SƠ ĐỒ TUYẾN CHUẨN MẪU BÚÝT (ĐƯỜNG BĂNG KÉP, CHẤM ĐỎ, TÊN TRẠM NGHIÊNG)
     function veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr) {
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
       const maxStations = Math.max(listDi.length, listVe.length, 1);
-      const dynamicWidth = Math.max(900, maxStations * 120 + 250);
+      const dynamicWidth = Math.max(1100, maxStations * 100 + 350);
 
       let svgHtml = `
-        <svg viewBox="0 0 ${dynamicWidth} 220" style="width: 100%; height: auto; min-width: 750px; overflow: visible;">
+        <svg viewBox="0 0 ${dynamicWidth} 280" style="width: 100%; height: auto; min-width: 850px; overflow: visible;">
           <style>
-            .station-text-top, .station-text-bottom {
+            .station-text-top {
               font-size: 11px;
-              fill: #222;
+              fill: #000;
               font-weight: 600;
+              text-anchor: start;
             }
-            .line-route {
-              stroke: #333;
-              stroke-width: 1.5;
-              fill: none;
-              stroke-dasharray: 5,4;
+            .station-text-bottom {
+              font-size: 11px;
+              fill: #000;
+              font-weight: 600;
+              text-anchor: end;
             }
-            .line-link {
-              stroke: #3B86C4;
-              stroke-width: 1.5;
+            .line-bus {
+              stroke: #111;
+              stroke-width: 3.5;
               fill: none;
+              stroke-linejoin: round;
             }
             .node-dot {
-              fill: #333;
-              r: 3.5;
-            }
-            .endpoint-dot {
-              fill: #1A5276;
+              fill: #E74C3C; /* Chấm tròn đỏ */
               stroke: #fff;
-              stroke-width: 1.5;
-              r: 5;
+              stroke-width: 1;
+              r: 5.5;
+            }
+            .endpoint-text-left {
+              font-size: 13px;
+              font-weight: bold;
+              fill: #C0392B;
+              writing-mode: vertical-rl;
+              text-anchor: middle;
+            }
+            .endpoint-text-right {
+              font-size: 13px;
+              font-weight: bold;
+              fill: #C0392B;
+              writing-mode: vertical-rl;
+              text-anchor: middle;
             }
           </style>
       `;
 
-      let startX = 90;
-      let endX = dynamicWidth - 90;
+      let startX = 140;
+      let endX = dynamicWidth - 140;
+      let yTop = 80;
+      let yBottom = 190;
       let span = endX - startX;
 
-      // 1. ĐẦU A (Bên trái)
+      // 1. KHUNG ĐƯỜNG BĂNG KÉP KHÉP KÍN (BO CHÉO HAI ĐẦU)
       svgHtml += `
-        <circle cx="${startX}" cy="60" class="endpoint-dot" />
-        <text x="${startX - 15}" y="64" font-weight="bold" font-size="12" fill="#000" text-anchor="end">${dauA}</text>
+        <!-- Viền khung chính -->
+        <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 35},${yBottom} ${startX - 35},${yBottom}" 
+                 fill="none" stroke="#111" stroke-width="4" stroke-linejoin="round" />
+        
+        <!-- Đường ngang chia đôi chiều đi và chiều về bên trong -->
+        <line x1="${startX}" y1="${yTop}" x2="${endX}" y2="${yTop}" class="line-bus" />
+        <line x1="${startX}" y1="${yBottom}" x2="${endX}" y2="${yBottom}" class="line-bus" />
       `;
 
-      // 2. CHIỀU ĐI (Hàng trên: Từ trái qua phải)
+      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (Trái và Phải)
+      svgHtml += `
+        <text x="${startX - 65}" y="135" class="endpoint-text-left">${dauA}</text>
+        <text x="${endX + 65}" y="135" class="endpoint-text-right">${dauB}</text>
+      `;
+
+      // 3. CHIỀU ĐI (Hàng trên: Từ trái qua phải)
       let stepDi = span / (listDi.length + 1);
-      let prevDiX = startX;
-      
       listDi.forEach((tram, idx) => {
         let cx = startX + stepDi * (idx + 1);
         svgHtml += `
-          <line x1="${prevDiX}" y1="60" x2="${cx}" y2="60" class="line-route" />
-          <circle cx="${cx}" cy="60" class="node-dot" />
-          <text x="${cx}" y="28" class="station-text-top" transform="rotate(-30 ${cx} 28)">${tram}</text>
+          <circle cx="${cx}" cy="${yTop}" class="node-dot" />
+          <g transform="translate(${cx}, ${yTop - 12})">
+            <text class="station-text-top" transform="rotate(-40)">${tram}</text>
+          </g>
         `;
-        prevDiX = cx;
       });
 
-      // Đoạn nối cuối chiều đi đến đầu B
-      svgHtml += `<line x1="${prevDiX}" y1="60" x2="${endX}" y2="60" class="line-route" />`;
-
-      // 3. ĐẦU B (Bên phải)
+      // Thêm 2 đầu mút ở mép khung cho chiều đi
       svgHtml += `
-        <circle cx="${endX}" cy="160" class="endpoint-dot" />
-        <text x="${endX + 15}" y="164" font-weight="bold" font-size="12" fill="#000" text-anchor="start">${dauB}</text>
+        <circle cx="${startX}" cy="${yTop}" class="node-dot" />
+        <circle cx="${endX}" cy="${yTop}" class="node-dot" />
       `;
 
-      // Đường nối chéo từ cuối chiều đi xuống đầu B
-      svgHtml += `<line x1="${endX}" y1="60" x2="${endX}" y2="160" class="line-link" />`;
-
-      // 4. CHIỀU VỀ (Hàng dưới: Từ phải vòng qua các trạm về bên trái)
+      // 4. CHIỀU VỀ (Hàng dưới: Từ phải vòng về trái)
       let stepVe = span / (listVe.length + 1);
-      let prevVeX = endX;
-
       listVe.forEach((tram, idx) => {
         let cx = endX - stepVe * (idx + 1);
         svgHtml += `
-          <line x1="${prevVeX}" y1="160" x2="${cx}" y2="160" class="line-route" />
-          <circle cx="${cx}" cy="160" class="node-dot" />
-          <text x="${cx}" y="192" class="station-text-bottom" transform="rotate(-30 ${cx} 192)">${tram}</text>
+          <circle cx="${cx}" cy="${yBottom}" class="node-dot" />
+          <g transform="translate(${cx}, ${yBottom + 16})">
+            <text class="station-text-bottom" transform="rotate(-40)">${tram}</text>
+          </g>
         `;
-        prevVeX = cx;
       });
 
-      // Đoạn nối cuối chiều về về lại Đầu A
+      // Thêm 2 đầu mút ở mép khung cho chiều về
       svgHtml += `
-        <line x1="${prevVeX}" y1="160" x2="${startX}" y2="160" class="line-route" />
-        <line x1="${startX}" y1="160" x2="${startX}" y2="60" class="line-link" />
-      </svg>
+        <circle cx="${startX}" cy="${yBottom}" class="node-dot" />
+        <circle cx="${endX}" cy="${yBottom}" class="node-dot" />
       `;
+
+      svgHtml += `</svg>`;
 
       $('#schemaSvgContainer').html(svgHtml);
     }
