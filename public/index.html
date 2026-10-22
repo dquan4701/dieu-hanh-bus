@@ -480,6 +480,9 @@
 
           let html = '';
           matched.forEach(xe => {
+            // 👉 Xử lý sạch sẽ, nếu trong xe.sucChua đã có chữ 'chỗ' thì cắt bỏ, sau đó gắn lại đúng 1 chữ 'chỗ' chuẩn chỉnh
+            let sucChuaClean = String(xe.sucChua || '').replace(/chỗ/gi, '').trim();
+            let hienThiSucChua = sucChuaClean ? `${sucChuaClean} chỗ` : '-';
             html += `
               <div class="bus-card-custom">
                 <div style="font-size: 18px; font-weight: 800; color: #111; margin-bottom: 2px;">${xe.bks}</div>
