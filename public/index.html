@@ -757,99 +757,95 @@
       }
     }
 
-    // HÀM VẼ SƠ ĐỒ TUYẾN CHUẨN MẪU BÚÝT (ĐÃ LOẠI BỎ CHẤM THỪA Ở HAI ĐẦU)
+    // HÀM VẼ SƠ ĐỒ TUYẾN CHUẨN MẪU GỐC (IN HOA ĐẬM ĐẦU BẾN, CHẤM ĐỎ RÕ RÀNG)
     function veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr) {
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
       const maxStations = Math.max(listDi.length, listVe.length, 1);
-      const dynamicWidth = Math.max(1100, maxStations * 100 + 350);
+      const dynamicWidth = Math.max(1100, maxStations * 90 + 250);
 
       let svgHtml = `
-        <svg viewBox="0 0 ${dynamicWidth} 280" style="width: 100%; height: auto; min-width: 850px; overflow: visible;">
+        <svg viewBox="0 0 ${dynamicWidth} 130" style="width: 100%; height: auto; min-width: 850px; overflow: visible;">
           <style>
             .station-text-top {
-              font-size: 11px;
+              font-size: 10px;
               fill: #000;
               font-weight: 600;
               text-anchor: start;
             }
             .station-text-bottom {
-              font-size: 11px;
+              font-size: 10px;
               fill: #000;
               font-weight: 600;
               text-anchor: end;
             }
             .line-bus {
               stroke: #111;
-              stroke-width: 3.5;
+              stroke-width: 3;
               fill: none;
               stroke-linejoin: round;
             }
             .node-dot {
-              fill: #E74C3C; /* Chấm tròn đỏ */
+              fill: #E74C3C !important; /* Chấm tròn đỏ nổi bật */
               stroke: #fff;
               stroke-width: 1;
-              r: 5.5;
+              r: 5;
             }
-            .endpoint-text-left {
-              font-size: 13px;
-              font-weight: bold;
+            .endpoint-text {
+              font-size: 12px;
+              font-weight: 900;
               fill: #C0392B;
-              writing-mode: vertical-rl;
-              text-anchor: middle;
-            }
-            .endpoint-text-right {
-              font-size: 13px;
-              font-weight: bold;
-              fill: #C0392B;
-              writing-mode: vertical-rl;
               text-anchor: middle;
             }
           </style>
       `;
 
-      let startX = 140;
-      let endX = dynamicWidth - 140;
-      let yTop = 80;
-      let yBottom = 190;
+      let startX = 110;
+      let endX = dynamicWidth - 110;
+      let yTop = 45;
+      let yBottom = 85;
       let span = endX - startX;
 
-      // 1. KHUNG ĐƯỜNG BĂNG KÉP KHÉP KÍN
+      // Ép tên đầu bến in hoa toàn bộ
+      const dauAInHoa = (dauA || "Đầu A").toUpperCase();
+      const dauBInHoa = (dauB || "Đầu B").toUpperCase();
+
+      // 1. KHUNG ĐƯỜNG BĂNG KÉP KHÉP KÍN (BO CHÉO GỌN GÀNG)
       svgHtml += `
-        <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 35},${yBottom} ${startX - 35},${yBottom}" 
-                 fill="none" stroke="#111" stroke-width="4" stroke-linejoin="round" />
+        <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 25},${yBottom} ${startX - 25},${yBottom}" 
+                 fill="none" stroke="#111" stroke-width="3" stroke-linejoin="round" />
         
         <line x1="${startX}" y1="${yTop}" x2="${endX}" y2="${yTop}" class="line-bus" />
         <line x1="${startX}" y1="${yBottom}" x2="${endX}" y2="${yBottom}" class="line-bus" />
       `;
 
-      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (Trái và Phải)
+      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (IN HOA, IN ĐẬM)
       svgHtml += `
-        <text x="${startX - 65}" y="135" class="endpoint-text-left">${dauA}</text>
-        <text x="${endX + 65}" y="135" class="endpoint-text-right">${dauB}</text>
+        <text x="${startX - 45}" y="65" class="endpoint-text" transform="rotate(90, ${startX - 45}, 65)">${dauAInHoa}</text>
+        <text x="${endX + 45}" y="65" class="endpoint-text" transform="rotate(90, ${endX + 45}, 65)">${dauBInHoa}</text>
       `;
 
-      // 3. CHIỀU ĐI (Hàng trên: Chỉ vẽ các trạm ở giữa, chia đều khoảng cách)
+      // 3. CHIỀU ĐI (Hàng trên)
       let stepDi = span / (listDi.length + 1);
       listDi.forEach((tram, idx) => {
         let cx = startX + stepDi * (idx + 1);
         svgHtml += `
           <circle cx="${cx}" cy="${yTop}" class="node-dot" />
-          <g transform="translate(${cx}, ${yTop - 12})">
-            <text class="station-text-top" transform="rotate(-40)">${tram}</text>
+          <g transform="translate(${cx}, ${yTop - 8})">
+            <text class="station-text-top" transform="rotate(-35)">${tram}</text>
           </g>
         `;
       });
 
-      // 4. CHIỀU VỀ (Hàng dưới: Chỉ vẽ các trạm ở giữa)
+      // 4. CHIỀU VỀ (Hàng dưới)
       let stepVe = span / (listVe.length + 1);
       listVe.forEach((tram, idx) => {
         let cx = endX - stepVe * (idx + 1);
         svgHtml += `
           <circle cx="${cx}" cy="${yBottom}" class="node-dot" />
-          <g transform="translate(${cx}, ${yBottom + 16})">
-            <text class="station-text-bottom" transform="rotate(-40)">${tram}</text>
+          <g transform="translate(${cx}, ${yBottom + 12})">
+            <text class="station-text-bottom" transform="rotate(-35)">${tram}</text>
           </g>
         `;
       });
