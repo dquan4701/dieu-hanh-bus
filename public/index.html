@@ -757,7 +757,7 @@
       }
     }
 
-    // HÀM VẼ SƠ ĐỒ TUYẾN CHUẨN MẪU BÚÝT (ĐƯỜNG BĂNG KÉP, CHẤM ĐỎ, TÊN TRẠM NGHIÊNG)
+    // HÀM VẼ SƠ ĐỒ TUYẾN CHUẨN MẪU BÚÝT (ĐÃ LOẠI BỎ CHẤM THỪA Ở HAI ĐẦU)
     function veSoDoTuyenSVG(dauA, dauB, tramDiStr, tramVeStr) {
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -815,13 +815,11 @@
       let yBottom = 190;
       let span = endX - startX;
 
-      // 1. KHUNG ĐƯỜNG BĂNG KÉP KHÉP KÍN (BO CHÉO HAI ĐẦU)
+      // 1. KHUNG ĐƯỜNG BĂNG KÉP KHÉP KÍN
       svgHtml += `
-        <!-- Viền khung chính -->
         <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 35},${yBottom} ${startX - 35},${yBottom}" 
                  fill="none" stroke="#111" stroke-width="4" stroke-linejoin="round" />
         
-        <!-- Đường ngang chia đôi chiều đi và chiều về bên trong -->
         <line x1="${startX}" y1="${yTop}" x2="${endX}" y2="${yTop}" class="line-bus" />
         <line x1="${startX}" y1="${yBottom}" x2="${endX}" y2="${yBottom}" class="line-bus" />
       `;
@@ -832,7 +830,7 @@
         <text x="${endX + 65}" y="135" class="endpoint-text-right">${dauB}</text>
       `;
 
-      // 3. CHIỀU ĐI (Hàng trên: Từ trái qua phải)
+      // 3. CHIỀU ĐI (Hàng trên: Chỉ vẽ các trạm ở giữa, chia đều khoảng cách)
       let stepDi = span / (listDi.length + 1);
       listDi.forEach((tram, idx) => {
         let cx = startX + stepDi * (idx + 1);
@@ -844,13 +842,7 @@
         `;
       });
 
-      // Thêm 2 đầu mút ở mép khung cho chiều đi
-      svgHtml += `
-        <circle cx="${startX}" cy="${yTop}" class="node-dot" />
-        <circle cx="${endX}" cy="${yTop}" class="node-dot" />
-      `;
-
-      // 4. CHIỀU VỀ (Hàng dưới: Từ phải vòng về trái)
+      // 4. CHIỀU VỀ (Hàng dưới: Chỉ vẽ các trạm ở giữa)
       let stepVe = span / (listVe.length + 1);
       listVe.forEach((tram, idx) => {
         let cx = endX - stepVe * (idx + 1);
@@ -861,12 +853,6 @@
           </g>
         `;
       });
-
-      // Thêm 2 đầu mút ở mép khung cho chiều về
-      svgHtml += `
-        <circle cx="${startX}" cy="${yBottom}" class="node-dot" />
-        <circle cx="${endX}" cy="${yBottom}" class="node-dot" />
-      `;
 
       svgHtml += `</svg>`;
 
