@@ -859,18 +859,27 @@ app.post(['/api/bus-data', '/api/save-data'], verifyAdmin, async (req, res) => {
 
 app.post(['/api/save-tuyen', '/api/tuyen-moi'], verifyAdmin, async (req, res) => {
   try {
-    const { maTuyen, tenTuyen, xn, dauA, dauB, soXeVd, soXeKh, loaiXe, sucChua, status } = req.body;
+    // 👉 Thêm tramDi và tramVe vào đây
+    const { maTuyen, tenTuyen, xn, dauA, dauB, tramDi, tramVe, soXeVd, soXeKh, loaiXe, sucChua, status } = req.body;
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
 
     const raw = await getRawData();
     if (!raw.tuyenList) raw.tuyenList = {};
 
     raw.tuyenList[maTuyen] = {
-      maTuyen, tenTuyen: tenTuyen || `${maTuyen}. Tuyến ${maTuyen}`,
-      xn: xn || "", dauA: dauA || "", dauB: dauB || "",
+      maTuyen, 
+      tenTuyen: tenTuyen || `${maTuyen}. Tuyến ${maTuyen}`,
+      xn:xn || "", 
+      dauA: dauA || "", 
+      dauB: dauB || "",
+      tramDi: tramDi || "", // 👉 Lưu trạm đi
+      tramVe: tramVe || "", // 👉 Lưu trạm về
       soXeVd: parseInt(soXeVd, 10) || raw.tuyenList[maTuyen]?.soXeVd || 0,
-      soXeKh: parseInt(soXeKh, 10) || 0, soXe: parseInt(soXeKh, 10) || 0,
-      loaiXe: loaiXe || "", sucChua: sucChua || "", status: status || "active"
+      soXeKh: parseInt(soXeKh, 10) || 0, 
+      soXe: parseInt(soXeKh, 10) || 0,
+      loaiXe: loaiXe || "", 
+      sucChua: sucChua || "", 
+      status: status || "active"
     };
 
     await saveRawDataFast(raw);
