@@ -831,6 +831,55 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 		res.status(500).json({ success: false, message: err.message });
 	}
 });
+// API lấy dữ liệu bảng biểu đồ chạy xe cho client
+app.get('/api/table-data', async (req, res) => {
+  try {
+    const tabName = req.query.tab;
+    const tuyenQuery = req.query.tuyen;
+    if (!tabName) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin tab biểu đồ!' });
+    }
+
+    const raw = await getRawData();
+    const bieuDoList = raw.bieuDoList || [];
+    
+    // Tìm tab biểu đồ khớp chính xác tên tab
+    let found = bieuDoList.find(b => String(b.tenTab || '').trim() === String(tabName).trim());
+    
+    // Nếu không thấy chính xác, thử tìm theo tuyến
+    if (!found && tuyenQuery) {
+      found = bieuDoList.find(b => String(b.tuyen || '').trim().toUpperCase() === String(tuyenQuery).trim().toUpperCase());
+    }
+
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu biểu đồ cho tab này!' });
+    }
+
+    // Lấy thông tin đầu A, đầu B của tuyến từ tuyenList nếu có
+    let dauA = "Đầu A", dauB = "Đầu B";
+    if (raw.tuyenList) {
+      for (let k in raw.tuyenList) {
+        let t = raw.tuyenList[k];
+        let maT = String(t.maTuyen || k).trim().toUpperCase();
+        let tenT = String(t.tenTuyen || '').trim().toUpperCase();
+        if (tuyenQuery && (tenT.includes(tuyenQuery.toUpperCase()) || maT === tuyenQuery.toUpperCase())) {
+          dauA = t.dauA || "Đầu A";
+          dauB = t.dauB || "Đầu B";
+          break;
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      rawData: found.rawData || [],
+      dauA: dauA,
+      dauB: dauB
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 app.get('/api/bus-data', async (req, res) => {
   try { const data = await getRawData(); res.json(data); } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
