@@ -780,20 +780,26 @@ app.get('/api/danh-muc', async (req, res) => {
 	}
 });
 
-// Thêm API chi tiết tuyến phòng hờ
+// Sửa lại API chi tiết tuyến để khớp chuẩn xác mã tuyến và trả về đúng tramDi, tramVe
 app.get('/api/chi-tiet-tuyen', async (req, res) => {
 	try {
-		const maTuyen = req.query.maTuyen || req.query.tuyen;
-		if (!maTuyen) return res.json({ success: false, message: "Thiếu mã tuyến!" });
+		const queryTuyen = String(req.query.maTuyen || req.query.tuyen || '').trim().toUpperCase();
+		if (!queryTuyen) return res.json({ success: false, message: "Thiếu mã tuyến!" });
 
 		const raw = await getRawData();
 		let tuyenInfo = null;
 
 		if (raw.tuyenList) {
+			// 1. Thử tìm khớp chính xác theo key mã tuyến hoặc thuộc tính maTuyen
 			for (let k in raw.tuyenList) {
 				const t = raw.tuyenList[k];
-				if (String(t.maTuyen || k).toUpperCase() === String(maTuyen).toUpperCase() ||
-					String(t.tenTuyen || '').toUpperCase().includes(String(maTuyen).toUpperCase())) {
+				const maT = String(t.maTuyen || k).trim().toUpperCase();
+				const tenT = String(t.tenTuyen || '').trim().toUpperCase();
+				
+				// Lấy mã tuyến rút gọn phía trước dấu chấm hoặc khoảng trắng (VD: "05" từ "05. Mai Động...")
+				const maTuyenNgan = queryTuyen.split('.')[0].split(' ')[0].trim();
+
+				if (maT === queryTuyen || maT === maTuyenNgan || tenT.startsWith(queryTuyen) || tenT.includes(maTuyenNgan)) {
 					tuyenInfo = t;
 					break;
 				}
@@ -803,8 +809,8 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 		if (!tuyenInfo) {
 			return res.json({
 				success: true,
-				maTuyen: maTuyen,
-				tenTuyen: maTuyen,
+				maTuyen: queryTuyen,
+				tenTuyen: queryTuyen,
 				dauA: "Đầu A",
 				dauB: "Đầu B",
 				tramDi: "",
@@ -814,33 +820,13 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 
 		res.json({
 			success: true,
-			maTuyen: tuyenInfo.maTuyen || maTuyen,
-			tenTuyen: tuyenInfo.tenTuyen || maTuyen,
+			maTuyen: tuyenInfo.maTuyen || queryTuyen,
+			tenTuyen: tuyenInfo.tenTuyen || queryTuyen,
 			dauA: tuyenInfo.dauA || "Đầu A",
 			dauB: tuyenInfo.dauB || "Đầu B",
-			tramDi: tuyenInfo.tramDi || "", // 👉 Trả về danh sách trạm chiều đi
-			tramVe: tuyenInfo.tramVe || ""  // 👉 Trả về danh sách trạm chiều về
+			tramDi: tuyenInfo.tramDi || "", // 👉 Trả về chính xác trạm chiều đi
+			tramVe: tuyenInfo.tramVe || ""  // 👉 Trả về chính xác trạm chiều về
 		});
-	} catch (err) {
-		res.status(500).json({ success: false, message: err.message });
-	}
-});
-app.get('/api/table-data', async (req, res) => {
-	try {
-		const { tab, tuyen } = req.query;
-		const raw = await getRawData();
-		const foundItem = (raw.bieuDoList || []).find(b => String(b.tenTab || '').trim() === String(tab || '').trim());
-		if (!foundItem) return res.status(404).json({ success: false, message: 'Không tìm thấy biểu đồ' });
-
-		let dauA = "", dauB = "";
-		for (let k in raw.tuyenList) {
-			if (raw.tuyenList[k].tenTuyen === foundItem.tuyen || raw.tuyenList[k].maTuyen === tuyen) {
-				dauA = raw.tuyenList[k].dauA || "";
-				dauB = raw.tuyenList[k].dauB || "";
-				break;
-			}
-		}
-		res.json({ success: true, rawData: foundItem.rawData || [], dauA, dauB });
 	} catch (err) {
 		res.status(500).json({ success: false, message: err.message });
 	}
