@@ -42,10 +42,9 @@ async function cleanOldLogs() {
   }
 }
 
-// --- MIDDLEWARE BẢO MẬT & XÁC THỰC QUẢN TRỊ (Theo góp ý của bạn ông) ---
+// --- MIDDLEWARE BẢO MẬT & XÁC THỰC QUẢN TRỊ ---
 async function verifyAdmin(req, res, next) {
   try {
-    // Lấy thông tin người thực hiện từ header hoặc body do client gửi lên
     const username = req.headers['x-admin-user'] || req.body.actorUsername;
     if (!username) {
       return res.status(401).json({ success: false, message: 'Chưa xác thực danh tính quản trị viên!' });
@@ -55,14 +54,13 @@ async function verifyAdmin(req, res, next) {
     if (!user) {
       return res.status(403).json({ success: false, message: 'Tài khoản không hợp lệ hoặc đã bị tạm khóa!' });
     }
-    req.adminUser = user; // Gắn thông tin user đã được server kiểm chứng vào request
+    req.adminUser = user;
     next();
   } catch (err) {
     res.status(500).json({ success: false, message: 'Lỗi xác thực hệ thống: ' + err.message });
   }
 }
 
-// Hàm ghi log an toàn dựa trên thông tin đã xác thực từ Server
 async function recordLog(req, actionDesc) {
   try {
     const user = req.adminUser;
@@ -271,7 +269,6 @@ app.get('/api/thong-bao-chi-tiet', async (req, res) => {
     let activeTexts = [];
     const scheduleList = raw.thongBaoScheduleList || [];
 
-    // 1. Duyệt qua danh sách lịch để gom các thông báo đang có hiệu lực
     if (scheduleList.length > 0) {
       for (let item of scheduleList) {
         const start = new Date(`${item.tuNgay}T${item.tuGio || '00:00'}`);
@@ -285,10 +282,9 @@ app.get('/api/thong-bao-chi-tiet', async (req, res) => {
       }
     }
 
-    // 2. Nối các thông báo đang hiệu lực bằng ký tự ' • ' hoặc dùng thông báo mặc định nếu không có lịch nào khớp
     let finalActiveText = "";
     if (activeTexts.length > 0) {
-      finalActiveText = activeTexts.join("   •   ");
+      finalActiveText = activeTexts.join("    •    ");
     } else {
       finalActiveText = raw.thongBaoChay || "Hệ thống điều hành xe buýt Hà Nội";
     }
@@ -296,7 +292,7 @@ app.get('/api/thong-bao-chi-tiet', async (req, res) => {
     res.json({ 
       success: true, 
       defaultText: raw.thongBaoChay || "", 
-      currentActiveText: finalActiveText, // Gửi chuỗi gộp ra ngoài marquee
+      currentActiveText: finalActiveText, 
       scheduleList: scheduleList 
     });
   } catch (err) {
@@ -304,7 +300,6 @@ app.get('/api/thong-bao-chi-tiet', async (req, res) => {
   }
 });
 
-// Các API quản trị được bảo vệ bởi middleware verifyAdmin
 app.post('/api/admin/luu-thong-bao', verifyAdmin, async (req, res) => {
   try {
     const { text } = req.body;
@@ -520,7 +515,7 @@ app.post('/api/admin/xoa-tai-khoan', verifyAdmin, async (req, res) => {
   }
 });
 
-// --- QUẢN LÝ DANH MỤC MÁC XE MẪU (SỬA LỖI XÓA CHÍNH XÁC THEO CHỦNG LOẠI & NĂM SX) ---
+// --- QUẢN LÝ DANH MỤC MÁC XE MẪU ---
 app.get('/api/admin/danh-sach-xe-mau', async (req, res) => {
   try {
     const raw = await getRawData();
@@ -633,7 +628,6 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
 
     const normMaTuyen = String(maTuyen).trim().toUpperCase();
 
-    // 1. Chuẩn hóa ngày áp dụng (hỗ trợ định dạng dd/mm/yyyy từ frontend gửi lên)
     const today = new Date().toISOString().split('T')[0];
     function parseDateToISO(dateStr) {
       if (!dateStr) return today;
@@ -653,7 +647,6 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
 
     const ngayHieuLuc = ngayApDung ? parseDateToISO(ngayApDung) : today;
 
-    // 2. Xử lý danh sách xe mới được gửi lên
     const newCarsForRoute = (danhSachXe || []).map(x => {
       let bksUpper = String(x.bks || '').trim().toUpperCase();
       let inputChungLoai = x.chungLoai || '';
@@ -676,7 +669,6 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
 
     const bksXeMoiSet = new Set(newCarsForRoute.map(x => x.bks));
 
-    // 3. Phân nhánh: Nếu có hẹn giờ trong tương lai -> Lưu vào bảng chờ lịch trình
     if (ngayHieuLuc > today) {
       if (!Array.isArray(raw.scheduledFleetUpdates)) {
         raw.scheduledFleetUpdates = [];
@@ -698,19 +690,17 @@ app.post('/api/admin/luu-doi-xe-tuyen', verifyAdmin, async (req, res) => {
       });
     }
 
-    // 4. Nếu áp dụng ngay lập tức:
     const otherCars = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() !== normMaTuyen);
     const xeCuCuaTuyen = raw.xeList.filter(x => String(x.maTuyen || '').trim().toUpperCase() === normMaTuyen);
 
     const finalXeList = [...otherCars];
     finalXeList.push(...newCarsForRoute);
 
-    // Tự động đẩy các xe cũ không còn có mặt trong danh sách mới về bến 'DP' (Dự phòng)
     xeCuCuaTuyen.forEach(xeCu => {
       if (!bksXeMoiSet.has(xeCu.bks)) {
         finalXeList.push({
           ...xeCu,
-          maTuyen: 'DP', // 👉 Đẩy về bến Dự Phòng
+          maTuyen: 'DP',
           updatedAt: new Date()
         });
       }
@@ -751,8 +741,8 @@ app.get('/api/danh-muc', async (req, res) => {
 						xn: item.xn || "",
 						dauA: item.dauA || "",
 						dauB: item.dauB || "",
-						tramDi: item.tramDi || "", // 👉 Đã bổ sung trạm đi
-						tramVe: item.tramVe || "", // 👉 Đã bổ sung trạm về
+						tramDi: item.tramDi || "",
+						tramVe: item.tramVe || "",
 						soXeVd: item.soXeVd || 0,
 						soXeKh: item.soXeKh || item.soXe || 0,
 						loaiXe: item.loaiXe || "",
@@ -780,7 +770,53 @@ app.get('/api/danh-muc', async (req, res) => {
 	}
 });
 
-// Sửa lại API chi tiết tuyến để khớp chuẩn xác mã tuyến và trả về đúng tramDi, tramVe
+// ✅ ĐƯA API /api/table-data LÊN TRƯỚC /api/chi-tiet-tuyen Ở ĐÂY ĐỂ TRÁNH BỊ 404
+app.get('/api/table-data', async (req, res) => {
+  try {
+    const tabName = req.query.tab;
+    const tuyenQuery = req.query.tuyen;
+    if (!tabName) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin tab biểu đồ!' });
+    }
+
+    const raw = await getRawData();
+    const bieuDoList = raw.bieuDoList || [];
+    
+    let found = bieuDoList.find(b => String(b.tenTab || '').trim() === String(tabName).trim());
+    
+    if (!found && tuyenQuery) {
+      found = bieuDoList.find(b => String(b.tuyen || '').trim().toUpperCase() === String(tuyenQuery).trim().toUpperCase());
+    }
+
+    if (!found) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu biểu đồ cho tab này!' });
+    }
+
+    let dauA = "Đầu A", dauB = "Đầu B";
+    if (raw.tuyenList) {
+      for (let k in raw.tuyenList) {
+        let t = raw.tuyenList[k];
+        let maT = String(t.maTuyen || k).trim().toUpperCase();
+        let tenT = String(t.tenTuyen || '').trim().toUpperCase();
+        if (tuyenQuery && (tenT.includes(tuyenQuery.toUpperCase()) || maT === tuyenQuery.toUpperCase())) {
+          dauA = t.dauA || "Đầu A";
+          dauB = t.dauB || "Đầu B";
+          break;
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      rawData: found.rawData || [],
+      dauA: dauA,
+      dauB: dauB
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.get('/api/chi-tiet-tuyen', async (req, res) => {
 	try {
 		const queryTuyen = String(req.query.maTuyen || req.query.tuyen || '').trim().toUpperCase();
@@ -790,13 +826,10 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 		let tuyenInfo = null;
 
 		if (raw.tuyenList) {
-			// 1. Thử tìm khớp chính xác theo key mã tuyến hoặc thuộc tính maTuyen
 			for (let k in raw.tuyenList) {
 				const t = raw.tuyenList[k];
 				const maT = String(t.maTuyen || k).trim().toUpperCase();
 				const tenT = String(t.tenTuyen || '').trim().toUpperCase();
-				
-				// Lấy mã tuyến rút gọn phía trước dấu chấm hoặc khoảng trắng (VD: "05" từ "05. Mai Động...")
 				const maTuyenNgan = queryTuyen.split('.')[0].split(' ')[0].trim();
 
 				if (maT === queryTuyen || maT === maTuyenNgan || tenT.startsWith(queryTuyen) || tenT.includes(maTuyenNgan)) {
@@ -824,62 +857,14 @@ app.get('/api/chi-tiet-tuyen', async (req, res) => {
 			tenTuyen: tuyenInfo.tenTuyen || queryTuyen,
 			dauA: tuyenInfo.dauA || "Đầu A",
 			dauB: tuyenInfo.dauB || "Đầu B",
-			tramDi: tuyenInfo.tramDi || "", // 👉 Trả về chính xác trạm chiều đi
-			tramVe: tuyenInfo.tramVe || ""  // 👉 Trả về chính xác trạm chiều về
+			tramDi: tuyenInfo.tramDi || "",
+			tramVe: tuyenInfo.tramVe || ""
 		});
 	} catch (err) {
 		res.status(500).json({ success: false, message: err.message });
 	}
 });
-// API lấy dữ liệu bảng biểu đồ chạy xe cho client
-app.get('/api/table-data', async (req, res) => {
-  try {
-    const tabName = req.query.tab;
-    const tuyenQuery = req.query.tuyen;
-    if (!tabName) {
-      return res.status(400).json({ success: false, message: 'Thiếu thông tin tab biểu đồ!' });
-    }
 
-    const raw = await getRawData();
-    const bieuDoList = raw.bieuDoList || [];
-    
-    // Tìm tab biểu đồ khớp chính xác tên tab
-    let found = bieuDoList.find(b => String(b.tenTab || '').trim() === String(tabName).trim());
-    
-    // Nếu không thấy chính xác, thử tìm theo tuyến
-    if (!found && tuyenQuery) {
-      found = bieuDoList.find(b => String(b.tuyen || '').trim().toUpperCase() === String(tuyenQuery).trim().toUpperCase());
-    }
-
-    if (!found) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy dữ liệu biểu đồ cho tab này!' });
-    }
-
-    // Lấy thông tin đầu A, đầu B của tuyến từ tuyenList nếu có
-    let dauA = "Đầu A", dauB = "Đầu B";
-    if (raw.tuyenList) {
-      for (let k in raw.tuyenList) {
-        let t = raw.tuyenList[k];
-        let maT = String(t.maTuyen || k).trim().toUpperCase();
-        let tenT = String(t.tenTuyen || '').trim().toUpperCase();
-        if (tuyenQuery && (tenT.includes(tuyenQuery.toUpperCase()) || maT === tuyenQuery.toUpperCase())) {
-          dauA = t.dauA || "Đầu A";
-          dauB = t.dauB || "Đầu B";
-          break;
-        }
-      }
-    }
-
-    res.json({
-      success: true,
-      rawData: found.rawData || [],
-      dauA: dauA,
-      dauB: dauB
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
 app.get('/api/bus-data', async (req, res) => {
   try { const data = await getRawData(); res.json(data); } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
@@ -894,7 +879,6 @@ app.post(['/api/bus-data', '/api/save-data'], verifyAdmin, async (req, res) => {
 
 app.post(['/api/save-tuyen', '/api/tuyen-moi'], verifyAdmin, async (req, res) => {
   try {
-    // 👉 Thêm tramDi và tramVe vào đây
     const { maTuyen, tenTuyen, xn, dauA, dauB, tramDi, tramVe, soXeVd, soXeKh, loaiXe, sucChua, status } = req.body;
     if (!maTuyen) return res.status(400).json({ success: false, message: 'Thiếu mã tuyến!' });
 
@@ -907,8 +891,8 @@ app.post(['/api/save-tuyen', '/api/tuyen-moi'], verifyAdmin, async (req, res) =>
       xn:xn || "", 
       dauA: dauA || "", 
       dauB: dauB || "",
-      tramDi: tramDi || "", // 👉 Lưu trạm đi
-      tramVe: tramVe || "", // 👉 Lưu trạm về
+      tramDi: tramDi || "",
+      tramVe: tramVe || "",
       soXeVd: parseInt(soXeVd, 10) || raw.tuyenList[maTuyen]?.soXeVd || 0,
       soXeKh: parseInt(soXeKh, 10) || 0, 
       soXe: parseInt(soXeKh, 10) || 0,
