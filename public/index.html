@@ -635,19 +635,19 @@
 
     function timTabPhuHop(xn, tuyen, ngayChonStr, thuDaChon) {
       if (!tuyen) return null;
-      const maTuyenNgan = tuyen.split('.')[0].trim().toUpperCase();
       
+      // Lọc chính xác tên tuyến trùng khớp hoàn toàn hoặc bắt đầu bằng mã tuyến sạch
       let dsTabCuaTuyen = danhMucData.filter(item => {
         let matchXn = !xn || item.xn === xn;
-        let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
-        let matchTuyen = tStr.includes(tuyen.toUpperCase()) || tStr.includes(maTuyenNgan);
-        return matchXn && matchTuyen;
+        let tStr = String(item.tuyen || "").trim().toUpperCase();
+        let targetTuyen = tuyen.trim().toUpperCase();
+        return matchXn && (tStr === targetTuyen || tStr.startsWith(targetTuyen + " -") || tStr.startsWith(targetTuyen + "."));
       });
 
       if (dsTabCuaTuyen.length === 0) {
         dsTabCuaTuyen = danhMucData.filter(item => {
-          let tStr = String(item.tuyen || item.tenTab || "").toUpperCase();
-          return tStr.includes(tuyen.toUpperCase()) || tStr.includes(maTuyenNgan);
+          let tStr = String(item.tuyen || "").trim().toUpperCase();
+          return tStr.includes(tuyen.trim().toUpperCase());
         });
       }
 
@@ -667,7 +667,6 @@
       });
 
       if (matchedTab) return matchedTab.tenTab;
-
       return dsCungNgay[0].tenTab || dsTabCuaTuyen[0].tenTab || null;
     }
 
@@ -764,23 +763,19 @@
       const listDi = tramDiStr ? tramDiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
       const listVe = tramVeStr ? tramVeStr.split(',').map(s => s.trim()).filter(Boolean) : [];
 
-      // Tìm tên trạm dài nhất để tự động phình to chiều cao cho phù hợp
       let maxLen = 0;
       [...listDi, ...listVe].forEach(t => { if (t.length > maxLen) maxLen = t.length; });
 
-      // Khoảng đệm linh hoạt theo độ dài chữ
-      let paddingY = maxLen > 20 ? 75 : 55;
-
+      let paddingY = maxLen > 20 ? 85 : 60;
       const maxStations = Math.max(listDi.length, listVe.length, 1);
-      const dynamicWidth = Math.max(1300, maxStations * 100 + 450);
+      const dynamicWidth = Math.max(1300, maxStations * 100 + 500); // Mở rộng lề hai bên để chứa đầu bến
 
-      // 👉 Tự động co giãn toạ độ và tổng chiều cao cực kỳ linh hoạt
-      let yTop = 85 + paddingY;
-      let yBottom = yTop + 70;
-      let totalHeight = yBottom + paddingY + 30;
+      let yTop = 90 + paddingY;
+      let yBottom = yTop + 80;
+      let totalHeight = yBottom + paddingY + 40;
       
-      let startX = 180;
-      let endX = dynamicWidth - 180;
+      let startX = 220; // Tăng khoảng cách lề trái
+      let endX = dynamicWidth - 220; // Tăng khoảng cách lề phải
       let span = endX - startX;
 
       let svgHtml = `
@@ -791,56 +786,33 @@
               text-rendering: geometricPrecision;
               -webkit-font-smoothing: antialiased;
             }
-            .station-text-top {
-              font-size: 11px;
-              fill: #000;
-              font-weight: 600;
-              text-anchor: start;
-            }
-            .station-text-bottom {
-              font-size: 11px;
-              fill: #000;
-              font-weight: 600;
-              text-anchor: end;
-            }
-            .line-bus {
-              stroke: #111;
-              stroke-width: 3;
-              fill: none;
-              stroke-linejoin: round;
-            }
-            .node-dot {
-              fill: #E74C3C;
-              stroke: #fff;
-              stroke-width: 0.8;
-              r: 5;
-            }
-            .endpoint-text {
-              font-size: 12px;
-              font-weight: 900;
-              fill: #C0392B;
-              text-anchor: middle;
-            }
+            .station-text-top { font-size: 11px; fill: #000; font-weight: 600; text-anchor: start; }
+            .station-text-bottom { font-size: 11px; fill: #000; font-weight: 600; text-anchor: end; }
+            .line-bus { stroke: #111; stroke-width: 3; fill: none; stroke-linejoin: round; }
+            .node-dot { fill: #E74C3C; stroke: #fff; stroke-width: 0.8; r: 5; }
+            .endpoint-text { font-size: 11px; font-weight: 900; fill: #C0392B; text-anchor: middle; }
           </style>
       `;
 
-      const dauAInHoa = (dauA || "Đầu A").toUpperCase();
-      const dauBInHoa = (dauB || "Đầu B").toUpperCase();
+      // Cắt gọn tên đầu bến nếu quá dài để tránh đè vỡ khung
+      let rawA = (dauA || "Đầu A").toUpperCase();
+      let rawB = (dauB || "Đầu B").toUpperCase();
+      const dauAInHoa = rawA.length > 30 ? rawA.substring(0, 28) + '...' : rawA;
+      const dauBInHoa = rawB.length > 30 ? rawB.substring(0, 28) + '...' : rawB;
 
       // 1. KHUNG ĐƯỜNG BĂNG KÉP
       svgHtml += `
-        <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 30},${yBottom} ${startX - 30},${yBottom}" 
+        <polygon points="${startX},${yTop} ${endX},${yTop} ${endX + 35},${yBottom} ${startX - 35},${yBottom}" 
                  fill="none" stroke="#111" stroke-width="3" stroke-linejoin="round" />
-        
         <line x1="${startX}" y1="${yTop}" x2="${endX}" y2="${yTop}" class="line-bus" />
         <line x1="${startX}" y1="${yBottom}" x2="${endX}" y2="${yBottom}" class="line-bus" />
       `;
 
-      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (Căn giữa linh hoạt theo khung)
+      // 2. TÊN ĐẦU BẾN DỌC Ở HAI ĐẦU (Căn giữa hoàn hảo trong khung đường băng)
       let yCenter = (yTop + yBottom) / 2;
       svgHtml += `
-        <text x="${startX - 60}" y="${yCenter}" class="endpoint-text" transform="rotate(-90, ${startX - 60}, ${yCenter})">${dauAInHoa}</text>
-        <text x="${endX + 60}" y="${yCenter}" class="endpoint-text" transform="rotate(-90, ${endX + 60}, ${yCenter})">${dauBInHoa}</text>
+        <text x="${startX - 75}" y="${yCenter}" class="endpoint-text" transform="rotate(-90, ${startX - 75}, ${yCenter})">${dauAInHoa}</text>
+        <text x="${endX + 75}" y="${yCenter}" class="endpoint-text" transform="rotate(-90, ${endX + 75}, ${yCenter})">${dauBInHoa}</text>
       `;
 
       // 3. CHIỀU ĐI (Hàng trên)
@@ -870,7 +842,7 @@
       svgHtml += `</svg>`;
       $('#schemaSvgContainer').html(svgHtml);
     }
-
+    
     function chuanHoaGio(str) {
       if (!str) return "";
       str = String(str).trim();
