@@ -128,7 +128,6 @@
     .btn-default { background-color: #f0f0f0; border-color: #ccc; color: #333; }
     .btn:hover { opacity: 0.9; }
 
-    /* CSS Bọc Bảng & Tối ưu hiển thị Responsive */
     .table-responsive-wrapper {
       width: 100%;
       background: #fff;
@@ -192,8 +191,6 @@
         padding: 6px 8px; 
         font-size: 11px; 
       }
-      .table-custom th:nth-child(5), .table-custom td:nth-child(5) { width: 110px; text-align: center; }
-      .table-custom th:nth-child(6), .table-custom td:nth-child(6) { width: 150px; text-align: center; }
       .btn { padding: 4px 8px; font-size: 11px; height: 28px; }
     }
   </style>
@@ -443,15 +440,25 @@
                     </div>
                   </div>
 
-                  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <span style="font-size: 11px; color: #666; font-style: italic;">Danh sách phương tiện thuộc tuyến hiện tại:</span>
-                    <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe thủ công</button>
+                  <!-- Thanh công cụ điều chuyển hàng loạt & Thêm xe -->
+                  <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #EBF2F8; padding: 8px 12px; border: 1px solid #C4D5E5; border-radius: 6px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                      <span style="font-size: 11px; font-weight: bold; color: #1A5276;"><i class="fa fa-check-square-o"></i> Điều chuyển xe đã chọn sang:</span>
+                      <select id="selTuyenChuyenHangLoat" class="form-control" style="width: 180px; height: 28px; font-size: 11px;">
+                        <option value="DP">-- Bến Dự Phòng (DP) --</option>
+                      </select>
+                      <button type="button" class="btn btn-warning" style="padding: 4px 10px; font-size: 11px; height: 28px; color: #000;" onclick="chuyenXeChonHangLoatForm()">
+                        <i class="fa fa-exchange"></i> Chuyển xe đã chọn
+                      </button>
+                    </div>
+                    <button type="button" class="btn btn-success" style="padding: 4px 10px; font-size: 11px; height: 28px;" onclick="themDongXeMoi()"><i class="fa fa-plus"></i> Thêm xe thủ công</button>
                   </div>
                   
                   <div class="table-responsive-wrapper" style="border: 1px solid #D0D7DE; border-radius: 6px; max-height: 300px; background: #FFF;">
                     <table class="table-custom" style="margin-top: 0;">
                       <thead>
                         <tr>
+                          <th style="width: 35px; text-align: center;"><input type="checkbox" id="chkSelectAllFormXe" onchange="toggleSelectAllFormXe(this)" title="Chọn/Bỏ chọn tất cả"></th>
                           <th style="width: 40px; text-align: center;">STT</th>
                           <th style="width: 130px;">Biển kiểm soát</th>
                           <th>Chủng loại xe (Chọn từ Danh mục mẫu)</th>
@@ -1120,6 +1127,17 @@
         danhSachXe = [{ bks: '', chungLoai: '', sucChua: '', namSx: '' }];
       }
 
+      // Cập nhật danh sách Tuyến mới trong dropdown Điều chuyển hàng loạt
+      const $selBatch = $('#selTuyenChuyenHangLoat');
+      const curBatchVal = $selBatch.val() || 'DP';
+      $selBatch.empty().append('<option value="DP">-- Bến Dự Phòng (DP) --</option>');
+      mapTuyenChiTiet.forEach(t => {
+        if (t.maTuyen !== $('#txtMaTuyen').val()) {
+          $selBatch.append(new Option(`Tuyến ${t.maTuyen} - ${t.tenTuyen}`, t.maTuyen));
+        }
+      });
+      $selBatch.val(curBatchVal);
+
       danhSachXe.forEach((xe, idx) => {
         let tuyenOptions = '<option value="">-- Chuyển tuyến --</option>';
         mapTuyenChiTiet.forEach(t => {
@@ -1139,6 +1157,7 @@
 
         html += `
           <tr class="xe-row-item" data-old-bks="${xe.bks || ''}">
+            <td style="text-align: center;"><input type="checkbox" class="chk-xe-item-form" value="${xe.bks || ''}"></td>
             <td style="text-align: center; font-weight: bold; color: #555;">${idx + 1}</td>
             <td><input type="text" class="form-control form-bks" value="${xe.bks || ''}" placeholder="VD: 29F-019.79" style="height: 28px;"></td>
             <td>
@@ -1160,7 +1179,56 @@
         `;
       });
       $('#tblFormDanhSachXe').html(html);
+      $('#chkSelectAllFormXe').prop('checked', false);
       $('.select2-search').select2({ language: { noResults: () => "Không tìm thấy kết quả phù hợp" } });
+    }
+
+    function toggleSelectAllFormXe(masterChk) {
+      $('.chk-xe-item-form').prop('checked', masterChk.checked);
+    }
+
+    async function chuyenXeChonHangLoatForm() {
+      const selectedBks = [];
+      $('.chk-xe-item-form:checked').each(function() {
+        const bks = $(this).closest('tr').find('.form-bks').val().trim().toUpperCase();
+        if (bks) selectedBks.push(bks);
+      });
+
+      const tuyenMoi = $('#selTuyenChuyenHangLoat').val();
+
+      if (selectedBks.length === 0) {
+        showToast("Vui lòng tích chọn ít nhất 1 xe để điều chuyển!", "error");
+        return;
+      }
+
+      const tenTuyenTarget = tuyenMoi === 'DP' ? 'Bến Dự Phòng (DP)' : `Tuyến ${tuyenMoi}`;
+      if (!confirm(`Bạn có chắc chắn muốn điều chuyển ${selectedBks.length} xe đã chọn sang [${tenTuyenTarget}] không?`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/dieu-chuyen-xe-hang-loat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-user': sessionStorage.getItem('admin_user')
+          },
+          body: JSON.stringify({
+            ...getAdminInfo(),
+            bksList: selectedBks,
+            tuyenMoi: tuyenMoi
+          })
+        }).then(r => r.json());
+
+        if (res.success) {
+          showToast(res.message, "success");
+          await napDuLieuTong($('#txtMaTuyen').val());
+        } else {
+          showToast(res.message || "Lỗi điều chuyển!", "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối máy chủ!", "error");
+      }
     }
 
     function chonMauXe(selectElem) {
@@ -1198,11 +1266,10 @@
 
     function capNhatLaiSTTForm() {
       $('#tblFormDanhSachXe tr').each(function(i) {
-        $(this).find('td:first').text(i + 1);
+        $(this).find('td:nth-child(2)').text(i + 1);
       });
     }
 
-    // HÀM IMPORT XE TỪ EXCEL ĐÃ FIX HỖ TRỢ CẢ TAB LẪN KHOẢNG TRẮNG
     function importXeChoTuyenHienTai() {
       const rawText = $('#txtImportXeTuyenRieng').val().trim();
       if (!rawText) {
@@ -1312,7 +1379,6 @@
       } catch (err) {}
     }
 
-    // HÀM LƯU TUYẾN VÀ ĐỘI XE ĐÃ FIX CHUẨN key chungLoai VÀ LƯU ĐỦ TRẠM
     async function xacLapTuyenVaDoiXe() {
       const maTuyen = $('#txtMaTuyen').val().trim();
       
